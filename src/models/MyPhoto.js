@@ -1,0 +1,42 @@
+import mongoose from 'mongoose';
+
+
+const { Schema } = mongoose;
+
+const myPhotoSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  idAuthor: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  type: {
+    type: String,
+    enum: ['img', 'video', 'record'],
+    required: true,
+  },
+  url: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updateAt: {
+    type: Date,
+    default: null,
+  },
+  _destroy: {
+    type: Date,
+    default: null,
+  },
+});
+
+const MyPhoto = mongoose.model('MyPhoto', myPhotoSchema);
+export default MyPhoto;

@@ -16,7 +16,7 @@ const swaggerOptions = {
             },
         ],
     },
-    apis: ['./src/routes/*.js'], // Đường dẫn tới file chứa định nghĩa endpoint
+    apis: ['./src/routes/*.js'],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);

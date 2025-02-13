@@ -3,7 +3,7 @@ import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
-import {connectDB, disconnectDB } from "./config/mongooseConfig.js";
+import {connectDB } from "./config/mongooseConfig.js";
 import {swaggerDocs, swaggerUi} from "./config/swaggerConfig.js";
 import { APIsRoute } from './routes/index.js';
 import cors from 'cors';
@@ -25,7 +25,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(process.cwd(), 'public')));
 
 // swagger config
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { explorer: true }));
 
 app.use(cors({
   origin: env.FRONT_END_URL,
@@ -35,6 +35,7 @@ app.use(cors({
 
 // Connect route
 app.use('/apis', APIsRoute);
+
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
