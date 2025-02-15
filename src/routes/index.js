@@ -14,10 +14,17 @@ import { articleRoute } from './articleRoute.js'
 import { commentRoute } from './commentRoute.js'
 import { groupRoute } from './groupRoute.js'
 import { pageRoute } from './pageRoute.js'
+import { addFriendRoute } from './addFriendRoute.js'
+import { collectiondRoute } from './collectionRoute.js'
+import { conversationdRoute } from './conversationRoute.js'
+import { historyArticledRoute } from './historyArticleRoute.js'
+import { provideRoute } from './provideRoute.js'
+import { reelsRoute } from './reelsRoute.js'
 
 const Router = express.Router()
 
 Router.use('/accounts', accountRoute)
+Router.use('/add-friends', addFriendRoute)
 Router.use('/hobbies', hobbyRoute)
 Router.use('/addresses', addressRoute)
 Router.use('/tickets', ticketRoute)
@@ -32,6 +39,11 @@ Router.use('/articles', articleRoute)
 Router.use('/comments', commentRoute)
 Router.use('/groups', groupRoute)
 Router.use('/pages', pageRoute)
+Router.use('/collections', collectiondRoute)
+Router.use('/conversations', conversationdRoute)
+Router.use('/history-article', historyArticledRoute)
+Router.use('/provide', provideRoute)
+Router.use('/reels', reelsRoute)
 // Router.use('/reports', reportRoute)
 
 export const APIsRoute = Router
