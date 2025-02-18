@@ -7,7 +7,6 @@ import {connectDB } from "./config/mongooseConfig.js";
 import {swaggerDocs, swaggerUi} from "./config/swaggerConfig.js";
 import { APIsRoute } from './routes/index.js';
 import cors from 'cors';
-import {env} from "./config/environment.js";
 
 const app = express();
 
@@ -28,7 +27,8 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { explorer: true }));
 
 app.use(cors({
-  origin: env.FRONT_END_URL,
+  //origin: env.FRONT_END_URL,
+  origin: "*",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));

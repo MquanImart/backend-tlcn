@@ -7,7 +7,9 @@ const Router = express.Router();
  * @swagger
  * tags:
  *   name: Articles
+ *   description: API quản lý bài viết
  */
+
 
 /**
  * @swagger
@@ -15,9 +17,26 @@ const Router = express.Router();
  *   get:
  *     summary: Lấy danh sách bài viết
  *     tags: [Articles]
+ *     parameters:
+ *       - in: query
+ *         name: createdBy
+ *         schema:
+ *           type: string
+ *         description: ID người tạo bài viết (lọc theo người tạo)
+ *       - in: query
+ *         name: groupID
+ *         schema:
+ *           type: string
+ *         description: ID nhóm (lọc theo nhóm)
  *     responses:
  *       200:
  *         description: Trả về danh sách bài viết
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Article'
  */
 Router.get('/', articleController.getArticles);
 
@@ -37,6 +56,12 @@ Router.get('/', articleController.getArticles);
  *     responses:
  *       200:
  *         description: Trả về bài viết
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Article'
+ *       404:
+ *         description: Không tìm thấy bài viết
  */
 Router.get('/:id', articleController.getArticleById);
 
@@ -51,25 +76,16 @@ Router.get('/:id', articleController.getArticleById);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               createdBy:
- *                 type: string
- *                 example: "60f7ebeb2f8fb814b56fa181"
- *               sharedPostId:
- *                 type: string
- *                 example: "60f7ebeb2f8fb814b56fa182"
- *               content:
- *                 type: string
- *                 example: "Bài viết mới"
- *               hashTag:
- *                 type: array
- *                 items:
- *                   type: string
- *                   example: ["hashtag1", "hashtag2"]
+ *             $ref: '#/components/schemas/Article'
  *     responses:
  *       201:
  *         description: Tạo bài viết thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Article'
+ *       400:
+ *         description: Thiếu dữ liệu bắt buộc
  */
 Router.post('/', articleController.createArticle);
 
@@ -86,9 +102,24 @@ Router.post('/', articleController.createArticle);
  *         schema:
  *           type: string
  *         description: ID của bài viết cần cập nhật
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 example: "Nội dung mới của bài viết"
+ *               scope:
+ *                 type: string
+ *                 example: "private"
  *     responses:
  *       200:
  *         description: Cập nhật bài viết thành công
+ *       404:
+ *         description: Không tìm thấy bài viết
  */
 Router.patch('/:id', articleController.updateArticleById);
 
@@ -98,6 +129,16 @@ Router.patch('/:id', articleController.updateArticleById);
  *   patch:
  *     summary: Cập nhật tất cả bài viết
  *     tags: [Articles]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               scope:
+ *                 type: string
+ *                 example: "public"
  *     responses:
  *       200:
  *         description: Cập nhật tất cả bài viết thành công
@@ -108,7 +149,7 @@ Router.patch('/', articleController.updateAllArticles);
  * @swagger
  * /articles/{id}:
  *   delete:
- *     summary: Xóa bài viết theo ID
+ *     summary: Xóa bài viết theo ID (Soft Delete)
  *     tags: [Articles]
  *     parameters:
  *       - in: path
@@ -120,6 +161,8 @@ Router.patch('/', articleController.updateAllArticles);
  *     responses:
  *       200:
  *         description: Xóa bài viết thành công
+ *       404:
+ *         description: Không tìm thấy bài viết
  */
 Router.delete('/:id', articleController.deleteArticleById);
 
