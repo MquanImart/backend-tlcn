@@ -1,4 +1,5 @@
 import { reportService } from "../services/reportService.js";
+import { articleService } from "../services/articleService.js";
 
 const getReports = async (req, res) => {
   try {
@@ -21,10 +22,22 @@ const getReportById = async (req, res) => {
 
 const createReport = async (req, res) => {
   try {
-    const newReport = await reportService.createReport(req.body);
-    res.status(201).json({ success: true, data: newReport, message: 'Tạo báo cáo thành công' });
+    const { _idReporter, reason, articleId } = req.body;
+
+    if (!articleId) {
+      return res.status(400).json({ success: false, message: "Thiếu ID bài viết" });
+    }
+    const newReport = await reportService.createReport({ _idReporter, reason });
+
+    await articleService.updateArticleById(articleId, { $push: { reports: newReport._id } });
+
+    res.status(201).json({
+      success: true,
+      data: newReport,
+      message: "Tạo báo cáo thành công và cập nhật vào bài viết",
+    });
   } catch (error) {
-    res.status(500).json({ success: false, data: null, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

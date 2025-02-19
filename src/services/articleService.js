@@ -63,7 +63,7 @@ const createArticle = async (data) => {
 };
 
 const updateArticleById = async (id, data) => {
-  return await Article.findByIdAndUpdate(id, data, { new: true })
+  return await Article.findByIdAndUpdate(id, data, { new: true, useFindAndModify: false });
 };
 
 const updateAllArticles = async (data) => {

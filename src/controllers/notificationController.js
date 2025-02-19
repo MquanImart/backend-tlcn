@@ -7,8 +7,6 @@ const getNotifications = async (req, res) => {
     if (!receiverId) {
       return res.status(400).json({ success: false, data: null, message: "receiverId là bắt buộc" });
     }
-
-    console.log(`🔍 API Call: /notifications?receiverId=${receiverId}&status=${status}`);
     
     const result = await notificationService.getNotificationsByStatus(receiverId, status);
     res.status(200).json(result);

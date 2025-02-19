@@ -44,7 +44,7 @@ Router.get('/:id', reportController.getReportById);
  * @swagger
  * /reports:
  *   post:
- *     summary: Tạo báo cáo mới
+ *     summary: Tạo báo cáo mới và gán vào bài viết
  *     tags: [Reports]
  *     requestBody:
  *       required: true
@@ -52,22 +52,50 @@ Router.get('/:id', reportController.getReportById);
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [_idReporter, reason, articleId] # Đảm bảo articleId là bắt buộc
  *             properties:
  *               _idReporter:
  *                 type: string
+ *                 description: ID của người báo cáo
  *                 example: "60f7ebeb2f8fb814b56fa181"
  *               reason:
  *                 type: string
+ *                 description: Lý do báo cáo
  *                 example: "Nội dung vi phạm"
+ *               articleId:
+ *                 type: string
+ *                 description: ID của bài viết bị báo cáo
+ *                 example: "65d1e6b8f5a1a3f1a9b1c679"
  *               status:
  *                 type: string
  *                 enum: ['pending', 'accepted', 'rejected']
+ *                 default: "pending"
  *                 example: "pending"
  *     responses:
  *       201:
- *         description: Tạo báo cáo thành công
+ *         description: Báo cáo được tạo thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id: { type: string, example: "65d1e7b8f5a1a3f1a9b1c680" }
+ *                     _idReporter: { type: string, example: "60f7ebeb2f8fb814b56fa181" }
+ *                     reason: { type: string, example: "Nội dung vi phạm" }
+ *                     reportDate: { type: string, format: date-time, example: "2025-02-20T10:30:00.000Z" }
+ *                     status: { type: string, example: "pending" }
+ *                 message: { type: string, example: "Tạo báo cáo thành công" }
+ *       400:
+ *         description: Thiếu thông tin (_idReporter, reason, articleId)
+ *       500:
+ *         description: Lỗi máy chủ
  */
 Router.post('/', reportController.createReport);
+
 
 /**
  * @swagger
