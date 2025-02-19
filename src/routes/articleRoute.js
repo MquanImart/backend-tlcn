@@ -166,4 +166,41 @@ Router.patch('/', articleController.updateAllArticles);
  */
 Router.delete('/:id', articleController.deleteArticleById);
 
+/**
+* @swagger
+* /articles/{articleId}/like:
+*   patch:
+*     summary: Like hoặc bỏ like bài viết
+*     tags: [Articles]
+*     parameters:
+*       - in: path
+*         name: articleId
+*         required: true
+*         schema:
+*           type: string
+*         description: ID bài viết cần like/unlike
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             properties:
+*               userId:
+*                 type: string
+*                 description: ID người dùng thực hiện thao tác like/unlike
+*     responses:
+*       200:
+*         description: Thao tác like/unlike thành công
+*       400:
+*         description: userId là bắt buộc
+*       404:
+*         description: Bài viết không tồn tại
+ */
+
+
+Router.patch('/:articleId/like', articleController.toggleLike);
+
+
+
 export const articleRoute = Router;

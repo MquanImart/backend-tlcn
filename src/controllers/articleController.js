@@ -57,6 +57,42 @@ const deleteArticleById = async (req, res) => {
   }
 };
 
+const toggleLike = async (req, res) => {
+  try {
+    const { articleId } = req.params;
+    const { userId } = req.body; 
+    
+    console.log('Request Body:', req.body);
+    console.log('Request Query:', req.query);
+
+    console.log('userId:', userId);
+    if (!userId) {  
+      return res.status(400).json({
+        success: false,
+        data: null, 
+        message: 'userId là bắt buộc',
+      });
+    }
+
+    const updatedArticle = await articleService.toggleLike(articleId, userId);
+
+    res.status(200).json({
+      success: true,
+      data: updatedArticle,
+      message: 'Thao tác like/unlike thành công',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+
+
+
+
 export const articleController = {
   getArticles,
   getArticleById,
@@ -64,4 +100,5 @@ export const articleController = {
   updateArticleById,
   updateAllArticles,
   deleteArticleById,
+  toggleLike
 };

@@ -74,6 +74,29 @@ const deleteArticleById = async (id) => {
   return await Article.findByIdAndUpdate(id, { _destroy: Date.now() }, { new: true });
 };
 
+const toggleLike = async (articleId, userId) => {
+  const article = await Article.findById(articleId);
+
+  if (!article) {
+    throw new Error('Bài viết không tồn tại');
+  }
+
+  const liked = article.emoticons.includes(userId);
+
+  if (liked) {
+    article.emoticons = article.emoticons.filter(id => id.toString() !== userId.toString());
+  } else {
+    article.emoticons.push(userId);
+  }
+
+  await article.save();
+
+  return article;
+};
+
+
+
+
 export const articleService = {
   getArticles,
   getArticleById,
@@ -81,4 +104,5 @@ export const articleService = {
   updateArticleById,
   updateAllArticles,
   deleteArticleById,
+  toggleLike
 };
