@@ -40,11 +40,15 @@ Router.get('/', commentController.getComments);
  */
 Router.get('/:id', commentController.getCommentById);
 
+
 /**
  * @swagger
  * /comments:
  *   post:
  *     summary: Tạo bình luận mới
+ *     description: |
+ *       - **Bình luận cấp 1** (trên bài viết): Chỉ cần truyền `articleId`
+ *       - **Bình luận cấp 2+** (trả lời bình luận khác): Chỉ cần truyền `replyComment`
  *     tags: [Comments]
  *     requestBody:
  *       required: true
@@ -55,24 +59,35 @@ Router.get('/:id', commentController.getCommentById);
  *             properties:
  *               _iduser:
  *                 type: string
+ *                 description: ID của người bình luận
  *                 example: "60f7ebeb2f8fb814b56fa181"
  *               content:
  *                 type: string
- *                 example: "Bình luận của tôi"
+ *                 description: Nội dung bình luận
+ *                 example: "Đây là một bình luận"
  *               img:
- *                 type: string
- *                 example: "image-url"
- *               replyComment:
- *                 type: string
- *                 example: "60f7ebeb2f8fb814b56fa182"
- *               emoticons:
  *                 type: array
+ *                 description: Danh sách hình ảnh đính kèm bình luận
  *                 items:
  *                   type: string
- *                   example: "60f7ebeb2f8fb814b56fa181"
+ *                 example: ["image-url-1", "image-url-2"]
+ *               articleId:
+ *                 type: string
+ *                 description: ID của bài viết (chỉ dùng cho bình luận cấp 1)
+ *                 example: "65d2ebeb2f8fb814b56fa111"
+ *               replyComment:
+ *                 type: string
+ *                 description: ID của bình luận cha (chỉ dùng khi trả lời bình luận khác)
+ *                 example: "65d2ebeb2f8fb814b56fa112"
  *     responses:
  *       201:
- *         description: Tạo bình luận thành công
+ *         description: Bình luận được tạo thành công
+ *       400:
+ *         description: Thiếu thông tin bắt buộc (`_iduser` hoặc `content`)
+ *       404:
+ *         description: Bài viết hoặc bình luận cha không tồn tại
+ *       500:
+ *         description: Lỗi máy chủ khi xử lý yêu cầu
  */
 Router.post('/', commentController.createComment);
 

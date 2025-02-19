@@ -1,4 +1,5 @@
 import Article from "../models/Article.js";
+import Comment from "../models/Comment.js";
 
 const getArticles = async () => {
   return await Article.find({ _destroy: null })
@@ -19,32 +20,8 @@ const getArticles = async () => {
       },
     })
     .populate({
-      path: 'comments',
-      select: '_id _iduser content img replyComment emoticons createdAt updatedAt',
-      populate: {
-        path: '_iduser',
-        select: '_id displayName avt',
-        populate: {
-          path: 'avt',
-          select: '_id name type url createdAt',
-        },
-      },
-    })
-    .populate({
-      path: 'emoticons',
-      select: '_id displayName avt',
-      populate: {
-        path: 'avt',
-        select: '_id name type url',
-      },
-    })
-    .populate({
       path: 'groupID',
       select: '_id groupName type idCreater introduction avt members hobbies createdAt',
-      populate: {
-        path: 'idCreater',
-        select: '_id displayName avt',
-      },
     })
     .populate({
       path: 'address',
@@ -95,7 +72,55 @@ const toggleLike = async (articleId, userId) => {
 };
 
 
+const deepPopulateComments = async (comments) => {
+  return await Comment.populate(comments, {
+    path: "replyComment",
+    match: { _destroy: null },
+    populate: [
+      {
+        path: "_iduser",
+        select: "displayName avt",
+        populate: { path: "avt", select: "url" },
+      },
+      {
+        path: "replyComment",
+        match: { _destroy: null },
+      },
+    ],
+  });
+};
 
+/**
+ * Lấy tất cả bình luận của bài viết, bao gồm tất cả bình luận con (đệ quy)
+ */
+const getCommentsByArticleId = async (articleId) => {
+  const article = await Article.findById(articleId)
+    .populate({
+      path: "comments",
+      match: { _destroy: null },
+      populate: [
+        {
+          path: "_iduser",
+          select: "displayName avt",
+          populate: { path: "avt", select: "url" },
+        },
+        {
+          path: "replyComment",
+          match: { _destroy: null },
+        },
+      ],
+    })
+    .select("comments");
+
+  if (!article || !article.comments) return [];
+
+  let comments = article.comments;
+
+  // Gọi hàm đệ quy để lấy tất cả bình luận con
+  comments = await deepPopulateComments(comments);
+
+  return comments;
+};
 
 export const articleService = {
   getArticles,
@@ -104,5 +129,6 @@ export const articleService = {
   updateArticleById,
   updateAllArticles,
   deleteArticleById,
-  toggleLike
+  toggleLike,
+  getCommentsByArticleId
 };

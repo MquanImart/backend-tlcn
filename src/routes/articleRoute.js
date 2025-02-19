@@ -197,10 +197,27 @@ Router.delete('/:id', articleController.deleteArticleById);
 *       404:
 *         description: Bài viết không tồn tại
  */
-
-
 Router.patch('/:articleId/like', articleController.toggleLike);
 
 
+
+/**
+ * @swagger
+ * /articles/{articleId}/comments:
+ *   get:
+ *     summary: Lấy tất cả bình luận của bài viết theo ID bài viết (bao gồm tất cả bình luận con)
+ *     tags: [Articles]
+ *     parameters:
+ *       - in: path
+ *         name: articleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của bài viết cần lấy bình luận
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách bình luận của bài viết, bao gồm bình luận con
+ */
+Router.get("/:articleId/comments", articleController.getCommentsByArticleId);
 
 export const articleRoute = Router;

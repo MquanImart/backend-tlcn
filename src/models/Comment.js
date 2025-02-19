@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import User from './User.js';
+import MyPhoto from './MyPhoto.js';
 
 const { Schema } = mongoose;
 
@@ -14,14 +15,14 @@ const commentSchema = new Schema({
     required: true,
     trim: true,
   },
-  img: {
-    type: String,
-    trim: true,
-  },
-  replyComment: {
+  img: [{
+    type: Schema.Types.ObjectId,
+    ref: 'MyPhoto', 
+  }],
+  replyComment: [{
     type: Schema.Types.ObjectId,
     ref: 'Comment',
-  },
+  }],  
   emoticons: [{
     type: Schema.Types.ObjectId,
     ref: 'User', 

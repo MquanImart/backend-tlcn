@@ -91,7 +91,32 @@ const toggleLike = async (req, res) => {
 };
 
 
+const getCommentsByArticleId = async (req, res) => {
+  try {
+    const { articleId } = req.params;
+    const comments = await articleService.getCommentsByArticleId(articleId);
 
+    if (!comments || comments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        data: [],
+        message: "Không tìm thấy bình luận cho bài viết này",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: comments,
+      message: "Lấy danh sách bình luận thành công",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
 
 export const articleController = {
   getArticles,
@@ -100,5 +125,6 @@ export const articleController = {
   updateArticleById,
   updateAllArticles,
   deleteArticleById,
-  toggleLike
+  toggleLike,
+  getCommentsByArticleId
 };
