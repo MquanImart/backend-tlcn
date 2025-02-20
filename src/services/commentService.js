@@ -2,10 +2,36 @@ import Comment from "../models/Comment.js";
 
 const getComments = async () => {
   return await Comment.find({ _destroy: null })
+    .populate({
+      path: '_iduser',
+      select: 'displayName avt',
+      populate: { path: 'avt', select: 'url' }
+    })
+    .populate({
+      path: 'replyComment',
+      populate: {
+        path: '_iduser',
+        select: 'displayName avt',
+        populate: { path: 'avt', select: 'url' }
+      }
+    });
 };
 
 const getCommentById = async (id) => {
   return await Comment.findOne({ _id: id, _destroy: null })
+    .populate({
+      path: '_iduser',
+      select: 'displayName avt',
+      populate: { path: 'avt', select: 'url' }
+    })
+    .populate({
+      path: 'replyComment',
+      populate: {
+        path: '_iduser',
+        select: 'displayName avt',
+        populate: { path: 'avt', select: 'url' }
+      }
+    });
 };
 
 const createComment = async (data) => {

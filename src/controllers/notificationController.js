@@ -2,8 +2,14 @@ import { notificationService } from "../services/notificationService.js";
 
 const getNotifications = async (req, res) => {
   try {
-    const notifications = await notificationService.getNotifications();
-    res.status(200).json({ success: true, data: notifications, message: 'Lấy danh sách thông báo thành công' });
+    const { receiverId, status } = req.query;
+    
+    if (!receiverId) {
+      return res.status(400).json({ success: false, data: null, message: "receiverId là bắt buộc" });
+    }
+    
+    const result = await notificationService.getNotificationsByStatus(receiverId, status);
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ success: false, data: null, message: error.message });
   }

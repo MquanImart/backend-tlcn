@@ -1,4 +1,6 @@
 import { commentService } from '../services/commentService.js';
+import { articleService } from '../services/articleService.js';
+import mongoose from "mongoose";
 
 const getComments = async (req, res) => {
   try {
@@ -19,14 +21,86 @@ const getCommentById = async (req, res) => {
   }
 };
 
+
 const createComment = async (req, res) => {
   try {
-    const newComment = await commentService.createComment(req.body);
-    res.status(201).json({ success: true, data: newComment, message: 'Tạo bình luận thành công' });
+    const { _iduser, content, img, articleId, replyComment } = req.body;
+
+    if (!_iduser || !content) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "Thiếu thông tin người dùng hoặc nội dung bình luận",
+      });
+    }
+
+    let newCommentData = {
+      _iduser,
+      content,
+      img,
+    };
+
+    let newComment;
+
+    if (articleId && !replyComment) {
+      const article = await articleService.getArticleById(articleId);
+      if (!article) {
+        return res.status(404).json({
+          success: false,
+          data: null,
+          message: "Bài viết không tồn tại",
+        });
+      }
+
+      newComment = await commentService.createComment(newCommentData);
+      
+      article.comments.push(newComment._id);
+      await article.save();
+
+      return res.status(201).json({
+        success: true,
+        data: newComment,
+        message: "Tạo bình luận thành công",
+      });
+    }
+
+    if (replyComment && !articleId) {
+      const parentComment = await commentService.getCommentById(replyComment);
+      if (!parentComment) {
+        return res.status(404).json({
+          success: false,
+          data: null,
+          message: "Bình luận cha không tồn tại",
+        });
+      }
+
+      newComment = await commentService.createComment(newCommentData);
+
+      parentComment.replyComment.push(newComment._id);
+      await parentComment.save();
+
+      return res.status(201).json({
+        success: true,
+        data: newComment,
+        message: "Tạo bình luận cấp 2+ thành công",
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      data: null,
+      message: "Cần có `articleId` hoặc `replyComment` để tạo bình luận",
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, data: null, message: error.message });
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
   }
 };
+
 
 const updateCommentById = async (req, res) => {
   try {
@@ -57,6 +131,36 @@ const deleteCommentById = async (req, res) => {
   }
 };
 
+const likeComment = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const commentId = req.params.id;
+    
+
+    if (!mongoose.Types.ObjectId.isValid(commentId)) {
+      return res.status(400).json({ success: false, message: "ID bình luận không hợp lệ" });
+    }
+
+    const comment = await commentService.getCommentById(commentId);
+    if (!comment) {
+      return res.status(404).json({ success: false, data: null,  message: "Bình luận không tồn tại" });
+    }
+    const hasLiked = comment.emoticons.includes(userId);
+    if (hasLiked) {
+      comment.emoticons = comment.emoticons.filter((id) => id.toString() !== userId);
+    } else {
+      comment.emoticons.push(userId);
+    }
+
+    await comment.save();
+
+    return res.status(200).json({ success: true, data: comment, message: "Cập nhật like/unlike thành công" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 export const commentController = {
   getComments,
   getCommentById,
@@ -64,4 +168,5 @@ export const commentController = {
   updateCommentById,
   updateAllComments,
   deleteCommentById,
+  likeComment
 };

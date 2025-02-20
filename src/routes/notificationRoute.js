@@ -13,8 +13,22 @@ const Router = express.Router();
  * @swagger
  * /notifications:
  *   get:
- *     summary: Lấy danh sách thông báo
+ *     summary: Lấy danh sách thông báo theo trạng thái
  *     tags: [Notifications]
+ *     parameters:
+ *       - in: query
+ *         name: receiverId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người nhận
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [read, unread]
+ *         description: Trạng thái của thông báo (read, unread). Bỏ qua để lấy tất cả.
  *     responses:
  *       200:
  *         description: Trả về danh sách thông báo
