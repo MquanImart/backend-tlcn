@@ -52,22 +52,97 @@ Router.get('/:id', groupController.getGroupById);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - groupName
+ *               - warningLevel
+ *               - type
+ *               - idCreater
  *             properties:
  *               groupName:
  *                 type: string
+ *                 description: Tên của nhóm
  *                 example: "Nhóm học tập"
  *               warningLevel:
- *                 type: number
+ *                 type: integer
  *                 enum: [0, 1, 2, 3]
+ *                 description: Mức độ cảnh báo của nhóm (0 - Bình thường, 3 - Cảnh báo cao)
  *                 example: 1
  *               type:
  *                 type: string
  *                 enum: ['public', 'private']
+ *                 description: Loại nhóm (public hoặc private)
  *                 example: "private"
+ *               idCreater:
+ *                 type: string
+ *                 format: ObjectId
+ *                 description: ID của người tạo nhóm
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *               introduction:
+ *                 type: string
+ *                 description: Giới thiệu về nhóm
+ *                 example: "Nhóm này dành cho những ai yêu thích học tập và nghiên cứu."
+ *               avt:
+ *                 type: string
+ *                 format: ObjectId
+ *                 description: ID của ảnh đại diện nhóm
+ *                 example: "60f7ebeb2f8fb814b56fa182"
+ *               rule:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Danh sách các quy tắc của nhóm
+ *                 example: ["Không spam", "Không đăng nội dung vi phạm pháp luật"]
+ *               hobbies:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: ObjectId
+ *                 description: Danh sách sở thích liên quan đến nhóm
+ *                 example: ["60f7ebeb2f8fb814b56fa183", "60f7ebeb2f8fb814b56fa184"]
  *     responses:
  *       201:
- *         description: Tạo nhóm thành công
+ *         description: Nhóm được tạo thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Group'
+ *                 message:
+ *                   type: string
+ *                   example: "Tạo nhóm thành công"
+ *       400:
+ *         description: Lỗi dữ liệu đầu vào không hợp lệ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Dữ liệu không hợp lệ"
+ *       500:
+ *         description: Lỗi server
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Lỗi máy chủ"
  */
+
 Router.post('/', groupController.createGroup);
 
 /**
