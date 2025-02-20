@@ -18,7 +18,7 @@ import { addFriendRoute } from './addFriendRoute.js'
 import { collectiondRoute } from './collectionRoute.js'
 import { conversationdRoute } from './conversationRoute.js'
 import { historyArticledRoute } from './historyArticleRoute.js'
-import { provideRoute } from './provideRoute.js'
+import { provinceRoute } from './provinceRoute.js'
 import { reelsRoute } from './reelsRoute.js'
 
 const Router = express.Router()
@@ -42,7 +42,7 @@ Router.use('/pages', pageRoute)
 Router.use('/collections', collectiondRoute)
 Router.use('/conversations', conversationdRoute)
 Router.use('/history-article', historyArticledRoute)
-Router.use('/provide', provideRoute)
+Router.use('/province', provinceRoute)
 Router.use('/reels', reelsRoute)
 // Router.use('/reports', reportRoute)
 
