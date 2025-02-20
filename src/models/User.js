@@ -46,7 +46,8 @@ const userSchema = new Schema({
     default: Date.now,
   },
   hobbies: [{
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: 'Hobby', 
   }],
   friends: [{
     type: Schema.Types.ObjectId,
@@ -75,15 +76,15 @@ const userSchema = new Schema({
   },
   saveAddress: [{
     type: Schema.Types.ObjectId,
-    ref: 'Address', // Liên kết với Address model
+    ref: 'Address', 
   }],
   trips: [{
     type: Schema.Types.ObjectId,
-    ref: 'Trip', // Liên kết với Trip model
+    ref: 'Trip', 
   }],
   collections: [{
     type: Schema.Types.ObjectId,
-    ref: 'Collection', // Liên kết với Collection model
+    ref: 'Collection', 
   }],
   groups: {
     _id: {
@@ -91,16 +92,16 @@ const userSchema = new Schema({
     },
     createGroups: [{
       type: Schema.Types.ObjectId,
-      ref: 'Group', // Liên kết với Group model
+      ref: 'Group', 
     }],
     saveGroups: [{
       type: Schema.Types.ObjectId,
-      ref: 'Group', // Liên kết với Group model
+      ref: 'Group', 
     }],
   },
   follow: [{
     type: Schema.Types.ObjectId,
-    ref: 'User', // Danh sách người dùng được follow
+    ref: 'User', 
   }],
   setting: {
     profileVisibility: {

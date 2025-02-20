@@ -7,11 +7,11 @@ import {connectDB } from "./config/mongooseConfig.js";
 import {swaggerDocs, swaggerUi} from "./config/swaggerConfig.js";
 import { APIsRoute } from './routes/index.js';
 import cors from 'cors';
-import {env} from "./config/environment.js";
 
 const app = express();
 
 // connect to db
+app.use(express.json()); 
 connectDB();
 
 // view engine setup
@@ -19,7 +19,6 @@ app.set('views', path.join(process.cwd(), 'views')); // Sử dụng process.cwd(
 app.set('view engine', 'jade');
 
 app.use(logger('dev'));
-app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(process.cwd(), 'public')));
@@ -28,7 +27,8 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, { explorer: true }));
 
 app.use(cors({
-  origin: env.FRONT_END_URL,
+  //origin: env.FRONT_END_URL,
+  origin: "*",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));

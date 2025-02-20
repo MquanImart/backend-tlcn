@@ -18,10 +18,6 @@ const articleSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Article', 
   },
-  handleDate: {
-    type: String,
-    trim: true,
-  },
   reports: [{
     type: Schema.Types.ObjectId,
     ref: 'Report',
