@@ -73,21 +73,44 @@ const toggleLike = async (articleId, userId) => {
 
 
 const deepPopulateComments = async (comments) => {
-  return await Comment.populate(comments, {
+  // Nếu không có bình luận nào, trả về ngay lập tức
+  if (!comments || comments.length === 0) return comments;
+
+  // Dùng phương thức populate để lấy bình luận con cho từng bình luận
+  const populatedComments = await Comment.populate(comments, {
     path: "replyComment",
-    match: { _destroy: null },
+    match: { _destroy: null }, // Lọc các bình luận không bị xóa
     populate: [
       {
-        path: "_iduser",
+        path: "_iduser",  // Populate thông tin người dùng cho từng bình luận
         select: "displayName avt",
-        populate: { path: "avt", select: "url" },
+        populate: { 
+          path: "avt",  // Populate URL avatar cho người dùng
+          select: "url" 
+        },
       },
       {
-        path: "replyComment",
+        path: "replyComment",  // Tiếp tục đệ quy populate các bình luận con
         match: { _destroy: null },
+        populate: [
+          {
+            path: "_iduser",
+            select: "displayName avt",
+            populate: { path: "avt", select: "url" },
+          },
+        ],
       },
     ],
   });
+
+  // Duyệt qua các bình luận và kiểm tra xem có bình luận con nào không để tiếp tục đệ quy
+  for (let comment of populatedComments) {
+    if (comment.replyComment && comment.replyComment.length > 0) {
+      comment.replyComment = await deepPopulateComments(comment.replyComment);
+    }
+  }
+
+  return populatedComments;
 };
 
 /**
@@ -121,6 +144,7 @@ const getCommentsByArticleId = async (articleId) => {
 
   return comments;
 };
+
 
 export const articleService = {
   getArticles,

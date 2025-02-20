@@ -133,7 +133,6 @@ const deleteCommentById = async (req, res) => {
 export const commentController = {
   getComments,
   getCommentById,
-  getCommentsByArticleId,
   createComment,
   updateCommentById,
   updateAllComments,
