@@ -6,7 +6,11 @@ const getGroups = async () => {
 
 const getGroupById = async (id) => {
   return await Group.findOne({ _id: id, _destroy: null })
+    .populate('avt', 'url name') // Lấy các trường url và name của avt
+    .populate('members.idUser', '_id'); // Lấy _id của các thành viên trong nhóm
 };
+
+
 
 const createGroup = async (data) => {
   return await Group.create(data);
@@ -23,6 +27,8 @@ const updateAllGroups = async (data) => {
 const deleteGroupById = async (id) => {
   return await Group.findByIdAndUpdate(id, { _destroy: Date.now() }, { new: true });
 };
+
+
 
 export const groupService = {
   getGroups,

@@ -121,4 +121,50 @@ Router.patch('/', userController.updateAllUsers);
  */
 Router.delete('/:id', userController.deleteUserById);
 
+/**
+ * @swagger
+ * /users/{id}/saved-groups:
+ *   get:
+ *     summary: Lấy danh sách nhóm mà người dùng đã lưu
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách nhóm đã lưu
+ *       404:
+ *         description: Người dùng không tồn tại hoặc chưa lưu nhóm nào
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get("/:id/saved-groups", userController.getSavedGroups);
+
+/**
+ * @swagger
+ * /users/{id}/my-groups:
+ *   get:
+ *     summary: Lấy danh sách nhóm mà người đó tạo
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách nhóm đã lưu
+ *       404:
+ *         description: Người dùng không tồn tại hoặc chưa lưu nhóm nào
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get("/:id/my-groups", userController.getMyGroups);
+
 export const userRoute = Router;
