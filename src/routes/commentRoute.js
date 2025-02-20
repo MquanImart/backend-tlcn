@@ -40,7 +40,6 @@ Router.get('/', commentController.getComments);
  */
 Router.get('/:id', commentController.getCommentById);
 
-
 /**
  * @swagger
  * /comments:
@@ -140,5 +139,40 @@ Router.patch('/', commentController.updateAllComments);
  *         description: Xóa bình luận thành công
  */
 Router.delete('/:id', commentController.deleteCommentById);
+
+/**
+ * @swagger
+ * /comments/{commentId}/like:
+ *   patch:
+ *     summary: Like hoặc Unlike bình luận
+ *     tags: [Comments]
+ *     parameters:
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của bình luận cần like/unlike
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID của người dùng thực hiện thao tác
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *     responses:
+ *       200:
+ *         description: Thao tác like/unlike thành công
+ *       400:
+ *         description: Thiếu thông tin đầu vào
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+Router.patch('/:id/like', commentController.likeComment);
+
 
 export const commentRoute = Router;
