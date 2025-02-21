@@ -97,7 +97,7 @@ const getArticleAllGroups = async (userId) => {
 
     const approvedArticleIds = groups.flatMap(group =>
       group.article
-        ?.filter(article => article.idArticle)
+        ?.filter(article => article.state === "approved") 
         .map(article => article.idArticle._id) || []
     );
   

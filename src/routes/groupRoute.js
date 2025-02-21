@@ -233,6 +233,94 @@ Router.delete('/:id', groupController.deleteGroupById);
  */
 Router.patch('/:id/join', groupController.requestJoinOrLeaveGroup);
 
+/**
+ * @swagger
+ * /groups/{id}/approved-articles:
+ *   get:
+ *     summary: Lấy tất cả bài viết đã được duyệt trong nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách bài viết đã duyệt
+ *       404:
+ *         description: Nhóm không tồn tại hoặc không có bài viết đã duyệt
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get("/:id/approved-articles", groupController.getApprovedArticles);
+
+/**
+ * @swagger
+ * /groups/{id}/pending-articles:
+ *   get:
+ *     summary: Lấy danh sách bài viết đang chờ duyệt trong nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách bài viết đang chờ duyệt
+ *       404:
+ *         description: Nhóm không tồn tại hoặc không có bài viết chờ duyệt
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/:id/pending-articles', groupController.getPendingArticles);
+
+/**
+ * @swagger
+ * /groups/{id}/articles/{articleId}:
+ *   patch:
+ *     summary: Duyệt hoặc hủy duyệt bài viết trong nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm
+ *       - in: path
+ *         name: articleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của bài viết cần duyệt hoặc hủy duyệt
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - action
+ *             properties:
+ *               action:
+ *                 type: string
+ *                 enum: [approve, reject]
+ *                 description: Hành động cần thực hiện (approve - duyệt, reject - hủy duyệt)
+ *                 example: "approve"
+ *     responses:
+ *       200:
+ *         description: Cập nhật trạng thái bài viết thành công
+ *       404:
+ *         description: Nhóm hoặc bài viết không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/articles/:articleId', groupController.updateArticleStatus);
 
 
 export const groupRoute = Router;
