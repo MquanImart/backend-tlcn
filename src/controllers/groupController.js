@@ -74,6 +74,89 @@ const requestJoinOrLeaveGroup = async (req, res) => {
   }
 };
 
+const getApprovedArticles = async (req, res) => {
+  try {
+    const groupId = req.params.id;
+
+    // Gọi service để lấy bài viết đã duyệt
+    const approvedArticles = await groupService.getApprovedArticles(groupId);
+
+    if (!approvedArticles.length) {
+      return res.status(404).json({
+        success: false,
+        data: [],
+        message: "Không có bài viết nào đã được duyệt trong nhóm",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: approvedArticles,
+      message: "Lấy danh sách bài viết đã duyệt thành công",
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy bài viết đã duyệt:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: "Lỗi server",
+    });
+  }
+};
+
+const getPendingArticles = async (req, res) => {
+  try {
+    const groupId = req.params.id;
+
+    // Gọi service để lấy bài viết đã duyệt
+    const approvedArticles = await groupService.getPendingArticles(groupId);
+
+    if (!approvedArticles.length) {
+      return res.status(404).json({
+        success: false,
+        data: [],
+        message: "Không có bài viết nào đã được duyệt trong nhóm",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: approvedArticles,
+      message: "Lấy danh sách bài viết đã duyệt thành công",
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy bài viết đã duyệt:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: "Lỗi server",
+    });
+  }
+};
+
+const updateArticleStatus = async (req, res) => {
+  const { id: groupId, articleId } = req.params;
+  const { action } = req.body;
+
+  try {
+    // Gọi service để cập nhật trạng thái bài viết
+    const result = await groupService.updateArticleStatus(groupId, articleId, action);
+
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        message: `Bài viết đã được ${action === 'approve' ? 'duyệt' : 'hủy duyệt'} thành công.`,
+      });
+    } else {
+      return res.status(result.status).json(result);
+    }
+  } catch (error) {
+    console.error('Lỗi khi cập nhật trạng thái bài viết:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};
+
+
 export const groupController = {
   getGroups,
   getGroupById,
@@ -81,5 +164,8 @@ export const groupController = {
   updateGroupById,
   updateAllGroups,
   deleteGroupById,
-  requestJoinOrLeaveGroup
+  requestJoinOrLeaveGroup,
+  getApprovedArticles,
+  getPendingArticles,
+  updateArticleStatus
 };
