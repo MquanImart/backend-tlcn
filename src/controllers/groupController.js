@@ -57,6 +57,23 @@ const deleteGroupById = async (req, res) => {
   }
 };
 
+const requestJoinOrLeaveGroup = async (req, res) => {
+  try {
+    const { id: groupId } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "Thiếu thông tin người dùng" });
+    }
+
+    const response = await groupService.requestJoinOrLeaveGroup(groupId, userId);
+
+    res.status(response.success ? 200 : 400).json(response);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const groupController = {
   getGroups,
   getGroupById,
@@ -64,4 +81,5 @@ export const groupController = {
   updateGroupById,
   updateAllGroups,
   deleteGroupById,
+  requestJoinOrLeaveGroup
 };

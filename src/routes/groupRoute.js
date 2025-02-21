@@ -195,4 +195,44 @@ Router.patch('/', groupController.updateAllGroups);
  */
 Router.delete('/:id', groupController.deleteGroupById);
 
+/**
+ * @swagger
+ * /groups/{id}/join:
+ *   patch:
+ *     summary: Gửi hoặc hủy yêu cầu tham gia nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần tham gia hoặc hủy yêu cầu
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID của người dùng gửi yêu cầu tham gia hoặc hủy yêu cầu
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *     responses:
+ *       200:
+ *         description: Xử lý thành công
+ *       400:
+ *         description: Lỗi dữ liệu hoặc trạng thái không hợp lệ
+ *       404:
+ *         description: Nhóm không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/join', groupController.requestJoinOrLeaveGroup);
+
+
+
 export const groupRoute = Router;
