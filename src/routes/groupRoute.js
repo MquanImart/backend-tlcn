@@ -322,5 +322,104 @@ Router.get('/:id/pending-articles', groupController.getPendingArticles);
  */
 Router.patch('/:id/articles/:articleId', groupController.updateArticleStatus);
 
+/**
+ * @swagger
+ * /groups/{id}/rules:
+ *   get:
+ *     summary: Lấy rule theo ID
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần lấy
+ *     responses:
+ *       200:
+ *         description: Trả về nhóm
+ */
+Router.get('/:id/rules', groupController.getRulesById);
+
+/**
+ * @swagger
+ * /groups/{id}/rules:
+ *   patch:
+ *     summary: Thêm quy tắc vào nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần thêm quy tắc
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rule
+ *             properties:
+ *               rule:
+ *                 type: string
+ *                 description: Quy tắc cần thêm vào nhóm
+ *                 example: "Không chia sẻ thông tin cá nhân"
+ *     responses:
+ *       200:
+ *         description: Thêm quy tắc thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Thêm quy tắc thành công"
+ *       404:
+ *         description: Nhóm không tồn tại
+ *       400:
+ *         description: Lỗi dữ liệu đầu vào không hợp lệ
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/rules', groupController.addRuleToGroup);
+
+/**
+ * @swagger
+ * /groups/{id}/rules/{ruleValue}:
+ *   patch:
+ *     summary: Xóa một quy tắc khỏi nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần xóa quy tắc
+ *       - in: path
+ *         name: ruleValue
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Giá trị của quy tắc cần xóa
+ *     responses:
+ *       200:
+ *         description: Xóa quy tắc thành công
+ *       404:
+ *         description: Nhóm hoặc quy tắc không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/rules/:ruleValue', groupController.deleteRule);
+
+
+
 
 export const groupRoute = Router;

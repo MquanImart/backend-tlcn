@@ -156,7 +156,6 @@ const updateArticleStatus = async (groupId, articleId, action) => {
       };
     }
 
-    // Tìm bài viết trong nhóm (dựa trên idArticle trong trường article)
     const articleIndex = group.article.findIndex((article) => article.idArticle.toString() === articleId);
     if (articleIndex === -1) {
       return {
@@ -166,14 +165,12 @@ const updateArticleStatus = async (groupId, articleId, action) => {
       };
     }
 
-    // Cập nhật trạng thái bài viết
     if (action === 'approve') {
       group.article[articleIndex].state = 'approved';
     } else if (action === 'reject') {
-      group.article[articleIndex].state = 'rejected'; // Hoặc 'rejected', tùy vào yêu cầu của bạn
+      group.article[articleIndex].state = 'rejected'; 
     }
 
-    // Lưu lại thay đổi vào cơ sở dữ liệu
     await group.save();
 
     return { success: true, message: `Bài viết đã được ${action === 'approve' ? 'duyệt' : 'hủy duyệt'} thành công.` };
@@ -183,6 +180,49 @@ const updateArticleStatus = async (groupId, articleId, action) => {
   }
 };
 
+const getRulesById = async (groupId) => {
+  return await Group.findOne({ _id: groupId, _destroy: null }) 
+    .select('rule')
+};
+
+const addRuleToGroup = async (groupId, rule) => {
+  const group = await Group.findById(groupId);
+
+  if (!group) {
+    throw new Error('Nhóm không tồn tại');
+  }
+  if (group.rule.includes(rule)) {
+    throw new Error('Quy tắc đã tồn tại');
+  }
+
+  group.rule.push(rule);
+
+  return await group.save();
+};
+
+
+
+const deleteRuleFromGroup = async (groupId, ruleValue) => {
+  try {
+    const group = await Group.findOne({ _id: groupId, _destroy: null });
+    if (!group) {
+      return { success: false, message: 'Nhóm không tồn tại' };
+    }
+
+    const ruleIndex = group.rule.indexOf(ruleValue);
+    if (ruleIndex === -1) {
+      return { success: false, message: 'Quy tắc không tồn tại' };
+    }
+
+    group.rule.splice(ruleIndex, 1);
+    await group.save();
+
+    return { success: true, message: 'Xóa quy tắc thành công', data: group };
+  } catch (error) {
+    console.error('Lỗi khi xóa quy tắc:', error);
+    return { success: false, message: 'Lỗi server' };
+  }
+};
 
 
 export const groupService = {
@@ -196,5 +236,8 @@ export const groupService = {
   requestJoinOrLeaveGroup,
   getApprovedArticles,
   getPendingArticles,
-  updateArticleStatus
+  updateArticleStatus,
+  getRulesById,
+  addRuleToGroup,
+  deleteRuleFromGroup
 };
