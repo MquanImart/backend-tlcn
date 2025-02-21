@@ -5,7 +5,7 @@ const getArticles = async () => {
   return await Article.find({ _destroy: null })
     .populate({
       path: 'createdBy',
-      select: '_id displayName hashtag address avt aboutMe createdAt hobbies friends articles groups follow setting',
+      select: '_id displayName avt ',
       populate: {
         path: 'avt',
         select: '_id name idAuthor type url createdAt updateAt',
@@ -21,7 +21,7 @@ const getArticles = async () => {
     })
     .populate({
       path: 'groupID',
-      select: '_id groupName type idCreater introduction avt members hobbies createdAt',
+      select: '_id groupName ',
     })
     .populate({
       path: 'address',
@@ -33,6 +33,31 @@ const getArticles = async () => {
 
 const getArticleById = async (id) => {
   return await Article.findOne({ _id: id, _destroy: null })
+  .populate({
+    path: 'createdBy',
+    select: '_id displayName avt ',
+    populate: {
+      path: 'avt',
+      select: '_id name idAuthor type url createdAt updateAt',
+    },
+  })
+  .populate({
+    path: 'listPhoto',
+    select: '_id name idAuthor type url createdAt updateAt',
+    populate: {
+      path: 'idAuthor',
+      select: '_id displayName avt',
+    },
+  })
+  .populate({
+    path: 'groupID',
+    select: '_id groupName ',
+  })
+  .populate({
+    path: 'address',
+    select: '_id province district ward street placeName lat long',
+  })
+  .sort({ createdAt: -1 });
 };
 
 const createArticle = async (data) => {

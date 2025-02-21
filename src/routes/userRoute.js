@@ -167,4 +167,52 @@ Router.get("/:id/saved-groups", userController.getSavedGroups);
  */
 Router.get("/:id/my-groups", userController.getMyGroups);
 
+/**
+ * @swagger
+ * /users/{id}/not-joined-groups:
+ *   get:
+ *     summary: Lấy danh sách nhóm mà người dùng chưa tham gia
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách nhóm chưa tham gia
+ *       404:
+ *         description: Người dùng không tồn tại hoặc không có nhóm phù hợp
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get("/:id/not-joined-groups", userController.getNotJoinedGroups);
+
+/**
+ * @swagger
+ * /users/{id}/group-articles:
+ *   get:
+ *     summary: Lấy tất cả bài viết đã duyệt từ các nhóm mà người dùng tham gia
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách các bài viết đã duyệt trong các nhóm mà người dùng tham gia
+ *       404:
+ *         description: Người dùng không tồn tại hoặc không có bài viết nào
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get("/:id/group-articles", userController.getArticleAllGroups);
+
+
+
 export const userRoute = Router;
