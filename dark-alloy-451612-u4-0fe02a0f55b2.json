@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "dark-alloy-451612-u4",
+  "private_key_id": "0fe02a0f55b26ce50558769a0df57165666f361b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDA+/FIwqsVOPYr\nfqFbXzfLsdaeWKbLpQ6xIAVIVhU7/vbaHHozifXsJgXM37ybaz4D1Rfcct4SdsoA\nTxlPo3ifJxcW4gACehDN0yH4sJ4QM6CKZSCUQYq1e7v7BVB4CP/7ykQDnM2n2KOk\n6RiRr9C4B1leGzNxOVf8dEh8nQRr6HY49lwpJ2F3yuSc0tbucVq/fNQ/QKPBzZHr\nyXGeP/ztOtpjJMOgdJSPDAm72IrifWqILVd8Lahpj/S7NmDHj8xSEwCdeXYEuOjh\n/Zn7MltA8bEGX6g1ewFTsr8cYH2msa+00fi1rNvtM8bwtVpf8lruT/ZCU24HkkpQ\ndQnJ4aRRAgMBAAECggEACN67oxzBeM7+r5aZK4Y3ng7tPqdz+Sm7wGPooj/Ep5aL\nOZC0BDDr4wAHZbiF5n3aIpp1h44nC2G23KdGEk1A8s2857IZDoQWSCOTbOcPSM7a\nqunFgtL1YWyPwhSnM3E0dNoB4MmhAT05nk+Rb8bNONwrnSHybhqU4vdkSof8B0qa\nM182TIwVKwt0HRYDr+wMK4vLoiAxnGVIJoAP+qi1ug/Q1aRcfIUmbQQ1euA+3mRw\nilhyaH0/BOlQlGEYd+ZDb9qadE8TXFSy23y7KjWjJsi1kuuSckWioVFRv6e59osy\nd0eiGzU6wDiVni2zC3MsgY/RVysK0v3QQyD4kO+nXQKBgQD2qQrb/7EwlwWCwR/P\nBBt5+u+4v/SBImyw99pFwOiSHWN1bV+yAwiNIzXODqkQESBXdjvGgp5jeOZ3wzgP\nFX4SPglF789+1SgwfqPyEnwggp/TyxwGEwblhy0nkT8+c89ivO+R+XK/3+ccrXvf\nqyGENETamUophc6HGa1hArFYvQKBgQDISpmJvk3TTBkvwWKcU/74v0j0U0SYBgee\nMYKPg3PP9wmmvjbwhdkSLdlgvpwXu7rHEW9NoO1Twb4TrOoVhpQ8vBhSFsSoeaWn\nRM+1zzC04B0Zih58Ap6GaxFuaYqI7DRKVe8+capb1p/xsUas+/kls5QCDzMfv1jJ\nJYzlXCalJQKBgQCoWH0x45RSfnBjal3EU6BRI2Qjatd8nzshmTfe7aeNugMcrRZo\nD0vxz/sz9KuMbLPvHaH0fUeOyoA5cwK6wMd3ueFoWyD6Bo9UccqBN/6BzcU5ruEk\ngC3vz8+QtsA8Zpw/XoX/0glwTWeWGg12fXz1lxr7Oy3zowBvEqZTlJvn3QKBgE0e\nfDPPNIQRHvmGSoPKy7fXXy3ECftHBxPgGFdN0//VLMApKVo/Dy+yu6pGei+hNu+D\nRQns1rSTOq60u4UCRn2EJxEkdyAvhpr7IcbtOeHLESlORyKUl5lGDHYo6RCDcjbV\nE8NFXMTzxK35Bi+A7ZOYq3qHg7XLpVH9xVxiuPaJAoGAYPuR8ZP7VRYxYtaA/dmO\nfF9T/0NWOrx+K96hobrE5jCfnOPsMxRsrrMWahCTTcwcfIIYTaukaDd2eMrZqvBb\nSr7fnWia3zKD1/W+xFFrAav2RucYv3va0PWgX25Gw1w5fahpNNiGvokgwxDEE51G\n8IHFLm1+424CYnoVAMdXlSQ=\n-----END PRIVATE KEY-----\n",
+  "client_email": "my-cloud-service@dark-alloy-451612-u4.iam.gserviceaccount.com",
+  "client_id": "106986562279778415077",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/my-cloud-service%40dark-alloy-451612-u4.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

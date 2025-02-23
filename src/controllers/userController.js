@@ -57,6 +57,100 @@ const deleteUserById = async (req, res) => {
   }
 };
 
+const getSavedGroups = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await userService.getUserById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, message: "Người dùng không tồn tại" });
+    }
+
+    const savedGroups = await userService.getSavedGroups(userId);
+
+    if (!savedGroups.length) {
+      return res.status(404).json({ success: false, data: null, message: "Người dùng chưa lưu nhóm nào" });
+    }
+
+    res.status(200).json({ success: true, data: savedGroups, message: "Lấy danh sách nhóm đã lưu thành công" });
+
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
+
+const getMyGroups = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await userService.getUserById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, message: "Người dùng không tồn tại" });
+    }
+
+    const savedGroups = await userService.getMyGroups(userId);
+
+    if (!savedGroups.length) {
+      return res.status(404).json({ success: false, data: null, message: "Người dùng chưa lưu nhóm nào" });
+    }
+
+    res.status(200).json({ success: true, data: savedGroups, message: "Lấy danh sách nhóm đã lưu thành công" });
+
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
+
+const getNotJoinedGroups = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, message: "Người dùng không tồn tại" });
+    }
+
+    // Lấy danh sách nhóm chưa tham gia
+    const notJoinedGroups = await userService.getNotJoinedGroups(userId);
+
+    if (!notJoinedGroups.length) {
+      return res.status(404).json({ success: false, data: null, message: "Không có nhóm nào chưa tham gia" });
+    }
+
+    res.status(200).json({ success: true, data: notJoinedGroups, message: "Lấy danh sách nhóm chưa tham gia thành công" });
+
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách nhóm chưa tham gia:", error);
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
+
+const getArticleAllGroups = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Kiểm tra người dùng có tồn tại hay không
+    const user = await userService.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, message: "Người dùng không tồn tại" });
+    }
+
+    // Lấy tất cả bài viết đã duyệt từ các nhóm người dùng tham gia
+    const articles = await userService.getArticleAllGroups(userId);
+
+    if (!articles.length) {
+      return res.status(404).json({ success: false, data: null, message: "Không có bài viết nào đã duyệt" });
+    }
+
+    // Trả về danh sách bài viết
+    res.status(200).json({ success: true, data: articles, message: "Lấy danh sách bài viết đã duyệt thành công" });
+
+  } catch (error) {
+    console.error("Lỗi khi lấy bài viết đã duyệt:", error);
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
+
 export const userController = {
   getUsers,
   getUserById,
@@ -64,4 +158,8 @@ export const userController = {
   updateUserById,
   updateAllUsers,
   deleteUserById,
+  getSavedGroups,
+  getMyGroups,
+  getNotJoinedGroups,
+  getArticleAllGroups
 };

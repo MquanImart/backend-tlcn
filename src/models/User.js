@@ -5,6 +5,7 @@ import Identification from './Identification.js';
 import MyPhoto from './MyPhoto.js';
 import Trip from './Trip.js';
 import Hobby from './Hobby.js';
+import Article from './Article.js'
 
 const { Schema } = mongoose;
 

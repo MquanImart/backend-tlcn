@@ -21,7 +21,6 @@ const myPhotoSchema = new Schema({
   },
   url: {
     type: String,
-    required: true,
     trim: true,
   },
   createdAt: {
