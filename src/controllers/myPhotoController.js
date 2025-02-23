@@ -57,6 +57,29 @@ const deleteMyPhotoById = async (req, res) => {
   }
 };
 
+const uploadFile = async (req, res) => {
+  try {
+
+    const { idAuthor, type, folderType, referenceId } = req.body;
+
+    if (!idAuthor || !type || !folderType || !referenceId) {
+      return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Không có file nào được tải lên' });
+    }
+
+    const newFile = await myPhotoService.uploadAndSaveFile(req.file, idAuthor, type, folderType, referenceId);
+
+    res.status(201).json({ success: true, data: newFile, message: 'Upload file thành công' });
+  } catch (error) {
+    console.error("❌ Lỗi khi upload file:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 export const myPhotoController = {
   getMyPhotos,
   getMyPhotoById,
@@ -64,4 +87,5 @@ export const myPhotoController = {
   updateMyPhotoById,
   updateAllMyPhotos,
   deleteMyPhotoById,
+  uploadFile
 };
