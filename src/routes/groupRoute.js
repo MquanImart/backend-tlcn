@@ -52,22 +52,97 @@ Router.get('/:id', groupController.getGroupById);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - groupName
+ *               - warningLevel
+ *               - type
+ *               - idCreater
  *             properties:
  *               groupName:
  *                 type: string
+ *                 description: Tên của nhóm
  *                 example: "Nhóm học tập"
  *               warningLevel:
- *                 type: number
+ *                 type: integer
  *                 enum: [0, 1, 2, 3]
+ *                 description: Mức độ cảnh báo của nhóm (0 - Bình thường, 3 - Cảnh báo cao)
  *                 example: 1
  *               type:
  *                 type: string
  *                 enum: ['public', 'private']
+ *                 description: Loại nhóm (public hoặc private)
  *                 example: "private"
+ *               idCreater:
+ *                 type: string
+ *                 format: ObjectId
+ *                 description: ID của người tạo nhóm
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *               introduction:
+ *                 type: string
+ *                 description: Giới thiệu về nhóm
+ *                 example: "Nhóm này dành cho những ai yêu thích học tập và nghiên cứu."
+ *               avt:
+ *                 type: string
+ *                 format: ObjectId
+ *                 description: ID của ảnh đại diện nhóm
+ *                 example: "60f7ebeb2f8fb814b56fa182"
+ *               rule:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Danh sách các quy tắc của nhóm
+ *                 example: ["Không spam", "Không đăng nội dung vi phạm pháp luật"]
+ *               hobbies:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: ObjectId
+ *                 description: Danh sách sở thích liên quan đến nhóm
+ *                 example: ["60f7ebeb2f8fb814b56fa183", "60f7ebeb2f8fb814b56fa184"]
  *     responses:
  *       201:
- *         description: Tạo nhóm thành công
+ *         description: Nhóm được tạo thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Group'
+ *                 message:
+ *                   type: string
+ *                   example: "Tạo nhóm thành công"
+ *       400:
+ *         description: Lỗi dữ liệu đầu vào không hợp lệ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Dữ liệu không hợp lệ"
+ *       500:
+ *         description: Lỗi server
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Lỗi máy chủ"
  */
+
 Router.post('/', groupController.createGroup);
 
 /**
@@ -119,5 +194,232 @@ Router.patch('/', groupController.updateAllGroups);
  *         description: Xóa nhóm thành công
  */
 Router.delete('/:id', groupController.deleteGroupById);
+
+/**
+ * @swagger
+ * /groups/{id}/join:
+ *   patch:
+ *     summary: Gửi hoặc hủy yêu cầu tham gia nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần tham gia hoặc hủy yêu cầu
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID của người dùng gửi yêu cầu tham gia hoặc hủy yêu cầu
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *     responses:
+ *       200:
+ *         description: Xử lý thành công
+ *       400:
+ *         description: Lỗi dữ liệu hoặc trạng thái không hợp lệ
+ *       404:
+ *         description: Nhóm không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/join', groupController.requestJoinOrLeaveGroup);
+
+/**
+ * @swagger
+ * /groups/{id}/approved-articles:
+ *   get:
+ *     summary: Lấy tất cả bài viết đã được duyệt trong nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách bài viết đã duyệt
+ *       404:
+ *         description: Nhóm không tồn tại hoặc không có bài viết đã duyệt
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get("/:id/approved-articles", groupController.getApprovedArticles);
+
+/**
+ * @swagger
+ * /groups/{id}/pending-articles:
+ *   get:
+ *     summary: Lấy danh sách bài viết đang chờ duyệt trong nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách bài viết đang chờ duyệt
+ *       404:
+ *         description: Nhóm không tồn tại hoặc không có bài viết chờ duyệt
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/:id/pending-articles', groupController.getPendingArticles);
+
+/**
+ * @swagger
+ * /groups/{id}/articles/{articleId}:
+ *   patch:
+ *     summary: Duyệt hoặc hủy duyệt bài viết trong nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm
+ *       - in: path
+ *         name: articleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của bài viết cần duyệt hoặc hủy duyệt
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - action
+ *             properties:
+ *               action:
+ *                 type: string
+ *                 enum: [approve, reject]
+ *                 description: Hành động cần thực hiện (approve - duyệt, reject - hủy duyệt)
+ *                 example: "approve"
+ *     responses:
+ *       200:
+ *         description: Cập nhật trạng thái bài viết thành công
+ *       404:
+ *         description: Nhóm hoặc bài viết không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/articles/:articleId', groupController.updateArticleStatus);
+
+/**
+ * @swagger
+ * /groups/{id}/rules:
+ *   get:
+ *     summary: Lấy rule theo ID
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần lấy
+ *     responses:
+ *       200:
+ *         description: Trả về nhóm
+ */
+Router.get('/:id/rules', groupController.getRulesById);
+
+/**
+ * @swagger
+ * /groups/{id}/rules:
+ *   patch:
+ *     summary: Thêm quy tắc vào nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần thêm quy tắc
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rule
+ *             properties:
+ *               rule:
+ *                 type: string
+ *                 description: Quy tắc cần thêm vào nhóm
+ *                 example: "Không chia sẻ thông tin cá nhân"
+ *     responses:
+ *       200:
+ *         description: Thêm quy tắc thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Thêm quy tắc thành công"
+ *       404:
+ *         description: Nhóm không tồn tại
+ *       400:
+ *         description: Lỗi dữ liệu đầu vào không hợp lệ
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/rules', groupController.addRuleToGroup);
+
+/**
+ * @swagger
+ * /groups/{id}/rules/{ruleValue}:
+ *   patch:
+ *     summary: Xóa một quy tắc khỏi nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần xóa quy tắc
+ *       - in: path
+ *         name: ruleValue
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Giá trị của quy tắc cần xóa
+ *     responses:
+ *       200:
+ *         description: Xóa quy tắc thành công
+ *       404:
+ *         description: Nhóm hoặc quy tắc không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/rules/:ruleValue', groupController.deleteRule);
+
+
+
 
 export const groupRoute = Router;
