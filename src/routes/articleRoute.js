@@ -1,7 +1,9 @@
 import express from 'express';
 import { articleController } from '../controllers/articleController.js';
+import multer from 'multer';
 
 const Router = express.Router();
+const upload = multer({ dest: 'uploads/' });
 
 /**
  * @swagger
@@ -69,25 +71,41 @@ Router.get('/:id', articleController.getArticleById);
  * @swagger
  * /articles:
  *   post:
- *     summary: Tạo bài viết mới
+ *     summary: Tạo bài viết mới (hỗ trợ upload ảnh)
  *     tags: [Articles]
+ *     consumes:
+ *       - multipart/form-data
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/Article'
+ *             type: object
+ *             properties:
+ *               createdBy:
+ *                 type: string
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *               content:
+ *                 type: string
+ *                 example: "Đây là nội dung bài viết"
+ *               hashTag:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["#travel", "#food"]
+ *               scope:
+ *                 type: string
+ *                 example: "public"
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
  *     responses:
  *       201:
  *         description: Tạo bài viết thành công
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Article'
- *       400:
- *         description: Thiếu dữ liệu bắt buộc
  */
-Router.post('/', articleController.createArticle);
+Router.post('/', upload.array('images', 5), articleController.createArticle);
 
 /**
  * @swagger
