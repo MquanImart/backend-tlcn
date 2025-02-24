@@ -1,5 +1,7 @@
 import Group from "../models/Group.js";
+import User from "../models/User.js";
 import { articleService } from "../services/articleService.js";
+import { myPhotoService } from "./myPhotoService.js";
 
 const getGroups = async () => {
   return await Group.find({ _destroy: null })
@@ -12,9 +14,49 @@ const getGroupById = async (id) => {
 };
 
 
+const createGroup = async ({ groupName, type, idCreater, introduction, rule, hobbies, avatarFile }) => {
+  try {
 
-const createGroup = async (data) => {
-  return await Group.create(data);
+    const normalizeHobbies = Array.isArray(hobbies) 
+    ? hobbies 
+    : hobbies.split(",").map(hobbie => hobbie.trim());
+
+    const newGroup = await Group.create({
+      groupName,
+      type,
+      idCreater,
+      introduction,
+      rule,
+      hobbies: normalizeHobbies,
+      members: [{
+        idUser: idCreater,
+        state: 'accepted', // Add the creator as a member with state 'accepted'
+        joinDate: new Date(),
+      }],
+      article: [],
+      Administrators: [],
+    });
+
+
+    if (avatarFile) {
+      const uploadedFile = await myPhotoService.uploadAndSaveFile(avatarFile, idCreater, "img", 'groups', newGroup._id);
+      newGroup.avt = uploadedFile._id
+      await newGroup.save();
+    }
+
+    const user = await User.findById(idCreater);
+    if (user) {
+      user.groups.createGroups.push(newGroup._id); // Add the new group ID to the createGroups array
+      await user.save();
+    } else {
+      throw new Error("User not found");
+    }
+
+    return newGroup;
+  } catch (error) {
+    console.error("Lỗi khi tạo nhóm:", error);
+    throw new Error("Lỗi khi tạo nhóm");
+  }
 };
 
 const updateGroupById = async (id, data) => {
