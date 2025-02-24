@@ -1,5 +1,7 @@
 import Article from "../models/Article.js";
 import Comment from "../models/Comment.js";
+import Group from "../models/Group.js";
+import { myPhotoService } from "./myPhotoService.js";
 
 const getArticles = async () => {
   return await Article.find({ _destroy: null })
@@ -60,9 +62,63 @@ const getArticleById = async (id) => {
   .sort({ createdAt: -1 });
 };
 
-const createArticle = async (data) => {
-  return await Article.create(data);
+const createArticle = async (data, files) => {
+  try {
+    const { createdBy, content, hashTag, scope, groupID } = data;
+
+    if (!createdBy || !content) {
+      throw new Error("❌ Thiếu thông tin bắt buộc"); 
+    }
+
+    const normalizedHashtags = Array.isArray(hashTag) 
+      ? hashTag 
+      : hashTag.split(",").map(tag => tag.trim());
+
+    // 🔥 1️⃣ Tạo bài viết mới (chưa có media)
+    const newArticle = await Article.create({
+      createdBy,
+      content,
+      hashTag: normalizedHashtags,
+      scope,
+      groupID: groupID || null,
+      listPhoto: [],
+    });
+    
+
+    // 🔥 2️⃣ Xử lý upload ảnh/video nếu có
+    let uploadedMedia = [];
+    if (files && (files.media || files.images)) {
+      const allFiles = [...(files.media || []), ...(files.images || [])];
+
+      uploadedMedia = await Promise.all(
+        allFiles.map((file) => {
+          const fileType = file.mimetype.startsWith("video/") ? "video" : "img";
+          return myPhotoService.uploadAndSaveFile(file, createdBy, fileType, "articles", newArticle._id);
+        })
+      );
+
+    }
+
+    if (uploadedMedia.length > 0) {
+      newArticle.listPhoto = uploadedMedia.map((media) => media._id);
+      await newArticle.save();
+    }
+
+    if (groupID) {
+
+      await Group.findByIdAndUpdate(
+        groupID,
+        { $push: { article: { idArticle: newArticle._id, state: "pending" } } },
+        { new: true }
+      );
+    }
+    return newArticle;
+  } catch (error) {
+    throw error;
+  }
 };
+
+
 
 const updateArticleById = async (id, data) => {
   return await Article.findByIdAndUpdate(id, data, { new: true, useFindAndModify: false });

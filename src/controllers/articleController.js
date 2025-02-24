@@ -21,12 +21,23 @@ const getArticleById = async (req, res) => {
 
 const createArticle = async (req, res) => {
   try {
-    const newArticle = await articleService.createArticle(req.body);
-    res.status(201).json({ success: true, data: newArticle, message: 'Tạo bài viết thành công' });
+    console.log("📂 Files nhận được:", req.files);
+    console.log("📝 Data nhận được:", req.body);
+
+    const newArticle = await articleService.createArticle(req.body, req.files);
+
+    res.status(201).json({
+      success: true,
+      data: newArticle,
+      message: "Tạo bài viết thành công",
+    });
   } catch (error) {
+    console.error("❌ Lỗi khi tạo bài viết:", error);
     res.status(500).json({ success: false, data: null, message: error.message });
   }
 };
+
+
 
 const updateArticleById = async (req, res) => {
   try {

@@ -1,4 +1,5 @@
 import { groupService } from '../services/groupService.js';
+import mongoose from 'mongoose';
 
 const getGroups = async (req, res) => {
   try {
@@ -21,10 +22,36 @@ const getGroupById = async (req, res) => {
 
 const createGroup = async (req, res) => {
   try {
-    const newGroup = await groupService.createGroup(req.body);
-    res.status(201).json({ success: true, data: newGroup, message: 'Tạo nhóm thành công' });
+    const { groupName, type, idCreater, introduction, rule = [], hobbies = [] } = req.body;
+    const avatarFile = req.file;
+
+    if (!groupName || !type || !idCreater) {
+      return res.status(400).json({ success: false, message: "Thiếu thông tin bắt buộc" });
+    }
+
+    const parseArray = (input) => (typeof input === 'string' ? input.split(',').map(id => id.trim()) : input);
+
+    const newGroup = await groupService.createGroup({
+      groupName,
+      type,
+      idCreater,
+      introduction,
+      rule: parseArray(rule),
+      hobbies: parseArray(hobbies),
+      avatarFile,
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: newGroup,
+      message: "Tạo nhóm thành công"
+    });
   } catch (error) {
-    res.status(500).json({ success: false, data: null, message: error.message });
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Lỗi khi tạo nhóm"
+    });
   }
 };
 
