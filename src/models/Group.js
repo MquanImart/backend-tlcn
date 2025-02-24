@@ -10,6 +10,7 @@ const groupSchema = new Schema({
   warningLevel: {
     type: Number,
     enum: [0, 1, 2, 3],
+    default: 0,
     required: true,
   },
   groupName: {
@@ -48,7 +49,7 @@ const groupSchema = new Schema({
     },
     joinDate: {
       type: Date,
-      default: Date.now,
+      default: null,
     },
   }],
   article: [{

@@ -14,14 +14,31 @@ const getNotificationsByStatus = async (receiverId, status) => {
   }
 
   try {
-    console.log("🔎 Querying Notifications with Filter:", filter);
-    const notifications = await Notification.find(filter).sort({ createdAt: -1 });
-    console.log("✅ MongoDB Query Result:", notifications);
+    const notifications = await Notification.find(filter)
+      .populate({
+        path: "senderId", 
+        select: "displayName hashtag avt",
+        populate: {
+          path: "avt",
+          select: "url name",
+        },
+      })
+      .populate({
+        path: "receiverId",
+        select: "displayName hashtag avt",
+        populate: {
+          path: "avt",
+          select: "url name",
+        },
+      })
+      .sort({ createdAt: -1 });
+
     return { success: true, data: notifications, message: "Lấy danh sách thông báo thành công" };
   } catch (error) {
     return { success: false, data: null, message: error.message };
   }
 };
+
 
 const getNotificationById = async (id) => {
   return await Notification.findOne({ _id: id, _destroy: null })

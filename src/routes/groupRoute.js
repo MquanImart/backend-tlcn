@@ -1,5 +1,6 @@
 import express from 'express';
 import { groupController } from '../controllers/groupController.js';
+import upload from '../config/multerConfig.js';
 
 const Router = express.Router();
 
@@ -44,17 +45,16 @@ Router.get('/:id', groupController.getGroupById);
  * @swagger
  * /groups:
  *   post:
- *     summary: Tạo nhóm mới
+ *     summary: Tạo nhóm mới với ảnh đại diện
  *     tags: [Groups]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
  *               - groupName
- *               - warningLevel
  *               - type
  *               - idCreater
  *             properties:
@@ -62,11 +62,6 @@ Router.get('/:id', groupController.getGroupById);
  *                 type: string
  *                 description: Tên của nhóm
  *                 example: "Nhóm học tập"
- *               warningLevel:
- *                 type: integer
- *                 enum: [0, 1, 2, 3]
- *                 description: Mức độ cảnh báo của nhóm (0 - Bình thường, 3 - Cảnh báo cao)
- *                 example: 1
  *               type:
  *                 type: string
  *                 enum: ['public', 'private']
@@ -83,9 +78,9 @@ Router.get('/:id', groupController.getGroupById);
  *                 example: "Nhóm này dành cho những ai yêu thích học tập và nghiên cứu."
  *               avt:
  *                 type: string
- *                 format: ObjectId
- *                 description: ID của ảnh đại diện nhóm
- *                 example: "60f7ebeb2f8fb814b56fa182"
+ *                 format: binary
+ *                 description: Ảnh đại diện của nhóm (file ảnh)
+ *                 example: "file"
  *               rule:
  *                 type: array
  *                 items:
@@ -115,19 +110,6 @@ Router.get('/:id', groupController.getGroupById);
  *                 message:
  *                   type: string
  *                   example: "Tạo nhóm thành công"
- *       400:
- *         description: Lỗi dữ liệu đầu vào không hợp lệ
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Dữ liệu không hợp lệ"
  *       500:
  *         description: Lỗi server
  *         content:
@@ -142,8 +124,8 @@ Router.get('/:id', groupController.getGroupById);
  *                   type: string
  *                   example: "Lỗi máy chủ"
  */
+Router.post('/', upload.single('avt'), groupController.createGroup);
 
-Router.post('/', groupController.createGroup);
 
 /**
  * @swagger
