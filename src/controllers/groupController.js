@@ -107,14 +107,6 @@ const getApprovedArticles = async (req, res) => {
     // Gọi service để lấy bài viết đã duyệt
     const approvedArticles = await groupService.getApprovedArticles(groupId);
 
-    if (!approvedArticles.length) {
-      return res.status(404).json({
-        success: false,
-        data: [],
-        message: "Không có bài viết nào đã được duyệt trong nhóm",
-      });
-    }
-
     res.status(200).json({
       success: true,
       data: approvedArticles,
@@ -134,16 +126,7 @@ const getPendingArticles = async (req, res) => {
   try {
     const groupId = req.params.id;
 
-    // Gọi service để lấy bài viết đã duyệt
     const approvedArticles = await groupService.getPendingArticles(groupId);
-
-    if (!approvedArticles.length) {
-      return res.status(404).json({
-        success: false,
-        data: [],
-        message: "Không có bài viết nào đã được duyệt trong nhóm",
-      });
-    }
 
     res.status(200).json({
       success: true,
@@ -238,6 +221,94 @@ const deleteRule = async (req, res) => {
   }
 };
 
+const getPendingMembers = async (req, res) => {
+  try {
+    const { groupID } = req.params;
+    const pendingMembers = await groupService.getPendingMembers(groupID);
+
+    res.status(200).json({
+      success: true,
+      data: pendingMembers,
+      message: "Lấy danh sách thành viên chờ duyệt thành công",
+    });
+  } catch (error) {
+    
+    const errorMessage = error.message === "Nhóm không tồn tại"
+      ? "Nhóm không tồn tại"
+      : "Lỗi khi lấy danh sách thành viên chờ duyệt";
+
+    res.status(error.message === "Nhóm không tồn tại" ? 404 : 500).json({
+      success: false,
+      data: [],
+      message: errorMessage,
+    });
+  }
+};
+
+const getGroupMembers = async (req, res) => {
+  try {
+    const { groupID } = req.params;
+    const membersData = await groupService.getGroupMembers(groupID);
+
+    return res.status(200).json({ success: true, data: membersData, message: "Lấy danh sách thành viên thành công" });
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy danh sách thành viên:", error);
+    return res.status(error.status || 500).json({ success: false, data: null, message: error.message || "Lỗi máy chủ" });
+  }
+};
+
+const updateMemberStatus = async (req, res) => {
+  try {
+    const { groupID, userID } = req.params;
+    const { state } = req.body;
+
+    if (!["accepted", "rejected", "invite-admin", "remove-admin", "accept-admin"].includes(state)) {
+      return res.status(400).json({ success: false, message: "Trạng thái không hợp lệ" });
+    }
+
+    const updatedMember = await groupService.updateMemberStatus(groupID, userID, state);
+    res.status(200).json({ success: true, data: updatedMember, message: "Cập nhật thành viên thành công" });
+  } catch (error) {
+    res.status(error.status || 500).json({ success: false, message: error.message || "Lỗi server" });
+  }
+};
+
+const getUserApprovedArticles = async (req, res) => {
+  try {
+    const { groupID, userID } = req.params;
+    const articles = await groupService.getUserApprovedArticles(groupID, userID);
+
+    return res.status(200).json({
+      success: true,
+      data: articles,
+      message: "Lấy danh sách bài viết đã được duyệt thành công.",
+    });
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy bài viết đã duyệt:", error);
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || "Lỗi server",
+    });
+  }
+};
+
+const checkAdminInvite =  async (req, res) => {
+  try {
+    const { groupID, administratorsID } = req.params;
+
+    const adminInvite = await groupService.checkAdminInvite(groupID, administratorsID);
+
+    return res.status(200).json({
+      success: true,
+      data: adminInvite,
+      message: "Lấy dữ liệu thành công",
+    });
+  } catch (error) {
+    console.error("❌ Lỗi khi kiểm tra lời mời làm quản trị viên:", error);
+    return res.status(error.status || 500).json({ success: false, message: error.message || "Lỗi máy chủ" });
+  }
+}
+
 
 export const groupController = {
   getGroups,
@@ -252,5 +323,10 @@ export const groupController = {
   updateArticleStatus,
   getRulesById,
   addRuleToGroup,
-  deleteRule
+  deleteRule,
+  getPendingMembers,
+  updateMemberStatus,
+  getGroupMembers,
+  getUserApprovedArticles,
+  checkAdminInvite
 };
