@@ -1,6 +1,7 @@
 import Article from "../models/Article.js";
 import Comment from "../models/Comment.js";
 import Group from "../models/Group.js";
+import User from "../models/User.js";
 import { myPhotoService } from "./myPhotoService.js";
 
 const getArticles = async () => {
@@ -83,9 +84,7 @@ const createArticle = async (data, files) => {
       groupID: groupID || null,
       listPhoto: [],
     });
-    
 
-    // 🔥 2️⃣ Xử lý upload ảnh/video nếu có
     let uploadedMedia = [];
     if (files && (files.media || files.images)) {
       const allFiles = [...(files.media || []), ...(files.images || [])];
@@ -96,19 +95,22 @@ const createArticle = async (data, files) => {
           return myPhotoService.uploadAndSaveFile(file, createdBy, fileType, "articles", newArticle._id);
         })
       );
-
     }
-
     if (uploadedMedia.length > 0) {
       newArticle.listPhoto = uploadedMedia.map((media) => media._id);
       await newArticle.save();
     }
 
     if (groupID) {
-
       await Group.findByIdAndUpdate(
         groupID,
         { $push: { article: { idArticle: newArticle._id, state: "pending" } } },
+        { new: true }
+      );
+    } else {
+      await User.findByIdAndUpdate(
+        createdBy,
+        { $push: { articles: newArticle._id } },
         { new: true }
       );
     }
@@ -117,8 +119,6 @@ const createArticle = async (data, files) => {
     throw error;
   }
 };
-
-
 
 const updateArticleById = async (id, data) => {
   return await Article.findByIdAndUpdate(id, data, { new: true, useFindAndModify: false });
@@ -194,9 +194,6 @@ const deepPopulateComments = async (comments) => {
   return populatedComments;
 };
 
-/**
- * Lấy tất cả bình luận của bài viết, bao gồm tất cả bình luận con (đệ quy)
- */
 const getCommentsByArticleId = async (articleId) => {
   const article = await Article.findById(articleId)
     .populate({

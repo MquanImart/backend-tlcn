@@ -401,6 +401,224 @@ Router.patch('/:id/rules', groupController.addRuleToGroup);
  */
 Router.patch('/:id/rules/:ruleValue', groupController.deleteRule);
 
+/**
+ * @swagger
+ * /groups/{groupID}/pending-members:
+ *   get:
+ *     summary: Lấy danh sách thành viên đang chờ phê duyệt
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: groupID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID nhóm
+ *     responses:
+ *       200:
+ *         description: Danh sách thành viên chờ duyệt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "60f7ebeb2f8fb814b56fa181"
+ *                       fullName:
+ *                         type: string
+ *                         example: "Nguyễn Văn A"
+ *                       email:
+ *                         type: string
+ *                         example: "nguyenvana@email.com"
+ *       404:
+ *         description: Nhóm không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/:groupID/pending-members', groupController.getPendingMembers);
+
+/**
+ * @swagger
+ * /groups/{groupID}/members:
+ *   get:
+ *     summary: Lấy danh sách thành viên nhóm (Người tạo, Quản trị viên, Thành viên)
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: groupID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần lấy danh sách thành viên
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách thành viên nhóm
+ *       404:
+ *         description: Nhóm không tồn tại
+ */
+Router.get("/:groupID/members", groupController.getGroupMembers);
+
+ /**
+ * @swagger
+ * /groups/{groupID}/members/{userID}:
+ *   patch:
+ *     summary: Cập nhật trạng thái thành viên trong nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: groupID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần cập nhật
+ *       - in: path
+ *         name: userID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của thành viên cần cập nhật
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               state:
+ *                 type: string
+ *                 enum: 
+ *                   - accepted
+ *                   - rejected
+ *                   - invite-admin
+ *                   - remove-admin
+ *                   - accept-admin
+ *                 description: Trạng thái cần cập nhật của thành viên
+ *                 example: accepted
+ *     responses:
+ *       200:
+ *         description: Cập nhật trạng thái thành viên thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Trạng thái thành viên đã được cập nhật"
+ *       404:
+ *         description: Nhóm hoặc thành viên không tồn tại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Nhóm hoặc thành viên không tồn tại"
+ */
+Router.patch("/:groupID/members/:userID", groupController.updateMemberStatus);
+
+/**
+ * @swagger
+ * /groups/{groupID}/members/{userID}/articles:
+ *   get:
+ *     summary: Lấy tất cả bài viết đã được duyệt của một thành viên trong nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: groupID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm
+ *       - in: path
+ *         name: userID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của thành viên
+ *     responses:
+ *       200:
+ *         description: Danh sách bài viết đã được duyệt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "67b5a2e2ce821229bb456527"
+ *                       title:
+ *                         type: string
+ *                         example: "Bài viết về học tập"
+ *                       content:
+ *                         type: string
+ *                         example: "Nội dung bài viết"
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *       404:
+ *         description: Nhóm hoặc thành viên không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get("/:groupID/members/:userID/articles", groupController.getUserApprovedArticles);
+
+/**
+ * @swagger
+ * /groups/{groupID}/administrators/{administratorsID}:
+ *   get:
+ *     summary: Kiểm tra xem người dùng có lời mời làm quản trị viên trong nhóm không
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: groupID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm cần kiểm tra
+ *       - in: path
+ *         name: administratorsID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng cần kiểm tra
+ *     responses:
+ *       200:
+ *         description: Người dùng có lời mời làm quản trị viên
+ *       404:
+ *         description: Không tìm thấy lời mời làm quản trị viên hoặc nhóm không tồn tại
+ */
+Router.get("/:groupID/administrators/:administratorsID", groupController.checkAdminInvite);
+
+export default Router;
+
+
+
+
 
 
 
