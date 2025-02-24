@@ -1,9 +1,9 @@
 import express from 'express';
 import { articleController } from '../controllers/articleController.js';
-import multer from 'multer';
+import upload from '../config/multerConfig.js';
 
 const Router = express.Router();
-const upload = multer({ dest: 'uploads/' });
+
 
 /**
  * @swagger
@@ -71,7 +71,7 @@ Router.get('/:id', articleController.getArticleById);
  * @swagger
  * /articles:
  *   post:
- *     summary: Tạo bài viết mới (hỗ trợ upload ảnh)
+ *     summary: Tạo bài viết mới (hỗ trợ upload ảnh/video và groupID tùy chọn)
  *     tags: [Articles]
  *     consumes:
  *       - multipart/form-data
@@ -95,7 +95,17 @@ Router.get('/:id', articleController.getArticleById);
  *                 example: ["#travel", "#food"]
  *               scope:
  *                 type: string
- *                 example: "public"
+ *                 enum: [Công khai, Riêng tư]
+ *                 example: "Công khai"
+ *               groupID:
+ *                 type: string
+ *                 nullable: true
+ *                 example: "65d2ebeb2f8fb814b56fa112" # Có thể có hoặc không
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
  *               images:
  *                 type: array
  *                 items:
@@ -105,7 +115,8 @@ Router.get('/:id', articleController.getArticleById);
  *       201:
  *         description: Tạo bài viết thành công
  */
-Router.post('/', upload.array('images', 5), articleController.createArticle);
+Router.post('/', upload.fields([{ name: 'media', maxCount: 5 }, { name: 'images', maxCount: 5 }]), articleController.createArticle);
+
 
 /**
  * @swagger
@@ -216,8 +227,6 @@ Router.delete('/:id', articleController.deleteArticleById);
 *         description: Bài viết không tồn tại
  */
 Router.patch('/:articleId/like', articleController.toggleLike);
-
-
 
 /**
  * @swagger
