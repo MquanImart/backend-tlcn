@@ -131,7 +131,7 @@ Router.post('/', upload.single('avt'), groupController.createGroup);
  * @swagger
  * /groups/{id}:
  *   patch:
- *     summary: Cập nhật nhóm theo ID
+ *     summary: Cập nhật nhóm (chỉ cập nhật trường thay đổi)
  *     tags: [Groups]
  *     parameters:
  *       - in: path
@@ -140,11 +140,47 @@ Router.post('/', upload.single('avt'), groupController.createGroup);
  *         schema:
  *           type: string
  *         description: ID của nhóm cần cập nhật
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               groupName:
+ *                 type: string
+ *                 description: Tên mới của nhóm
+ *               type:
+ *                 type: string
+ *                 enum: ['public', 'private']
+ *                 description: Loại nhóm
+ *               introduction:
+ *                 type: string
+ *                 description: Giới thiệu về nhóm
+ *               avt:
+ *                 type: string
+ *                 format: binary
+ *                 description: Ảnh đại diện mới của nhóm (file ảnh)
+ *               rule:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Danh sách quy định mới
+ *               hobbies:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: ObjectId
+ *                 description: Danh sách sở thích mới
  *     responses:
  *       200:
- *         description: Cập nhật nhóm thành công
+ *         description: Nhóm được cập nhật thành công
+ *       404:
+ *         description: Không tìm thấy nhóm
+ *       500:
+ *         description: Lỗi máy chủ
  */
-Router.patch('/:id', groupController.updateGroupById);
+Router.patch("/:id", upload.single("avt"), groupController.updateGroupById);
 
 /**
  * @swagger
@@ -613,6 +649,36 @@ Router.get("/:groupID/members/:userID/articles", groupController.getUserApproved
  *         description: Không tìm thấy lời mời làm quản trị viên hoặc nhóm không tồn tại
  */
 Router.get("/:groupID/administrators/:administratorsID", groupController.checkAdminInvite);
+
+
+/**
+ * @swagger
+ * /groups/{groupId}/invite-friends:
+ *   get:
+ *     summary: Lấy danh sách bạn bè chưa tham gia nhóm
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: groupId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng muốn mời bạn bè
+ *     responses:
+ *       200:
+ *         description: Danh sách bạn bè có thể mời vào nhóm
+ *       400:
+ *         description: Yêu cầu không hợp lệ
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+Router.get('/:groupId/invite-friends', groupController.getInvitableFriends);
 
 export default Router;
 

@@ -1,6 +1,7 @@
 import Group from "../models/Group.js";
 import User from "../models/User.js";
 import Article from "../models/Article.js";
+import MyPhoto from "../models/MyPhoto.js";
 import { articleService } from "../services/articleService.js";
 import { myPhotoService } from "./myPhotoService.js";
 
@@ -61,15 +62,77 @@ const createGroup = async ({ groupName, type, idCreater, introduction, rule, hob
 };
 
 const updateGroupById = async (id, data) => {
-  return await Group.findByIdAndUpdate(id, data, { new: true })
+  try {
+    const group = await Group.findById(id).populate("avt");
+    if (!group) return null;
+
+    if (data.groupName) group.groupName = data.groupName;
+    if (data.type) group.type = data.type;
+    if (data.introduction) group.introduction = data.introduction;
+    if (data.rule) {
+      group.rule = Array.isArray(data.rule) ? data.rule : data.rule.split(",");
+    }
+    if (data.hobbies) {
+      group.hobbies = Array.isArray(data.hobbies) ? data.hobbies : data.hobbies.split(",");
+    }
+
+    if (data.avatarFile) {
+      const oldFileUrl = group.avt?.url || null;
+      const uploadedFile = await myPhotoService.uploadAndSaveFile(
+        data.avatarFile,
+        group.idCreater,
+        "img",
+        "groups",
+        group._id,
+        oldFileUrl
+      );
+
+      group.avt = uploadedFile._id;
+    }
+
+    // Lưu lại nhóm sau khi cập nhật
+    await group.save();
+    return group;
+  } catch (error) {
+    console.error("Lỗi khi cập nhật nhóm:", error);
+    throw new Error("Lỗi khi cập nhật nhóm");
+  }
 };
+
 
 const updateAllGroups = async (data) => {
   return await Group.updateMany({}, data, { new: true });
 };
 
-const deleteGroupById = async (id) => {
-  return await Group.findByIdAndUpdate(id, { _destroy: Date.now() }, { new: true });
+const deleteGroupById = async (groupId) => {
+  try {
+    const group = await Group.findById(groupId);
+    if (!group) throw new Error("Nhóm không tồn tại");
+
+    group._destroy = new Date();
+    await group.save();
+
+    if (group.avt) {
+      await MyPhoto.findByIdAndUpdate(group.avt, { _destroy: new Date() });
+    }
+
+    await Article.updateMany({ groupID: groupId }, { _destroy: new Date() });
+
+    await User.updateOne(
+      { _id: group.idCreater },
+      { $pull: { "groups.createGroups": groupId } }
+    );
+
+    await User.updateMany(
+      { "groups.saveGroups": groupId },
+      { $pull: { "groups.saveGroups": groupId } }
+    );
+
+    return group;
+  } catch (error) {
+    console.error("❌ Lỗi khi xóa nhóm:", error);
+    throw new Error("Lỗi khi xóa nhóm");
+  }
 };
 
 const requestJoinGroup = async (groupId, userId) => {
@@ -301,6 +364,9 @@ const updateMemberStatus = async (groupID, userID, state) => {
   const group = await Group.findById(groupID);
   if (!group) throw { status: 404, message: "Nhóm không tồn tại" };
 
+  const user = await User.findById(userID);
+  if (!user) throw { status: 404, message: "Người dùng không tồn tại" };
+
   const isMember = group.members.find((member) => member.idUser.toString() === userID);
   const isAdmin = group.Administrators.find((admin) => admin.idUser.toString() === userID);
   const isOwner = group.idCreater.toString() === userID;
@@ -311,28 +377,18 @@ const updateMemberStatus = async (groupID, userID, state) => {
     group.Administrators.push({ idUser: userID, state: "pending" });
   } else if (state === "accept-admin" && isAdmin) {
     const adminIndex = group.Administrators.findIndex(admin => admin.idUser.toString() === userID);
-    console.log('group.Administrators', group.Administrators)
-    console.log('userID', userID)
-    console.log('adminIndex', adminIndex)
     if (adminIndex !== -1) {
-      // ✅ Nếu tìm thấy, cập nhật state
       group.Administrators[adminIndex].state = "accepted";
     } else {
-      // ✅ Nếu chưa có, thêm mới
       group.Administrators.push({ idUser: userID, state: "accepted" });
     }
-
   } else if (state === "remove-admin" && isAdmin) {
-    console.log("Trước khi xóa:", group.Administrators);
-
     group.Administrators = group.Administrators.filter(admin => admin.idUser.toString() !== userID);
-    
-    console.log(`🚀 Đã xóa admin có userID: ${userID}`);
-    console.log("Sau khi xóa:", group.Administrators);
   } else if (state === "accepted" && isMember) {
     isMember.state = "accepted";
   } else if (state === "rejected") {
     group.members = group.members.filter((member) => member.idUser.toString() !== userID);
+    user.groups.saveGroups = user.groups.saveGroups.filter(groupId => groupId.toString() !== groupID);
   } else {
     throw { status: 400, message: "Không thể cập nhật trạng thái" };
   }
@@ -480,6 +536,37 @@ const checkAdminInvite = async (groupID, administratorsID) => {
   }
 };
 
+const getInvitableFriends = async (groupId, userId) => {
+  try {
+    const user = await User.findById(userId).populate("friends", "displayName avt");
+    const group = await Group.findById(groupId).populate("members.idUser", "_id");
+
+    if (!user || !group) {
+      return null;
+    }
+
+    const groupMemberIds = group.members.map(member => member.idUser._id.toString());
+
+    const invitableFriends = await Promise.all(
+      user.friends
+        .filter(friend => !groupMemberIds.includes(friend._id.toString()))
+        .map(async friend => {
+          const avatar = await MyPhoto.findById(friend.avt).select("url");
+          return {
+            _id: friend._id,
+            displayName: friend.displayName,
+            avt: avatar ? avatar.url : null,
+          };
+        })
+    );
+
+    return invitableFriends;
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách bạn bè có thể mời:", error);
+    throw error;
+  }
+};
+
 
 
 export const groupService = {
@@ -501,5 +588,6 @@ export const groupService = {
   updateMemberStatus,
   getGroupMembers,
   getUserApprovedArticles,
-  checkAdminInvite
+  checkAdminInvite,
+  getInvitableFriends
 };
