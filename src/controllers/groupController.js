@@ -57,11 +57,39 @@ const createGroup = async (req, res) => {
 
 const updateGroupById = async (req, res) => {
   try {
-    const updatedGroup = await groupService.updateGroupById(req.params.id, req.body);
-    if (!updatedGroup) return res.status(404).json({ success: false, data: null, message: 'Nhóm không tồn tại' });
-    res.status(200).json({ success: true, data: updatedGroup, message: 'Cập nhật nhóm thành công' });
+    const groupId = req.params.id;
+    const { groupName, type, introduction, rule, hobbies } = req.body;
+    const avatarFile = req.file;
+
+    const updatedGroup = await groupService.updateGroupById(groupId, {
+      groupName,
+      type,
+      introduction,
+      rule,
+      hobbies,
+      avatarFile,
+    });
+
+    if (!updatedGroup) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Nhóm không tồn tại",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: updatedGroup,
+      message: "Cập nhật nhóm thành công",
+    });
   } catch (error) {
-    res.status(500).json({ success: false, data: null, message: error.message });
+    console.error("Lỗi cập nhật nhóm:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message || "Lỗi máy chủ",
+    });
   }
 };
 
@@ -309,6 +337,28 @@ const checkAdminInvite =  async (req, res) => {
   }
 }
 
+const getInvitableFriends = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { userId } = req.query;
+
+    if (!userId || !groupId) {
+      return res.status(400).json({ success: false, message: "Thiếu thông tin userId hoặc groupId" });
+    }
+
+    const invitableFriends = await groupService.getInvitableFriends(groupId, userId);
+
+    if (!invitableFriends) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy người dùng hoặc nhóm" });
+    }
+
+    res.status(200).json({ success: true, data: invitableFriends, message: "Lấy dự liêu jthafnh công" });
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách bạn bè có thể mời:", error);
+    res.status(500).json({ success: false, data: null,  message: "Lỗi khi lấy danh sách bạn bè có thể mời" });
+  }
+};
+
 
 export const groupController = {
   getGroups,
@@ -328,5 +378,6 @@ export const groupController = {
   updateMemberStatus,
   getGroupMembers,
   getUserApprovedArticles,
-  checkAdminInvite
+  checkAdminInvite,
+  getInvitableFriends
 };
