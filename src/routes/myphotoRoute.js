@@ -40,37 +40,6 @@ Router.get('/', myPhotoController.getMyPhotos);
  */
 Router.get('/:id', myPhotoController.getMyPhotoById);
 
-// /**
-//  * @swagger
-//  * /myphotos:
-//  *   post:
-//  *     summary: Tạo ảnh/video/ghi âm mới
-//  *     tags: [MyPhotos]
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             type: object
-//  *             properties:
-//  *               name:
-//  *                 type: string
-//  *                 example: "Hình ảnh biển"
-//  *               idAuthor:
-//  *                 type: string
-//  *                 example: "60f7ebeb2f8fb814b56fa181"
-//  *               type:
-//  *                 type: string
-//  *                 enum: ['img', 'video', 'record']
-//  *                 example: "img"
-//  *               url:
-//  *                 type: string
-//  *                 example: "https://example.com/image.jpg"
-//  *     responses:
-//  *       201:
-//  *         description: Tạo ảnh/video/ghi âm thành công
-//  */
-// Router.post('/', myPhotoController.createMyPhoto);
 
 /**
  * @swagger
