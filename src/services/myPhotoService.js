@@ -9,6 +9,7 @@ const getMyPhotoById = async (id) => {
   return await MyPhoto.findOne({ _id: id, _destroy: null })
 };
 
+
 const createMyPhoto = async (data) => {
   return await MyPhoto.create(data);
 };
