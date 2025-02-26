@@ -43,9 +43,6 @@ const pageSchema = new Schema({
     required: true,
   },
   listAdmin: [{
-    _id: {
-      type: String,
-    },
     idUser: {
       type: Schema.Types.ObjectId,
       ref: 'User', 
