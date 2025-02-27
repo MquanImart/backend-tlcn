@@ -214,4 +214,116 @@ Router.patch('/', CollectionController.updateAllCollections);
  */
 Router.delete('/:id', CollectionController.deleteCollectionById);
 
+/**
+ * @swagger
+ * /collections/{id}/item:
+ *   post:
+ *     summary: Thêm item vào bộ sưu tập
+ *     tags: [Collections]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của bộ sưu tập
+ *       - in: query
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của item cần thêm
+ *     responses:
+ *       201:
+ *         description: Thêm thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ */
+Router.post('/:id/item', CollectionController.addNewItemCollection);
+
+/**
+ * @swagger
+ * /collections/{id}/item:
+ *   delete:
+ *     summary: Xóa item bộ sưu tập
+ *     tags: [Collections]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của bộ sưu tập
+ *       - in: query
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của item cần xóa
+ *     responses:
+ *       201:
+ *         description: Thêm thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ */
+Router.delete('/:id/item', CollectionController.deleteItemCollection);
+
+/**
+ * @swagger
+ * /collections/{id}/article:
+ *   get:
+ *     summary: Lấy danh sách bài viết trong bộ sưu tập
+ *     tags: [Collections]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của bộ sưu tập cần lấy
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách bài viết trong bộ sưu tập
+ *       404:
+ *         description: Không tìm thấy bộ sưu tập
+ */
+Router.get('/:id/article', CollectionController.getAllArticlebyId);
+
+/**
+ * @swagger
+ * /collections/item/change:
+ *   patch:
+ *     summary: Thay đổi bộ sưu tập
+ *     tags: [Collections]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currCollectionId
+ *               - newCollectionId
+ *               - itemId
+ *             properties:
+ *               currCollectionId:
+ *                 type: string
+ *                 description: ID của bộ sưu tập hiện tại
+ *                 example: "67bff03df22cc28360650c9e"
+ *               newCollectionId:
+ *                 type: string
+ *                 description: ID của bộ sưu tập mới
+ *                 example: "67bff074f22cc28360650ca6"
+ *               itemId:
+ *                 type: string
+ *                 description: ID của item cần di chuyển
+ *                 example: "67bfde39b6d57274a09de3d6"
+ *     responses:
+ *       201:
+ *         description: Bộ sưu tập được tạo thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ */
+Router.patch('/item/change', CollectionController.changeCollections);
+
 export const collectiondRoute = Router;
