@@ -1,8 +1,8 @@
 import express from 'express';
+import upload from '../config/multerConfig.js';
 import { myPhotoController } from '../controllers/myPhotoController.js';
 
 const Router = express.Router();
-
 /**
  * @swagger
  * tags:
@@ -15,6 +15,19 @@ const Router = express.Router();
  *   get:
  *     summary: Lấy danh sách ảnh/video/ghi âm
  *     tags: [MyPhotos]
+ *     parameters:
+ *       - in: query
+ *         name: idAuthor
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: ID của tác giả
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Loại nội dung (ảnh, video, ghi âm)
  *     responses:
  *       200:
  *         description: Trả về danh sách ảnh/video/ghi âm
@@ -40,37 +53,6 @@ Router.get('/', myPhotoController.getMyPhotos);
  */
 Router.get('/:id', myPhotoController.getMyPhotoById);
 
-/**
- * @swagger
- * /myphotos:
- *   post:
- *     summary: Tạo ảnh/video/ghi âm mới
- *     tags: [MyPhotos]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: "Hình ảnh biển"
- *               idAuthor:
- *                 type: string
- *                 example: "60f7ebeb2f8fb814b56fa181"
- *               type:
- *                 type: string
- *                 enum: ['img', 'video', 'record']
- *                 example: "img"
- *               url:
- *                 type: string
- *                 example: "https://example.com/image.jpg"
- *     responses:
- *       201:
- *         description: Tạo ảnh/video/ghi âm thành công
- */
-Router.post('/', myPhotoController.createMyPhoto);
 
 /**
  * @swagger
@@ -121,5 +103,70 @@ Router.patch('/', myPhotoController.updateAllMyPhotos);
  *         description: Xóa ảnh/video/ghi âm thành công
  */
 Router.delete('/:id', myPhotoController.deleteMyPhotoById);
+
+/**
+ * @swagger
+ * /myphotos:
+ *   post:
+ *     summary: Upload ảnh/video/ghi âm lên Google Cloud Storage và tạo MyPhoto
+ *     tags: [MyPhotos]
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               idAuthor:
+ *                 type: string
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *               type:
+ *                 type: string
+ *                 enum: ['img', 'video', 'record']
+ *                 example: "img"
+ *               folderType:
+ *                 type: string
+ *                 enum: ['articles', 'users']
+ *                 example: "articles"
+ *               referenceId:
+ *                 type: string
+ *                 example: "65d2ebeb2f8fb814b56fa112"
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Upload file thành công
+ */
+Router.post('/', upload.single('file'), myPhotoController.uploadFile);
+
+/**
+ * @swagger
+ * /myphotos/{id}/user:
+ *   get:
+ *     summary: Lấy ảnh/video/ghi âm theo id user
+ *     tags: [MyPhotos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [img, video, record]
+ *         required: false
+ *         description: Lọc theo loại nội dung (img, video, record)
+ *     responses:
+ *       200:
+ *         description: Lấy ảnh/video/ghi âm theo id user thành công
+ */
+Router.get('/:id/user', myPhotoController.getMyPhotosAndUser);
+
 
 export const myPhotoRoute = Router;

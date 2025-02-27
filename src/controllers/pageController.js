@@ -12,7 +12,6 @@ const getPages = async (req, res) => {
 const getPageById = async (req, res) => {
   try {
     const page = await pageService.getPageById(req.params.id);
-    if (!page) return res.status(404).json({ success: false, data: null, message: 'Page không tồn tại' });
     res.status(200).json({ success: true, data: page, message: 'Lấy Page thành công' });
   } catch (error) {
     res.status(500).json({ success: false, data: null, message: error.message });

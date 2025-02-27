@@ -1,11 +1,14 @@
 import Article from "../models/Article.js";
 import Comment from "../models/Comment.js";
+import Group from "../models/Group.js";
+import User from "../models/User.js";
+import { myPhotoService } from "./myPhotoService.js";
 
 const getArticles = async () => {
   return await Article.find({ _destroy: null })
     .populate({
       path: 'createdBy',
-      select: '_id displayName hashtag address avt aboutMe createdAt hobbies friends articles groups follow setting',
+      select: '_id displayName avt ',
       populate: {
         path: 'avt',
         select: '_id name idAuthor type url createdAt updateAt',
@@ -21,7 +24,7 @@ const getArticles = async () => {
     })
     .populate({
       path: 'groupID',
-      select: '_id groupName type idCreater introduction avt members hobbies createdAt',
+      select: '_id groupName ',
     })
     .populate({
       path: 'address',
@@ -33,10 +36,88 @@ const getArticles = async () => {
 
 const getArticleById = async (id) => {
   return await Article.findOne({ _id: id, _destroy: null })
+  .populate({
+    path: 'createdBy',
+    select: '_id displayName avt ',
+    populate: {
+      path: 'avt',
+      select: '_id name idAuthor type url createdAt updateAt',
+    },
+  })
+  .populate({
+    path: 'listPhoto',
+    select: '_id name idAuthor type url createdAt updateAt',
+    populate: {
+      path: 'idAuthor',
+      select: '_id displayName avt',
+    },
+  })
+  .populate({
+    path: 'groupID',
+    select: '_id groupName ',
+  })
+  .populate({
+    path: 'address',
+    select: '_id province district ward street placeName lat long',
+  })
+  .sort({ createdAt: -1 });
 };
 
-const createArticle = async (data) => {
-  return await Article.create(data);
+const createArticle = async (data, files) => {
+  try {
+    const { createdBy, content, hashTag, scope, groupID } = data;
+
+    if (!createdBy || !content) {
+      throw new Error("❌ Thiếu thông tin bắt buộc"); 
+    }
+
+    const normalizedHashtags = Array.isArray(hashTag) 
+      ? hashTag 
+      : hashTag.split(",").map(tag => tag.trim());
+
+    // 🔥 1️⃣ Tạo bài viết mới (chưa có media)
+    const newArticle = await Article.create({
+      createdBy,
+      content,
+      hashTag: normalizedHashtags,
+      scope,
+      groupID: groupID || null,
+      listPhoto: [],
+    });
+
+    let uploadedMedia = [];
+    if (files && (files.media || files.images)) {
+      const allFiles = [...(files.media || []), ...(files.images || [])];
+
+      uploadedMedia = await Promise.all(
+        allFiles.map((file) => {
+          const fileType = file.mimetype.startsWith("video/") ? "video" : "img";
+          return myPhotoService.uploadAndSaveFile(file, createdBy, fileType, "articles", newArticle._id);
+        })
+      );
+    }
+    if (uploadedMedia.length > 0) {
+      newArticle.listPhoto = uploadedMedia.map((media) => media._id);
+      await newArticle.save();
+    }
+
+    if (groupID) {
+      await Group.findByIdAndUpdate(
+        groupID,
+        { $push: { article: { idArticle: newArticle._id, state: "pending" } } },
+        { new: true }
+      );
+    } else {
+      await User.findByIdAndUpdate(
+        createdBy,
+        { $push: { articles: newArticle._id } },
+        { new: true }
+      );
+    }
+    return newArticle;
+  } catch (error) {
+    throw error;
+  }
 };
 
 const updateArticleById = async (id, data) => {
@@ -113,9 +194,6 @@ const deepPopulateComments = async (comments) => {
   return populatedComments;
 };
 
-/**
- * Lấy tất cả bình luận của bài viết, bao gồm tất cả bình luận con (đệ quy)
- */
 const getCommentsByArticleId = async (articleId) => {
   const article = await Article.findById(articleId)
     .populate({
