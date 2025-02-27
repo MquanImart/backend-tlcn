@@ -2,7 +2,7 @@ import { myPhotoService } from "../services/myPhotoService.js";
 
 const getMyPhotos = async (req, res) => {
   try {
-    const myPhotos = await myPhotoService.getMyPhotos();
+    const myPhotos = await myPhotoService.getMyPhotos(req.query);
     res.status(200).json({ success: true, data: myPhotos, message: 'Lấy danh sách ảnh/video/ghi âm thành công' });
   } catch (error) {
     res.status(500).json({ success: false, data: null, message: error.message });
@@ -80,6 +80,15 @@ const uploadFile = async (req, res) => {
 };
 
 
+const getMyPhotosAndUser = async (req, res) => {
+  try {
+    const myPhotos = await myPhotoService.getMyPhotosAndUser(req.params.id, req.query);
+    res.status(200).json({ success: true, data: myPhotos, message: 'Lấy danh sách ảnh/video/ghi âm thành công theo user' });
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
+
 export const myPhotoController = {
   getMyPhotos,
   getMyPhotoById,
@@ -87,5 +96,6 @@ export const myPhotoController = {
   updateMyPhotoById,
   updateAllMyPhotos,
   deleteMyPhotoById,
-  uploadFile
+  uploadFile,
+  getMyPhotosAndUser
 };
