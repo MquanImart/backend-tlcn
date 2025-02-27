@@ -17,7 +17,7 @@ const userSchema = new Schema({
   identification: {
     type: Schema.Types.ObjectId,
     ref: 'Identification', 
-    required: true,
+   // required: true,
   },
   displayName: {
     type: String,
@@ -31,7 +31,7 @@ const userSchema = new Schema({
   address: {
     type: Schema.Types.ObjectId,
     ref: 'Address', 
-    required: true,
+  //  required: true,
   },
   avt: [{
     type: Schema.Types.ObjectId,

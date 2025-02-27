@@ -1,5 +1,7 @@
 import { userService } from '../services/userService.js';
-
+import User from "../models/User.js";
+import Account from "../models/Account.js";
+import Hobby from "../models/Hobby.js";
 const getUsers = async (req, res) => {
   try {
     const users = await userService.getUsers();
@@ -56,7 +58,70 @@ const deleteUserById = async (req, res) => {
     res.status(500).json({ success: false, data: null, message: error.message });
   }
 };
+const addHobbyByEmail = async (req, res) => {
+  try {
+      const { email, hobbies } = req.body;
 
+      console.log("📩 Nhận dữ liệu từ client:", { email, hobbies });
+
+      // Kiểm tra đầu vào
+      if (!email || !Array.isArray(hobbies) || hobbies.length === 0) {
+          return res.status(400).json({ success: false, message: "Vui lòng cung cấp email và danh sách hobbies hợp lệ." });
+      }
+
+      // Tìm `account` theo `email`
+      const account = await Account.findOne({ email });
+      if (!account) {
+          return res.status(404).json({ success: false, message: "Tài khoản không tồn tại." });
+      }
+
+      // Tìm `user` theo `account._id`
+      const user = await User.findOne({ account: account._id });
+      if (!user) {
+          return res.status(404).json({ success: false, message: "Người dùng không tồn tại." });
+      }
+
+      // Kiểm tra xem sở thích đã có trong database chưa
+      const existingHobbies = await Hobby.find({ name: { $in: hobbies } });
+
+      // Lọc ra các hobby đã tồn tại
+      const existingHobbyIds = existingHobbies.map(hobby => hobby._id);
+      const existingNames = existingHobbies.map(hobby => hobby.name);
+
+      // Tạo mới các hobby chưa có trong database
+      const newHobbies = hobbies
+          .filter(hobby => !existingNames.includes(hobby))
+          .map(name => ({ name }));
+
+      let insertedHobbies = [];
+      if (newHobbies.length > 0) {
+          insertedHobbies = await Hobby.insertMany(newHobbies);
+      }
+
+      // Lấy danh sách ID của các hobby mới thêm
+      const allHobbyIds = [...existingHobbyIds, ...insertedHobbies.map(hobby => hobby._id)];
+
+      // Kiểm tra xem user đã có những sở thích này chưa
+      const hobbiesToAdd = allHobbyIds.filter(hobbyId => !user.hobbies.includes(hobbyId));
+
+      if (hobbiesToAdd.length === 0) {
+          return res.status(400).json({ success: false, message: "Người dùng đã có những sở thích này." });
+      }
+
+      // Cập nhật danh sách sở thích của user
+      user.hobbies.push(...hobbiesToAdd);
+      await user.save();
+
+      return res.status(200).json({
+          success: true,
+          message: "Thêm sở thích thành công!",
+          user,
+      });
+  } catch (error) {
+      console.error("❌ Lỗi thêm sở thích vào user:", error);
+      return res.status(500).json({ success: false, message: "Lỗi hệ thống, vui lòng thử lại." });
+  }
+};
 export const userController = {
   getUsers,
   getUserById,
@@ -64,4 +129,5 @@ export const userController = {
   updateUserById,
   updateAllUsers,
   deleteUserById,
+  addHobbyByEmail,
 };
