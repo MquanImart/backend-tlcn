@@ -1,5 +1,6 @@
 import Collection from '../models/Collection.js';
 import Article from '../models/Article.js'
+import User from '../models/User.js'
 
 const getAll = async () => {
     return await Collection.find();
@@ -87,10 +88,26 @@ const getAllArticlebyId = async (id) => {
     if (collections.items.length > 0){
         const articles = await Promise.all(
             collections.items.map(async (item) => {
-                const article = await Article.findById(item._id);
+                const article = await Article.findById(item._id).populate("listPhoto");
+                const author = await User.findById(article.createdBy);
+                
+                let representImg = "https://storage.googleapis.com/kltn-hcmute/public/default/default_article.png";
+    
+                if (article?.listPhoto?.length > 0) {
+                  const firstImg = article.listPhoto.find((photo) => photo.type === "img");
+                  if (firstImg) {
+                    representImg = firstImg.url;
+                  }
+                }
+
                 return {
                   article: article,
-                  updateDate: item.updateDate
+                  updateDate: item.updateDate.getTime(),
+                  representImg: representImg,
+                  author: {
+                    _id: author._id,
+                    displayName: author.displayName
+                  }
                 };
             })
         );
