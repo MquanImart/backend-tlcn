@@ -69,7 +69,8 @@ const addNewItemCollection = async (req, res) => {
 
 const deleteItemCollection = async (req, res) => {
   try {
-    const result = await collectionService.deleteItem(req.params.id, req.query.itemId)
+    const { itemId } = req.body;
+    const result = await collectionService.deleteItem(req.params.id, itemId);
     if (!result) return res.status(404).json({ success: false, data: null, message: 'Bộ sưu tập không tồn tại' })
     res.status(200).json({ success: true, data: null, message: 'Xóa thành công' })
   } catch (error) {

@@ -332,7 +332,7 @@ Router.get('/:id/collections-recent', userController.getEarliestItems);
  * @swagger
  * /users/{id}/collections:
  *   get:
- *     summary: Lấy danh sách bài viết gần đây
+ *     summary: Lấy danh sách tất cả bộ sưu tập
  *     tags: [Users]
  *     parameters:
  *       - in: path
