@@ -123,6 +123,13 @@ Router.delete('/:id', userController.deleteUserById);
 
 /**
  * @swagger
+ * /users/addHobbyByEmail:
+ *   post:
+ *     summary: Thêm sở thích vào user bằng email
+=======
+
+/**
+ * @swagger
  * /users/{id}/saved-groups:
  *   get:
  *     summary: Lấy danh sách nhóm mà người dùng đã lưu
@@ -252,6 +259,27 @@ Router.get('/:id/avt', userController.getPhotoAvt);
  *           schema:
  *             type: object
  *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email của user
+ *                 example: "user@example.com"
+ *               hobbies:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Danh sách sở thích
+ *                 example: ["Bóng đá", "Nấu ăn"]
+ *     responses:
+ *       200:
+ *         description: Thêm sở thích thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc sở thích đã tồn tại
+ *       404:
+ *         description: Người dùng không tồn tại
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+Router.post("/addHobbyByEmail", userController.addHobbyByEmail);
  *               userId:
  *                 type: string
  *                 example: "60f7ebeb2f8fb814b56fa181"
@@ -351,5 +379,6 @@ Router.get('/:id/collections-recent', userController.getEarliestItems);
  *         description: Lỗi server khi xóa bộ sưu tập
  */
 Router.get('/:id/collections', userController.getAllCollection);
+
 
 export const userRoute = Router;
