@@ -123,7 +123,6 @@ const addHobbyByEmail = async (req, res) => {
       return res.status(500).json({ success: false, message: "Lỗi hệ thống, vui lòng thử lại." });
   }
 };
-=======
 const getSavedGroups = async (req, res) => {
   try {
     const userId = req.params.id;

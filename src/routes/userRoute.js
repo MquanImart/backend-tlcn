@@ -121,12 +121,7 @@ Router.patch('/', userController.updateAllUsers);
  */
 Router.delete('/:id', userController.deleteUserById);
 
-/**
- * @swagger
- * /users/addHobbyByEmail:
- *   post:
- *     summary: Thêm sở thích vào user bằng email
-=======
+
 
 /**
  * @swagger
@@ -248,9 +243,9 @@ Router.get('/:id/avt', userController.getPhotoAvt);
 
 /**
  * @swagger
- * /users/collections:
+ * /users/addHobbyByEmail:
  *   post:
- *     summary: Tạo collection mới cho user
+ *     summary: Thêm sở thích vào user bằng email
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -280,6 +275,19 @@ Router.get('/:id/avt', userController.getPhotoAvt);
  *         description: Lỗi hệ thống
  */
 Router.post("/addHobbyByEmail", userController.addHobbyByEmail);
+/**
+ * @swagger
+ * /users/collections:
+ *   post:
+ *     summary: Tạo collection mới cho user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
  *               userId:
  *                 type: string
  *                 example: "60f7ebeb2f8fb814b56fa181"
