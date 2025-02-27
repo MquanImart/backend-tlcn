@@ -79,39 +79,6 @@ Router.get('/:id', accountController.getAccountById);
 
 /**
  * @swagger
- * /accounts:
- *   post:
- *     summary: Tạo tài khoản mới
- *     tags: [Accounts]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *                 example: "newuser@example.com"
- *               phone:
- *                 type: string
- *                 example: "0987654321"
- *               password:
- *                 type: string
- *                 example: "securepassword"
- *               role:
- *                 type: string
- *                 example: "user"
- *     responses:
- *       201:
- *         description: Tài khoản được tạo thành công
- *       400:
- *         description: Dữ liệu đầu vào không hợp lệ
- */
-Router.post('/', accountController.createAccount);
-
-/**
- * @swagger
  * /accounts/{id}:
  *   patch:
  *     summary: Cập nhật một tài khoản theo ID
@@ -184,5 +151,217 @@ Router.patch('/', accountController.updateAllAccounts);
  *         description: Không tìm thấy tài khoản
  */
 Router.delete('/:id', accountController.deleteAccountById);
+/**
+ * @swagger
+ * /accounts/login:
+ *   post:
+ *     summary: Đăng nhập vào hệ thống
+ *     tags: [Accounts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "user@example.com"
+ *               password:
+ *                 type: string
+ *                 example: "yourpassword"
+ *     responses:
+ *       200:
+ *         description: Đăng nhập thành công, trả về token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     token:
+ *                       type: string
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR..."
+ *                     account:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           example: "60f7ebeb2f8fb814b56fa181"
+ *                         email:
+ *                           type: string
+ *                           example: "user@example.com"
+ *                         role:
+ *                           type: string
+ *                           example: "user"
+ *       400:
+ *         description: Thiếu email hoặc mật khẩu
+ *       401:
+ *         description: Email hoặc mật khẩu không đúng
+ */
+Router.post('/login', accountController.loginAccount);
+/**
+ * @swagger
+ * /accounts/sendOtp:
+ *   post:
+ *     summary: Gửi mã OTP đến email hoặc số điện thoại
+ *     tags: [Accounts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               input:
+ *                 type: string
+ *                 example: "user@example.com hoặc 0123456789"
 
+ *     responses:
+ *       200:
+ *         description: Mã OTP đã được gửi thành công
+ *       400:
+ *         description: Dữ liệu đầu vào không hợp lệ
+ *       404:
+ *         description: Không tìm thấy email hoặc số điện thoại
+ */
+Router.post('/sendOtp', accountController.sendOtp);
+/**
+ * @swagger
+ * /accounts/verifyOtp:
+ *   post:
+ *     summary: Xác minh mã OTP
+ *     tags: [Accounts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               input:
+ *                 type: string
+ *                 description: Email của người dùng đã nhận OTP
+ *                 example: "user@example.com"
+ *               otp:
+ *                 type: string
+ *                 description: Mã OTP được gửi qua email
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Xác minh OTP thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Xác minh OTP thành công!"
+ *       400:
+ *         description: Dữ liệu đầu vào không hợp lệ hoặc OTP sai
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Mã OTP không chính xác."
+ *       404:
+ *         description: OTP hết hạn hoặc không tồn tại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "OTP đã hết hạn hoặc không tồn tại."
+ */
+Router.post("/verifyOtp", accountController.verifyOtp);
+/**
+ * @swagger
+ * /accounts/updatePassword:
+ *   post:
+ *     summary: Cập nhật mật khẩu mới
+ *     tags: [Accounts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email của tài khoản cần đổi mật khẩu
+ *                 example: "user@example.com"
+ *               newPassword:
+ *                 type: string
+ *                 description: Mật khẩu mới
+ *                 example: "newSecurePassword123"
+ *     responses:
+ *       200:
+ *         description: Mật khẩu đã được cập nhật thành công
+ *       400:
+ *         description: Dữ liệu đầu vào không hợp lệ
+ *       404:
+ *         description: Email không tồn tại trong hệ thống
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+Router.post("/updatePassword", accountController.updatePassword);
+/**
+ * @swagger
+ * /accounts/create:
+ *   post:
+ *     summary: Tạo tài khoản mới
+ *     tags: [Accounts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email đăng ký
+ *                 example: "user@example.com"
+ *               password:
+ *                 type: string
+ *                 description: Mật khẩu
+ *                 example: "securePassword123"
+ *               displayName:
+ *                 type: string
+ *                 description: Tên hiển thị của người dùng
+ *                 example: "John Doe"
+ *               hashtag:
+ *                 type: string
+ *                 description: Hashtag người dùng
+ *                 example: "#john123"
+ *     responses:
+ *       201:
+ *         description: Tạo tài khoản thành công
+ *       400:
+ *         description: Email đã tồn tại hoặc dữ liệu không hợp lệ
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+Router.post("/create", accountController.createAccount);
 export const accountRoute = Router;
