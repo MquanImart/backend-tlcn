@@ -1,8 +1,10 @@
 import MyPhoto from "../models/MyPhoto.js";
 import { cloudStorageService } from "../config/cloudStorage.js";
+import User from "../models/User.js";
 
-const getMyPhotos = async () => {
-  return await MyPhoto.find({ _destroy: null })
+const getMyPhotos = async (filter) => {
+  const query = { _destroy: null, ...(filter || {}) };
+  return await MyPhoto.find(query);
 };
 
 const getMyPhotoById = async (id) => {
@@ -88,7 +90,26 @@ const uploadAndSaveFile = async (file, userId, type, folderType, referenceId, ol
   }
 };
 
+const getMyPhotosAndUser = async (userId, query) => {
+  const filter = { _destroy: null, idAuthor: userId };
 
+  if (query.type) {
+    filter.type = query.type;
+  }
+
+  const photos = await MyPhoto.find(filter);
+  const user = await User.findById(userId).select('displayName _id avt');
+  
+  const filteredPhotos = user.avt?.length
+    ? photos.filter((photo) => !user.avt.includes(photo._id.toString()))
+    : photos;
+
+  return filteredPhotos.map((item) => ({
+    ...item.toObject(),
+    idAuthor: user,
+  }));
+  
+};
 
 
 
@@ -99,5 +120,6 @@ export const myPhotoService = {
   updateMyPhotoById,
   updateAllMyPhotos,
   deleteMyPhotoById,
-  uploadAndSaveFile
+  uploadAndSaveFile,
+  getMyPhotosAndUser
 };
