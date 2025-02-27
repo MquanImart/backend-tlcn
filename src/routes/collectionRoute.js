@@ -244,7 +244,7 @@ Router.post('/:id/item', CollectionController.addNewItemCollection);
 /**
  * @swagger
  * /collections/{id}/item:
- *   delete:
+ *   patch:
  *     summary: Xóa item bộ sưu tập
  *     tags: [Collections]
  *     parameters:
@@ -254,19 +254,25 @@ Router.post('/:id/item', CollectionController.addNewItemCollection);
  *         schema:
  *           type: string
  *         description: ID của bộ sưu tập
- *       - in: query
- *         name: itemId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID của item cần xóa
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               itemId:
+ *                 type: string
+ *                 description: ID của item cần xóa
+ *             required:
+ *               - itemId
  *     responses:
  *       201:
  *         description: Thêm thành công
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.delete('/:id/item', CollectionController.deleteItemCollection);
+Router.patch('/:id/item', CollectionController.deleteItemCollection);
 
 /**
  * @swagger

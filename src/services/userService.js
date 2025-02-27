@@ -4,6 +4,7 @@ import { groupService } from "./groupService.js";
 import { articleService } from "./articleService.js";
 import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
+import MyPhoto from "../models/MyPhoto.js";
 
 const getUsers = async () => {
   return await User.find()
@@ -181,13 +182,37 @@ const deleteCollection = async (userId, collectionId) => {
 const getAllCollection = async (userId) => {
   const user = await User.findById(userId)
       .populate({
-        path: 'collections',
-        populate: {
-          path: 'items._id',
-        },
+        path: 'collections'
       })
       .lean();
-  return user;
+  const defaultImage =
+  "https://storage.googleapis.com/kltn-hcmute/public/default/default_article.png";
+
+  return await Promise.all(
+    user.collections.map(async (collection) => {
+      const allPhotoIds = collection.items.map((item) => item._id)
+      const articles = await Article.find({ _id: { $in: allPhotoIds } })
+        .populate("listPhoto")
+        .lean();
+
+      let representImg = defaultImage;
+      articles.some((article) => {
+        if (article?.listPhoto?.length > 0) {
+          const firstImg = article.listPhoto.find((photo) => photo.type === "img");
+          if (firstImg) {
+            representImg = firstImg.url;
+            return true; // Dừng vòng lặp sớm
+          }
+        }
+        return false;
+      });        
+      
+      return {
+        collection: collection,
+        imgDefault: representImg
+      }
+    })
+  )
 };
 
 const getEarliestItems = async (userId, limit) => {
@@ -205,21 +230,45 @@ const getEarliestItems = async (userId, limit) => {
     }
 
     const collectionsArticle = user.collections.filter((item) => item.type === "article")
-    let allItems = collectionsArticle.flatMap((collection) => collection.items);
+    let allItems = collectionsArticle.flatMap((collection) =>
+      collection.items.map((item) => ({
+        ...item,
+        collectionId: collection._id, // Gắn collectionId vào từng item
+      }))
+    );
     allItems = allItems.sort((a, b) => new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime());
     const itemRecent = allItems.slice(0, limit);
     
-    if (itemRecent.length > 0){
+    if (itemRecent.length > 0) {
       return Promise.all(
         itemRecent.map(async (item) => {
           const article = await Article.findById(item._id);
+          const article_expand = await Article.findById(item._id).populate("listPhoto");
+          const author = await User.findById(article.createdBy);
+    
+          let representImg = "https://storage.googleapis.com/kltn-hcmute/public/default/default_article.png";
+    
+          if (article_expand?.listPhoto?.length > 0) {
+            const firstImg = article_expand.listPhoto.find((photo) => photo.type === "img");
+            if (firstImg) {
+              representImg = firstImg.url;
+            }
+          }
+    
           return {
             article: article,
-            updateDate: item.updateDate
+            updateDate: item.updateDate.getTime(),
+            representImg: representImg,
+            author: {
+              _id: author._id,
+              displayName: author.displayName
+            },
+            collectionId: item.collectionId
           };
         })
       );
-    } 
+    }
+    
     return [];
 };
 
