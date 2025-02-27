@@ -120,5 +120,38 @@ Router.patch('/', userController.updateAllUsers);
  *         description: Xóa người dùng thành công
  */
 Router.delete('/:id', userController.deleteUserById);
-
+/**
+ * @swagger
+ * /users/addHobbyByEmail:
+ *   post:
+ *     summary: Thêm sở thích vào user bằng email
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email của user
+ *                 example: "user@example.com"
+ *               hobbies:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Danh sách sở thích
+ *                 example: ["Bóng đá", "Nấu ăn"]
+ *     responses:
+ *       200:
+ *         description: Thêm sở thích thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc sở thích đã tồn tại
+ *       404:
+ *         description: Người dùng không tồn tại
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+Router.post("/addHobbyByEmail", userController.addHobbyByEmail);
 export const userRoute = Router;
