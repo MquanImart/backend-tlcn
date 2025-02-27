@@ -15,6 +15,19 @@ const Router = express.Router();
  *   get:
  *     summary: Lấy danh sách ảnh/video/ghi âm
  *     tags: [MyPhotos]
+ *     parameters:
+ *       - in: query
+ *         name: idAuthor
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: ID của tác giả
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Loại nội dung (ảnh, video, ghi âm)
  *     responses:
  *       200:
  *         description: Trả về danh sách ảnh/video/ghi âm
@@ -128,5 +141,32 @@ Router.delete('/:id', myPhotoController.deleteMyPhotoById);
  *         description: Upload file thành công
  */
 Router.post('/', upload.single('file'), myPhotoController.uploadFile);
+
+/**
+ * @swagger
+ * /myphotos/{id}/user:
+ *   get:
+ *     summary: Lấy ảnh/video/ghi âm theo id user
+ *     tags: [MyPhotos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [img, video, record]
+ *         required: false
+ *         description: Lọc theo loại nội dung (img, video, record)
+ *     responses:
+ *       200:
+ *         description: Lấy ảnh/video/ghi âm theo id user thành công
+ */
+Router.get('/:id/user', myPhotoController.getMyPhotosAndUser);
+
 
 export const myPhotoRoute = Router;

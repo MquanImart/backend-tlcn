@@ -2,6 +2,8 @@ import User from "../models/User.js";
 import Group from "../models/Group.js";
 import { groupService } from "./groupService.js";
 import { articleService } from "./articleService.js";
+import collectionService from "./collectionService.js"
+import Article from "../models/Article.js";
 
 const getUsers = async () => {
   return await User.find()
@@ -116,7 +118,112 @@ const getArticleAllGroups = async (userId) => {
     throw new Error(error.message);
   }
 };
+
+const getPhotoAvt = async (userId, query) => {
+  const filter = { _destroy: null, idAuthor: userId };
+  if (query.type) {
+    filter.type = query.type;
+  }
+
+  const user = await User.findById(userId)
+  .select('displayName _id avt')
+  .populate({
+    path: 'avt',
+    model: 'MyPhoto',
+  });
+
+  return user.avt.map((item) => ({
+    ...item.toObject(),
+    idAuthor: {
+      _id: user._id,
+      displayName: user.displayName
+    },
+  }));
   
+};
+
+const createCollection = async (userId, name, type) => {
+  const newCollection = await collectionService.createCollection({
+      name: name,
+      item: [],
+      type: type
+  })
+
+  if (!newCollection) {
+    throw new Error("Không thể tạo collection");
+  }
+
+  await User.findByIdAndUpdate(
+    userId,
+    { $push: { collections: newCollection._id } }, 
+    { new: true } 
+  );
+
+  return newCollection;
+};
+
+const deleteCollection = async (userId, collectionId) => {
+  const deletedCollection = await collectionService.deleteCollectionById(collectionId);
+
+  if (!deletedCollection) {
+    throw new Error("Không thể xóa collection");
+  }
+
+  await User.findByIdAndUpdate(
+    userId,
+    { $pull: { collections: collectionId } },
+    { new: true }
+  );
+
+  return null;
+};
+
+const getAllCollection = async (userId) => {
+  const user = await User.findById(userId)
+      .populate({
+        path: 'collections',
+        populate: {
+          path: 'items._id',
+        },
+      })
+      .lean();
+  return user;
+};
+
+const getEarliestItems = async (userId, limit) => {
+  const user = await User.findById(userId)
+      .populate({
+        path: 'collections',
+        populate: {
+          path: 'items._id', // Nếu items là ObjectId tham chiếu tới một collection khác, bạn cần điều chỉnh ở đây
+        },
+      })
+      .lean();
+
+    if (!user || !user.collections) {
+      return [];
+    }
+
+    const collectionsArticle = user.collections.filter((item) => item.type === "article")
+    let allItems = collectionsArticle.flatMap((collection) => collection.items);
+    allItems = allItems.sort((a, b) => new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime());
+    const itemRecent = allItems.slice(0, limit);
+    
+    if (itemRecent.length > 0){
+      return Promise.all(
+        itemRecent.map(async (item) => {
+          const article = await Article.findById(item._id);
+          return {
+            article: article,
+            updateDate: item.updateDate
+          };
+        })
+      );
+    } 
+    return [];
+};
+
+
 export const userService = {
   getUsers,
   getUserById,
@@ -128,4 +235,9 @@ export const userService = {
   getMyGroups,
   getNotJoinedGroups,
   getArticleAllGroups,
+  getPhotoAvt,
+  createCollection,
+  deleteCollection,
+  getEarliestItems,
+  getAllCollection
 };
