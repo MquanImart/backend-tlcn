@@ -1,4 +1,5 @@
 import Collection from '../models/Collection.js';
+import Article from '../models/Article.js'
 
 const getAll = async () => {
     return await Collection.find();
@@ -9,7 +10,17 @@ const getById = async (id) => {
 };
 
 const createCollection = async (data) => {
-    return await Collection.create(data)
+
+    const formattedItems = data.item.length > 0 ? data.items.map(item => ({
+        _id: item,
+        updateDate: new Date(),
+    })) : [];
+
+    return await Collection.create({
+        name: data.name,
+        items: formattedItems,
+        type: data.type,
+    })
 }
 
 const updateCollectionById = async (id, data) => {
@@ -24,6 +35,82 @@ const deleteCollectionById = async (id) => {
     return await Collection.findByIdAndDelete(id)
 }
 
+const addNewItem = async (id, itemId) => {
+    const collection = await Collection.findById(id);
+    if (!collection) {
+        return {success: false, code: 404, data: null, message: "Không tìm thấy bộ sưu tập"}
+    }
+
+    const isItemExists = collection.items.some(item => item._id.toString() === itemId);
+    if (isItemExists) return {success: false, code: 409, data: null, message: "Đã tồn tại trong bộ sưu tập"};
+
+    const updatedCollection = await Collection.findByIdAndUpdate(
+        id,
+        { 
+            $push: { 
+                items: {
+                    _id: itemId,
+                    updateDate: new Date(),
+                } 
+            } 
+        }, 
+        { new: true }
+    );
+    return {success: true, code: 200, data: updatedCollection, message: "Thành công thêm vào bộ sưu tập"};
+};
+
+const deleteItem = async (id, itemId) => {
+    return await Collection.findByIdAndUpdate(
+        id,
+        { 
+            $pull: { "items": { _id: itemId } }
+        }, 
+        { new: true }
+    );
+};
+
+const changeCollections = async (currCollectionId, newCollectionId, itemId) => {
+    const result = await addNewItem(newCollectionId, itemId);
+    if (result.success){
+        await deleteItem(currCollectionId, itemId);
+        return {success: true, code: 200, data: null, message: "Thay đổi thành công"}
+    }
+    return {success: true, code: result.code, data: null, message: result.message}
+};
+
+const getAllArticlebyId = async (id) => {
+    const collections = await Collection.findById(id);
+
+    if (!collections){
+        return {success: false, code: 404, data: null, message: "Không tìm thấy bộ sưu tập"}
+    }
+    if (collections.items.length > 0){
+        const articles = await Promise.all(
+            collections.items.map(async (item) => {
+                const article = await Article.findById(item._id);
+                return {
+                  article: article,
+                  updateDate: item.updateDate
+                };
+            })
+        );
+
+        return {
+            success: true,
+            data: {
+                ...collections._doc,
+                items: articles
+            },
+            message: "Lấy danh sách thành công"
+        }
+    }
+    return {
+        success: true,
+        data: collections,
+        message: "Không có bài viết"
+    };
+};
+
 const collectionService = {
     getAll,
     getById,
@@ -31,6 +118,10 @@ const collectionService = {
     updateCollectionById,
     updateAllCollections,
     deleteCollectionById,
+    addNewItem,
+    deleteItem,
+    getAllArticlebyId,
+    changeCollections,
 }
 
 export default collectionService;

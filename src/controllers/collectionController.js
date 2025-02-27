@@ -57,6 +57,47 @@ const deleteCollectionById = async (req, res) => {
   }
 }
 
+const addNewItemCollection = async (req, res) => {
+  try {
+    const result = await collectionService.addNewItem(req.params.id, req.query.itemId)
+    if (!result.success) return res.status(result.code).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: result.message })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const deleteItemCollection = async (req, res) => {
+  try {
+    const result = await collectionService.deleteItem(req.params.id, req.query.itemId)
+    if (!result) return res.status(404).json({ success: false, data: null, message: 'Bộ sưu tập không tồn tại' })
+    res.status(200).json({ success: true, data: null, message: 'Xóa thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const getAllArticlebyId = async (req, res) => {
+  try {
+    const result = await collectionService.getAllArticlebyId(req.params.id)
+    if (!result) return res.status(404).json({ success: false, data: null, message: 'Bộ sưu tập không tồn tại' })
+    res.status(200).json({ success: true, data: result.data, message: 'Lấy danh sách bài viết thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const changeCollections = async (req, res) => {
+  try {
+    const {currCollectionId, newCollectionId, itemId} = req.body;
+    const result = await collectionService.changeCollections(currCollectionId, newCollectionId, itemId);
+    if (!result) return res.status(result.code).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: 'Thay đổi bộ sưu tập thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const CollectionController = {
   getCollections,
   getCollectionById,
@@ -64,6 +105,10 @@ const CollectionController = {
   updateCollectionById,
   updateAllCollections,
   deleteCollectionById,
+  addNewItemCollection,
+  deleteItemCollection,
+  getAllArticlebyId,
+  changeCollections
 }
 
 export  default CollectionController;

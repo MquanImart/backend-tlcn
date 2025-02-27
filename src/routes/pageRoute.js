@@ -69,7 +69,7 @@ Router.post('/', pageController.createPage);
  * @swagger
  * /pages/{id}:
  *   patch:
- *     summary: Cập nhật Page theo ID
+ *     summary: Cập nhật thông tin của một Page theo ID
  *     tags: [Pages]
  *     parameters:
  *       - in: path
@@ -78,10 +78,45 @@ Router.post('/', pageController.createPage);
  *         schema:
  *           type: string
  *         description: ID của Page cần cập nhật
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Tên của trang
+ *               description:
+ *                 type: string
+ *                 description: Mô tả của trang
+ *               [other fields...]: 
+ *                 type: string
+ *                 description: Các trường khác của trang
  *     responses:
  *       200:
  *         description: Cập nhật Page thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   description: Dữ liệu Page đã cập nhật
+ *                 message:
+ *                   type: string
+ *                   example: Cập nhật Page thành công
+ *       404:
+ *         description: Không tìm thấy Page với ID đã cung cấp
+ *       500:
+ *         description: Lỗi server khi xử lý yêu cầu
  */
+
 Router.patch('/:id', pageController.updatePageById);
 
 /**

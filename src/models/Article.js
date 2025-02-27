@@ -35,9 +35,16 @@ const articleSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Address',
   },
-  hashTag: [{
-    type: String,
-  }],
+  hashTag: {
+    type: [String],
+    default: [],
+    validate: {
+      validator: function (tags) {
+        return tags.every(tag => /^#[a-zA-Z0-9_À-ỹ]+$/.test(tag));
+      },
+      message: 'Mỗi hashtag phải bắt đầu bằng # và chỉ chứa chữ cái, số hoặc gạch dưới',
+    },
+  },
   listPhoto: [{
     type: Schema.Types.ObjectId,
     ref: 'MyPhoto', 
@@ -69,3 +76,20 @@ const articleSchema = new Schema({
 
 const Article = mongoose.model('Article', articleSchema);
 export default Article;
+
+
+articleSchema.pre('save', function (next) {
+  if (this.hashTag && this.isModified('hashTag')) {
+    this.hashTag = this.hashTag
+      .map(tag => {
+        const cleanedTag = tag
+          .replace(/#/g, '') 
+          .trim()
+          .replace(/[^\w\sÀ-ỹ]/gi, ''); 
+
+        return `#${cleanedTag}`; 
+      })
+      .filter(tag => tag.length > 1); 
+  }
+  next();
+});
