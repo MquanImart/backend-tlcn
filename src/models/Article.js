@@ -62,14 +62,14 @@ const articleSchema = new Schema({
     ref: 'Comment',
   }],
   createdAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   updatedAt: {
-    type: Date,
+    type: Number,
   },
   _destroy: {
-    type: Date,
+    type: Number,
     default: null, // Hỗ trợ soft delete
   },
 });

@@ -12,7 +12,7 @@ const ReelsSchema = new Schema({
   comments: { type: [String], default: [] },
   createdAt: { type: Number, required: true, default: Date.now },
   updatedAt: { type: Number, default: Date.now },
-  destroyAt: { type: Date, default: null }
+  destroyAt: { type: Number, default: null }
 });
 
 const Reels = mongoose.model('Reels', ReelsSchema);
