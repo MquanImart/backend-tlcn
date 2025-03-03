@@ -15,7 +15,7 @@ const reportSchema = new Schema({
     trim: true,
   },
   reportDate: {
-    type: Date,
+    type: Number,
     default: Date.now, 
   },
   status: {
@@ -24,7 +24,7 @@ const reportSchema = new Schema({
     default: 'pending',
   },
   _destroy: {
-    type: Date,
+    type: Number,
     default: null, 
   },
 });
