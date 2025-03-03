@@ -28,14 +28,14 @@ const commentSchema = new Schema({
     ref: 'User', 
   }],
   createdAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   updatedAt: {
-    type: Date,
+    type: Number,
   },
   _destroy: {
-    type: Date,
+    type: Number,
     default: null,
   },
 });

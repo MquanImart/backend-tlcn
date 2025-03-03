@@ -18,11 +18,11 @@ const historySearchSchema = new Schema({
     trim: true,
   },
   createdAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   _destroy: {
-    type: Date,
+    type: Number,
     default: null,
   },
 });

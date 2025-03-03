@@ -43,7 +43,7 @@ const userSchema = new Schema({
     trim: true,
   },
   createdAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   hobbies: [{

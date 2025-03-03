@@ -31,16 +31,13 @@ const accountSchema = new mongoose.Schema({
     enum: ['online', 'offline'],
     default: 'offline',
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: Date,
+  createdAt: { type: Number, default: Date.now },
+  updatedAt: { type: Number, default: Date.now },
   _destroy: {
-    type: Date,
+    type: Number,
     default: null,
   },
-})
+}) 
 
 const Account = mongoose.model('Account', accountSchema)
 export default Account
