@@ -24,15 +24,15 @@ const tripSchema = new Schema({
     required: true,
   },
   createAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   updatedAt: {
-    type: Date,
+    type: Number,
     default: null,
   },
   deleteAt: {
-    type: Date,
+    type: Number,
     default: null,
   },
 });

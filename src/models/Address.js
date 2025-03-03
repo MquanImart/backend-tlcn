@@ -34,15 +34,15 @@ const addressSchema = new Schema({
     type: Number,
   },
   createdAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   updatedAt: {
-    type: Date,
+    type: Number,
     default: null,
   },
   _destroy: {
-    type: Date,
+    type: Number,
     default: null,
   },
 });
