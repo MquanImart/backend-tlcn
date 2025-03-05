@@ -103,16 +103,18 @@ const getAddFriendBySenderId = async (id) => {
         );
   
         return {
-          ...request.toObject(),
+          addFriend: request.toObject(),
           sender: {
             _id: sender._id,
             displayName: sender.displayName,
-            avt: sender.avt
+            avt: sender.avt,
+            aboutMe: sender.aboutMe
           },
           receiver: {
             _id: receiver._id,
             displayName: receiver.displayName,
-            avt: receiver.avt
+            avt: receiver.avt,
+            aboutMe: receiver.aboutMe
           },
           mutualFriends,
           mutualGroups,
@@ -159,7 +161,7 @@ const getAddFriendBySenderId = async (id) => {
         );
   
         return {
-          ...request.toObject(),
+          addFriend: request.toObject(),
           sender: {
             _id: sender._id,
             displayName: sender.displayName,
