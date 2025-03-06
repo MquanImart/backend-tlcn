@@ -274,6 +274,36 @@ const updateUserSetting = async (req, res) => {
   }
 };
 
+const getAllFriends = async (req, res) => {
+  try {
+    const result = await userService.getAllFriends(req.params.id);
+    res.status(200).json({ success: true, data: result, message: 'Lấy danh sách bạn bè' });
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
+
+const unFriends = async (req, res) => {
+  try {
+    const { friendId } = req.body;
+    const dataAddFriend = await userService.unFriends(req.params.id, friendId)
+    if (!dataAddFriend) return res.status(404).json({ success: false, data: null, message: 'Không có thông tin' })
+    res.status(200).json({ success: true, data: dataAddFriend, message: 'Hủy kết bạn thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const suggestedFriends = async (req, res) => {
+  try {
+    const dataAddFriend = await userService.suggestFriends(req.params.id)
+    if (!dataAddFriend) return res.status(404).json({ success: false, data: null, message: 'Không có thông tin' })
+    res.status(200).json({ success: true, data: dataAddFriend, message: 'Lấy danh sách gợi ý thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 export const userController = {
   getUsers,
   getUserById,
@@ -292,4 +322,7 @@ export const userController = {
   getEarliestItems,
   getAllCollection,
   updateUserSetting,
+  getAllFriends,
+  unFriends,
+  suggestedFriends
 };

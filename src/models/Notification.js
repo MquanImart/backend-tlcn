@@ -29,15 +29,15 @@ const notificationSchema = new Schema({
     trim: true,
   },
   readAt: {
-    type: Date,
+    type: Number,
     default: null,
   },
   createdAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   _destroy: {
-    type: Date,
+    type: Number,
     default: null, // Hỗ trợ soft delete
   },
 });

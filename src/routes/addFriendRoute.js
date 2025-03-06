@@ -85,6 +85,13 @@ Router.post('/', AddFriendController.createAddFriend);
  *   patch:
  *     summary: Cập nhật lời mời theo id
  *     tags: [Add-Friends]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Id của lời mời
  *     requestBody:
  *       required: true
  *       content:
@@ -136,5 +143,47 @@ Router.patch('/', AddFriendController.updateAllAddFriends);
  *         description: Friend request not found
  */
 Router.delete('/:id', AddFriendController.deleteAddFriendById);
+
+/**
+ * @swagger
+ * /add-friends/sender/{id}:
+ *   get:
+ *     summary: Lấy tất cả lời mời kết bạn theo id người gửi
+ *     tags: [Add-Friends]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Id của người gửi
+ *     responses:
+ *       200:
+ *         description: Tìm thấy lời mời phù hợp
+ *       404:
+ *         description: Không tìm thấy
+ */
+Router.get('/sender/:id', AddFriendController.getAddFriendBySenderId);
+
+/**
+ * @swagger
+ * /add-friends/receive/{id}:
+ *   get:
+ *     summary: Lấy tất cả lời mời kết bạn theo id người nhận
+ *     tags: [Add-Friends]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Id của người nhận
+ *     responses:
+ *       200:
+ *         description: Tìm thấy lời mời phù hợp
+ *       404:
+ *         description: Không tìm thấy
+ */
+Router.get('/receive/:id', AddFriendController.getAddFriendByReceiverId);
 
 export const addFriendRoute = Router;

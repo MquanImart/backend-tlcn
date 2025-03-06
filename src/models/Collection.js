@@ -6,12 +6,12 @@ const CollectionSchema = new Schema(
     items: [
       {
         _id: { type: Schema.Types.ObjectId, required: true },
-        updateDate: { type: Date, default: Date.now },
+        updateDate: { type: Number, default: Date.now },
       }
     ],
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
-    _destroy: { type: Date, required: false },
+    createdAt: { type: Number, default: Date.now },
+    updatedAt: { type: Number, default: Date.now },
+    _destroy: { type: Number, required: false },
     type: {
       type: String,
       enum: ['article', 'reels'],

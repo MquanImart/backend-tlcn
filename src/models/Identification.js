@@ -41,15 +41,15 @@ const identificationSchema = new Schema({
     trim: true,
   },
   createdAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   updatedAt: {
-    type: Date,
+    type: Number,
     default: null,
   },
   _destroy: {
-    type: Date,
+    type: Number,
     default: null, // Hỗ trợ soft delete
   },
 });

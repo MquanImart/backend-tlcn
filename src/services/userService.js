@@ -4,7 +4,6 @@ import { groupService } from "./groupService.js";
 import { articleService } from "./articleService.js";
 import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
-import MyPhoto from "../models/MyPhoto.js";
 
 const getUsers = async () => {
   return await User.find()
@@ -283,6 +282,81 @@ const updateUserSetting = async (id, settingData) => {
   }
 };
 
+const getAllFriends = async (id) => {
+  const user = await  User.findById(id);
+
+  const allFriends = await Promise.all(
+    user.friends.map(async (friend) => {
+      const FriendData = await User.findById(friend);
+      return {
+        _id: FriendData._id,
+        displayName: FriendData.displayName,
+        avt: FriendData.avt,
+        aboutMe: FriendData.aboutMe
+      }
+    })
+  );
+
+  return allFriends;
+};
+
+const unFriends = async (id, friendId) => {
+  await Promise.all([
+    User.findByIdAndUpdate(id, { $pull: { friends: friendId } }),
+    User.findByIdAndUpdate(friendId, { $pull: { friends: id } }),
+  ]);
+
+  return { message: "Unfriended successfully" };
+};
+
+const suggestFriends = async (id) => {
+  const user = await User.findById(id);
+  if (!user) throw new Error("User not found");
+
+  const userFriendsSet = new Set(user.friends.map((f) => f.toString()));
+  userFriendsSet.add(id); 
+
+  const friendCounts = {};
+
+  await Promise.all(
+    user.friends.map(async (friendId) => {
+      const friend = await User.findById(friendId);
+      if (friend) {
+        friend.friends.forEach((friendOfFriendId) => {
+          const friendOfFriendStr = friendOfFriendId.toString();
+          if (!userFriendsSet.has(friendOfFriendStr)) {
+            friendCounts[friendOfFriendStr] = (friendCounts[friendOfFriendStr] || 0) + 1;
+          }
+        });
+      }
+    })
+  );
+
+  // Chuyển danh sách thành mảng và sắp xếp theo số lần trùng lặp (giảm dần)
+  const suggestedFriends = Object.entries(friendCounts)
+    .map(([friendId, count]) => ({ friendId, count }))
+    .sort((a, b) => b.count - a.count);
+
+    const result = await Promise.all(
+      suggestedFriends.map(async (item) => {
+        const friend = await User.findById(item.friendId);
+        if (friend) {
+          return {
+            friend: {
+              _id: friend._id,
+              displayName: friend.displayName,
+              avt: friend.avt,
+              aboutMe: friend.aboutMe
+            },
+            count: item.count
+          }
+        }
+      })
+    );
+  return result;
+};
+
+
 export const userService = {
   getUsers,
   getUserById,
@@ -300,4 +374,7 @@ export const userService = {
   getEarliestItems,
   getAllCollection,
   updateUserSetting
+  getAllFriends,
+  unFriends,
+  suggestFriends
 };

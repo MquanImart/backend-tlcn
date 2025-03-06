@@ -57,6 +57,26 @@ const deleteAddFriendById = async (req, res) => {
   }
 }
 
+const getAddFriendBySenderId = async (req, res) => {
+  try {
+    const dataAddFriend = await addFriendService.getAddFriendBySenderId(req.params.id)
+    if (!dataAddFriend) return res.status(404).json({ success: false, data: null, message: 'Không có thông tin' })
+    res.status(200).json({ success: true, data: dataAddFriend, message: 'Lấy danh sách kết bạn thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const getAddFriendByReceiverId = async (req, res) => {
+  try {
+    const dataAddFriend = await addFriendService.getAddFriendByReceiverId(req.params.id)
+    if (!dataAddFriend) return res.status(404).json({ success: false, data: null, message: 'Không có thông tin' })
+    res.status(200).json({ success: true, data: dataAddFriend, message: 'Lấy danh sách kết bạn thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const AddFriendController = {
   getAddFriends,
   getAddFriendById,
@@ -64,6 +84,8 @@ const AddFriendController = {
   updateAddFriendById,
   updateAllAddFriends,
   deleteAddFriendById,
+  getAddFriendBySenderId,
+  getAddFriendByReceiverId,
 }
 
 export  default AddFriendController;
