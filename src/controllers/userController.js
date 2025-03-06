@@ -1,4 +1,5 @@
 import { userService } from '../services/userService.js';
+
 import User from "../models/User.js";
 import Account from "../models/Account.js";
 import Hobby from "../models/Hobby.js";
@@ -246,6 +247,33 @@ const getEarliestItems = async (req, res) => {
   }
 };
 
+const updateUserSetting = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { setting } = req.body;
+
+    // Kiểm tra setting có tồn tại hay không
+    if (!setting || typeof setting !== 'object') {
+      return res.status(400).json({ success: false, message: 'Dữ liệu setting không hợp lệ' });
+    }
+
+    // Cập nhật setting của user
+    const updatedUser = await userService.updateUserSetting(id, setting);
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: updatedUser.setting,
+      message: 'Cập nhật setting thành công',
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const getAllFriends = async (req, res) => {
   try {
     const result = await userService.getAllFriends(req.params.id);
@@ -293,6 +321,7 @@ export const userController = {
   deleteCollection,
   getEarliestItems,
   getAllCollection,
+  updateUserSetting,
   getAllFriends,
   unFriends,
   suggestedFriends
