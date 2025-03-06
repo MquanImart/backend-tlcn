@@ -373,7 +373,7 @@ export const userService = {
   deleteCollection,
   getEarliestItems,
   getAllCollection,
-  updateUserSetting
+  updateUserSetting,
   getAllFriends,
   unFriends,
   suggestFriends
