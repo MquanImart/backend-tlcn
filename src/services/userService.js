@@ -270,6 +270,17 @@ const getEarliestItems = async (userId, limit) => {
     
     return [];
 };
+const updateUserSetting = async (id, settingData) => {
+  try {
+    return await User.findByIdAndUpdate(
+      id,
+      { $set: { setting: settingData } },
+      { new: true, runValidators: true, projection: { setting: 1 } } // Chỉ trả về trường setting
+    );
+  } catch (error) {
+    throw new Error('Lỗi khi cập nhật setting của người dùng');
+  }
+};
 
 const getAllFriends = async (id) => {
   const user = await  User.findById(id);
@@ -346,7 +357,6 @@ const suggestFriends = async (id) => {
 };
 
 
-
 export const userService = {
   getUsers,
   getUserById,
@@ -363,6 +373,7 @@ export const userService = {
   deleteCollection,
   getEarliestItems,
   getAllCollection,
+  updateUserSetting
   getAllFriends,
   unFriends,
   suggestFriends

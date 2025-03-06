@@ -414,6 +414,53 @@ Router.get('/:id/friends', userController.getAllFriends);
 
 /**
  * @swagger
+ * /users/{id}/setting:
+ *   patch:
+ *     summary: Cập nhật setting của người dùng
+ *               setting:
+ *                 type: object
+ *                 properties:
+ *                   profileVisibility:
+ *                     type: boolean
+ *                     example: true
+ *                   allowMessagesFromStrangers:
+ *                     type: boolean
+ *                     example: false
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng cần cập nhật setting
+ *     responses:
+ *       200:
+ *         description: Cập nhật setting thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   example: { "profileVisibility": true, "allowMessagesFromStrangers": false }
+ *                 message:
+ *                   type: string
+ *                   example: "Cập nhật setting thành công"
+ *       400:
+ *         description: ID không hợp lệ hoặc dữ liệu setting không hợp lệ
+ *       404:
+ *         description: Người dùng không tồn tại
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+Router.patch('/:id/setting', userController.updateUserSetting);
+/**
+ * @swagger
  * /users/{id}/unfriend:
  *   patch:
  *     summary: Hủy kết bạn
