@@ -388,5 +388,59 @@ Router.get('/:id/collections-recent', userController.getEarliestItems);
  */
 Router.get('/:id/collections', userController.getAllCollection);
 
+/**
+ * @swagger
+ * /users/{id}/setting:
+ *   patch:
+ *     summary: Cập nhật setting của người dùng
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng cần cập nhật setting
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               setting:
+ *                 type: object
+ *                 properties:
+ *                   profileVisibility:
+ *                     type: boolean
+ *                     example: true
+ *                   allowMessagesFromStrangers:
+ *                     type: boolean
+ *                     example: false
+ *     responses:
+ *       200:
+ *         description: Cập nhật setting thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   example: { "profileVisibility": true, "allowMessagesFromStrangers": false }
+ *                 message:
+ *                   type: string
+ *                   example: "Cập nhật setting thành công"
+ *       400:
+ *         description: ID không hợp lệ hoặc dữ liệu setting không hợp lệ
+ *       404:
+ *         description: Người dùng không tồn tại
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+Router.patch('/:id/setting', userController.updateUserSetting);
 
 export const userRoute = Router;
