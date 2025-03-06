@@ -390,9 +390,9 @@ Router.get('/:id/collections', userController.getAllCollection);
 
 /**
  * @swagger
- * /users/{id}/setting:
- *   patch:
- *     summary: Cập nhật setting của người dùng
+ * /users/{id}/friends:
+ *   get:
+ *     summary: Lấy danh sách bạn bè
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -400,14 +400,23 @@ Router.get('/:id/collections', userController.getAllCollection);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID của người dùng cần cập nhật setting
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
+ *           example: "60f7ebeb2f8fb814b56fa181"
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Lấy thành công
+ *       400:
+ *         description: Dữ liệu đầu vào không hợp lệ
+ *       500:
+ *         description: Lỗi server khi xóa bộ sưu tập
+ */
+Router.get('/:id/friends', userController.getAllFriends);
+
+/**
+ * @swagger
+ * /users/{id}/setting:
+ *   patch:
+ *     summary: Cập nhật setting của người dùng
  *               setting:
  *                 type: object
  *                 properties:
@@ -417,6 +426,14 @@ Router.get('/:id/collections', userController.getAllCollection);
  *                   allowMessagesFromStrangers:
  *                     type: boolean
  *                     example: false
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng cần cập nhật setting
  *     responses:
  *       200:
  *         description: Cập nhật setting thành công
@@ -442,5 +459,62 @@ Router.get('/:id/collections', userController.getAllCollection);
  *         description: Lỗi máy chủ
  */
 Router.patch('/:id/setting', userController.updateUserSetting);
+/**
+ * @swagger
+ * /users/{id}/unfriend:
+ *   patch:
+ *     summary: Hủy kết bạn
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "60f7ebeb2f8fb814b56fa181"
+ *         description: ID của người dùng
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               friendId:
+ *                 type: string
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *     responses:
+ *       200:
+ *         description: Lấy thành công
+ *       400:
+ *         description: Dữ liệu đầu vào không hợp lệ
+ *       500:
+ *         description: Lỗi server khi xóa bộ sưu tập
+ */
+Router.patch('/:id/unfriend', userController.unFriends);
+
+/**
+ * @swagger
+ * /users/{id}/suggest:
+ *   get:
+ *     summary: Lấy danh sách gợi ý bạn bè
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "60f7ebeb2f8fb814b56fa181"
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Lấy thành công
+ *       400:
+ *         description: Dữ liệu đầu vào không hợp lệ
+ *       500:
+ *         description: Lỗi server khi xóa bộ sưu tập
+ */
+Router.get('/:id/suggest', userController.suggestedFriends);
 
 export const userRoute = Router;

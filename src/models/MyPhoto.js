@@ -24,15 +24,15 @@ const myPhotoSchema = new Schema({
     trim: true,
   },
   createdAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   updateAt: {
-    type: Date,
+    type: Number,
     default: null,
   },
   _destroy: {
-    type: Date,
+    type: Number,
     default: null,
   },
 });

@@ -54,7 +54,7 @@ const pageSchema = new Schema({
       required: true,
     },
     joinDate: {
-      type: Date,
+      type: Number,
       default: Date.now,
     },
   }],
@@ -63,14 +63,14 @@ const pageSchema = new Schema({
     ref: 'Ticket',
   }],
   createAt: {
-    type: Date,
+    type: Number,
     default: Date.now,
   },
   updatedAt: {
-    type: Date,
+    type: Number,
   },
   deleteAt: {
-    type: Date,
+    type: Number,
     default: null,
   },
 });
