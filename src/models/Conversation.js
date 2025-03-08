@@ -1,30 +1,18 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose from 'mongoose';
 
-const ConversationSchema = new Schema(
+const ConversationSchema = new mongoose.Schema(
   {
-    type: {
-      type: String,
-      enum: ['friend', 'group', 'page'],
-      required: true,
-    },
-    _user: [
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    settings: [
       {
-        type: {
-          type: String, 
-          enum: ['user', 'page'],
-          required: true,
-        },
-        _id: { type: String, required: true },
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        notifications: { type: Boolean, default: true }, 
+        muteUntil: { type: Number, default: null }
       },
     ],
-    content: [
-      {
-        userId: { type: String, required: true },
-        message: { type: String, required: true },
-        sendDate: { type: Number, default: Date.now },
-      },
-    ],
-  }
+    lastMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
+  },
+  { timestamps: true }
 );
 
 const Conversation = mongoose.model('Conversation', ConversationSchema);
