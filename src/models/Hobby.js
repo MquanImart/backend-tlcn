@@ -14,7 +14,7 @@ const hobbySchema = new Schema({
   },
   updatedAt: {
     type: Number,
-    default: null,
+    default: () => Date.now()
   },
   _destroy: {
     type: Number,

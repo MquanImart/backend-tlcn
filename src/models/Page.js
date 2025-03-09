@@ -62,12 +62,13 @@ const pageSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Ticket',
   }],
-  createAt: {
+  createdAt: {
     type: Number,
     default: Date.now,
   },
   updatedAt: {
     type: Number,
+    default: () => Date.now()
   },
   deleteAt: {
     type: Number,

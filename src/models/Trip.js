@@ -23,13 +23,13 @@ const tripSchema = new Schema({
     ref: 'Address',
     required: true,
   },
-  createAt: {
+  createdAt: {
     type: Number,
     default: Date.now,
   },
   updatedAt: {
     type: Number,
-    default: null,
+    default: () => Date.now()
   },
   deleteAt: {
     type: Number,
