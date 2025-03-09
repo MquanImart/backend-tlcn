@@ -47,7 +47,7 @@ const createConversation = async (data) => {
 
     const updateConversation = await Conversation.findByIdAndUpdate(message.conversationId, {
       lastMessage: message._id,
-      updateAt: Date.now()
+      updatedAt: Date.now()
     }, { new: true })
 
     if (!updateConversation) return {success: false, message: "Không thể thêm tin nhắn"};
@@ -78,7 +78,7 @@ const getConversationOfUser = async (userId) => {
       .populate("participants", "_id displayName avt")
       .populate({
         path: "lastMessage",
-        select: "_id sender content seenBy createAt"
+        select: "_id sender content seenBy createdAt"
       })
       .lean();       
     

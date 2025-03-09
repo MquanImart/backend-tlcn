@@ -479,12 +479,12 @@ const getUserApprovedArticles = async (groupID, userID) => {
       select: "_id displayName avt",
       populate: {
         path: "avt",
-        select: "_id name idAuthor type url createdAt updateAt",
+        select: "_id name idAuthor type url createdAt updatedAt",
       },
     })
     .populate({
       path: "listPhoto",
-      select: "_id name idAuthor type url createdAt updateAt",
+      select: "_id name idAuthor type url createdAt updatedAt",
       populate: {
         path: "idAuthor",
         select: "_id displayName avt",

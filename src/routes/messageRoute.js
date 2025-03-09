@@ -1,5 +1,6 @@
 import express from 'express';
 import MessageController from '../controllers/messageController.js';
+import upload from '../config/multerConfig.js';
 
 const Router = express.Router();
 
@@ -113,21 +114,47 @@ Router.get('/:id', MessageController.getMessageById);
  * @swagger
  * /messages:
  *   post:
- *     summary: Gửi tin nhắn mới
+ *     summary: Gửi tin nhắn mới trong cuộc trò chuyện
  *     tags: [Messages]
+ *     consumes:
+ *       - multipart/form-data
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/Message'
+ *             type: object
+ *             properties:
+ *               conversationId:
+ *                 type: string
+ *                 description: ID của cuộc trò chuyện
+ *                 example: "67cd5014c11e1a41c9c642cc"
+ *               sender:
+ *                 type: string
+ *                 description: ID của người gửi tin nhắn
+ *                 example: "67cd4b33637423adf651fc96"
+ *               type:
+ *                 type: string
+ *                 enum: ['img', 'video', 'text', 'record']
+ *                 description: Loại nội dung tin nhắn
+ *                 example: "img"
+ *               message:
+ *                 type: string
+ *                 description: Nội dung tin nhắn (nếu có)
+ *                 example: "Xin chào!"
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Tệp tin đính kèm (chỉ bắt buộc nếu type là 'img', 'video' hoặc 'record')
  *     responses:
  *       201:
- *         description: Tin nhắn được tạo thành công
+ *         description: Tạo tin nhắn thành công
  *       400:
- *         description: Dữ liệu không hợp lệ
+ *         description: Yêu cầu không hợp lệ
+ *       500:
+ *         description: Lỗi máy chủ
  */
-Router.post('/', MessageController.createMessage);
+Router.post('/', upload.single('file'), MessageController.createMessage);
 
 /**
  * @swagger
@@ -197,6 +224,27 @@ Router.delete('/:id', MessageController.deleteMessageById);
  *         description: Không tìm thấy tin nhắn
  */
 Router.get('/of-conversation/:id', MessageController.getMessagesByConversationId);
+
+/**
+ * @swagger
+ * /messages/{id}/photo:
+ *   get:
+ *     summary: Lấy tất cả photo của hộp thoại
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của hộp thoại
+ *     responses:
+ *       200:
+ *         description: Lấy dữ liệu thành công
+ *       404:
+ *         description: Không tìm thấy tin nhắn
+ */
+Router.get('/:id/photo', MessageController.getPhotosByConversation);
 
 export const messageRoute = Router;
 
