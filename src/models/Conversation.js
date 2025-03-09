@@ -1,31 +1,77 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose from 'mongoose';
 
-const ConversationSchema = new Schema(
+const ConversationSchema = new mongoose.Schema(
   {
-    type: {
-      type: String,
-      enum: ['friend', 'group', 'page'],
-      required: true,
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }],
+    settings: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        notifications: { type: Boolean, default: true },
+        muteUntil: { type: Number, default: null }
+      },
+    ],
+    type: { 
+      type: String, 
+      enum: ["private", "group", "page"], 
+      default: "private"
     },
-    _user: [
-      {
-        type: {
-          type: String, 
-          enum: ['user', 'page'],
-          required: true,
-        },
-        _id: { type: String, required: true },
-      },
-    ],
-    content: [
-      {
-        userId: { type: String, required: true },
-        message: { type: String, required: true },
-        sendDate: { type: Number, default: Date.now },
-      },
-    ],
+    groupName: { type: String, default: null }, 
+    avtGroup: { type: String, default: null }, 
+    pageId: { type: mongoose.Schema.Types.ObjectId, ref: "Page", default: null },
+    lastMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
+    createAt: { type: Number, default: Date.now() },
+    updateAt: { type: Number, default: Date.now() }
   }
 );
+
+// Middleware kiểm tra trước khi lưu
+ConversationSchema.pre("save", function (next) {
+  if (!this.participants || this.participants.length === 0) {
+    return next(new Error("Phải có ít nhất 1 người dùng"));
+  }
+
+  // Xác định type dựa vào số lượng participants
+  if (this.participants.length === 1) {
+    this.type = "page";
+  } else if (this.participants.length === 2) {
+    this.type = "private";
+  } else {
+    this.type = "group";
+  }
+
+  // Kiểm tra ràng buộc khi type là "group"
+  if (this.type === "group") {
+    if (!this.groupName || !this.avtGroup) {
+      return next(new Error("Nhóm phải có tên và ảnh đại diện"));
+    }
+  } else {
+    this.groupName = null;
+    this.avtGroup = null;
+  }
+
+  // Kiểm tra ràng buộc khi type là "page"
+  if (this.type === "page") {
+    if (!this.pageId) {
+      return next(new Error("Phải có id của trang"));
+    }
+  } else {
+    this.pageId = null;
+  }
+
+  // Tạo settings mặc định cho từng participant nếu chưa có
+  const existingUserIds = this.settings.map((s) => s.userId.toString());
+  this.participants.forEach((userId) => {
+    if (!existingUserIds.includes(userId.toString())) {
+      this.settings.push({
+        userId: userId,
+        notifications: true,
+        muteUntil: null,
+      });
+    }
+  });
+
+  next();
+});
 
 const Conversation = mongoose.model('Conversation', ConversationSchema);
 export default Conversation;
