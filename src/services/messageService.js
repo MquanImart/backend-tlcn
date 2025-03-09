@@ -24,13 +24,18 @@ const deleteMessageById = async (id) => {
     return await Message.findByIdAndDelete(id)
 }
 
-const MessageService = {
+const getMessagesByConversationId = async (conversationId) => {
+    return await Message.find({conversationId: conversationId});
+}
+
+const messageService = {
     getAll,
     getById,
     createMessage,
     updateMessageById,
     updateAllMessages,
     deleteMessageById,
+    getMessagesByConversationId
 }
 
-export default MessageService;
+export default messageService;

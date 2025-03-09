@@ -10,7 +10,7 @@ import http from 'http';
 import { initSocket } from '../src/socket/socket.js';
 import {disconnectDB} from "../src/config/mongooseConfig.js";
 
-const debug = debugLib('backside-quiz-app:server');
+const debug = debugLib('backside-tlcn:server');
 
 const port = normalizePort(process.env.PORT || '3000');
 

@@ -20,6 +20,7 @@ import { conversationdRoute } from './conversationRoute.js'
 import { historyArticledRoute } from './historyArticleRoute.js'
 import { provinceRoute } from './provinceRoute.js'
 import { reelsRoute } from './reelsRoute.js'
+import { messageRoute } from './messageRoute.js';
 
 const Router = express.Router()
 
@@ -44,6 +45,7 @@ Router.use('/conversations', conversationdRoute)
 Router.use('/history-article', historyArticledRoute)
 Router.use('/province', provinceRoute)
 Router.use('/reels', reelsRoute)
+Router.use('/messages', messageRoute)
 // Router.use('/reports', reportRoute)
 
 export const APIsRoute = Router
