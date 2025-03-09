@@ -105,7 +105,49 @@ Router.get('/:id', ConversationController.getConversationById);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Conversation'
+ *             type: object
+ *             required:
+ *               - participants
+ *             properties:
+ *               participants:
+ *                 type: array
+ *                 description: Danh sách ID người tham gia
+ *                 items:
+ *                   type: string
+ *                   example: "67cd4b33637423adf651fc96"
+ *               groupName:
+ *                 type: string
+ *                 description: Tên nhóm (bắt buộc nếu type là 'group')
+ *                 example: "Nhóm du lịch"
+ *               avtGroup:
+ *                 type: string
+ *                 description: Ảnh đại diện nhóm (bắt buộc nếu type là 'group')
+ *                 example: "https://picsum.photos/200"
+ *               pageId:
+ *                 type: string
+ *                 description: ID của Page (bắt buộc nếu type là 'page')
+ *                 example: "67c53c3f653413282ce1528f"
+ *               lastMessage:
+ *                 type: object
+ *                 description: Tin nhắn cuối cùng trong cuộc trò chuyện
+ *                 properties:
+ *                   sender:
+ *                     type: string
+ *                     description: ID người gửi tin nhắn
+ *                     example: "67cd4b33637423adf651fc96"
+ *                   contentType:
+ *                     type: string
+ *                     enum: [img, video, text, record]
+ *                     description: Loại nội dung tin nhắn
+ *                     example: "text"
+ *                   message:
+ *                     type: string
+ *                     description: Nội dung tin nhắn (nếu có)
+ *                     example: "Xin chào"
+ *                   mediaUrl:
+ *                     type: string
+ *                     description: URL của media (nếu có)
+ *                     example: "https://picsum.photos/200"
  *     responses:
  *       201:
  *         description: Cuộc trò chuyện được tạo thành công
@@ -113,6 +155,7 @@ Router.get('/:id', ConversationController.getConversationById);
  *         description: Dữ liệu không hợp lệ
  */
 Router.post('/', ConversationController.createConversation);
+
 
 /**
  * @swagger
@@ -171,5 +214,68 @@ Router.patch('/', ConversationController.updateAllConversations);
  *         description: Không tìm thấy cuộc trò chuyện
  */
 Router.delete('/:id', ConversationController.deleteConversationById);
+
+/**
+ * @swagger
+ * /conversations/user/{id}:
+ *   get:
+ *     summary: Lấy tất cả cuộc trò chuyện theo id người dùng
+ *     tags: [Conversations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về thông tin cuộc trò chuyện
+ *       404:
+ *         description: Không tìm thấy cuộc trò chuyện
+ */
+Router.get('/user/:id', ConversationController.getConversationFriends);
+
+/**
+ * @swagger
+ * /conversations/user/{id}/without-friend:
+ *   get:
+ *     summary: Lấy tất cả cuộc trò chuyện người lạ theo id người dùng
+ *     tags: [Conversations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về thông tin cuộc trò chuyện
+ *       404:
+ *         description: Không tìm thấy cuộc trò chuyện
+ */
+Router.get('/user/:id/without-friend', ConversationController.getConversationWithoutFriends);
+
+/**
+ * @swagger
+ * /conversations/user/{id}/new-chat:
+ *   get:
+ *     summary: Lấy danh sách bạn bè chưa từng nhắn tin
+ *     tags: [Conversations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về thông tin cuộc trò chuyện
+ *       404:
+ *         description: Không tìm thấy cuộc trò chuyện
+ */
+Router.get('/user/:id/new-chat', ConversationController.getFriendsWithoutPrivateChat);
 
 export const conversationdRoute = Router;

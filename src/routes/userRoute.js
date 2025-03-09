@@ -417,15 +417,6 @@ Router.get('/:id/friends', userController.getAllFriends);
  * /users/{id}/setting:
  *   patch:
  *     summary: Cập nhật setting của người dùng
- *               setting:
- *                 type: object
- *                 properties:
- *                   profileVisibility:
- *                     type: boolean
- *                     example: true
- *                   allowMessagesFromStrangers:
- *                     type: boolean
- *                     example: false
  *     tags: [Users]
  *     parameters:
  *       - in: path

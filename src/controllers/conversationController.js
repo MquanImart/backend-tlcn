@@ -22,7 +22,11 @@ const getConversationById = async (req, res) => {
 const createConversation = async (req, res) => {
   try {
     const newConversation = await conversationService.createConversation(req.body)
-    res.status(201).json({ success: true, data: newConversation, message: 'Tạo cuộc thoại thành công' })
+    if (!newConversation.success) {
+      res.status(400).json({ success: false, message: newConversation.message })
+    } else {
+      res.status(201).json({ success: true, data: newConversation.data, message: 'Tạo cuộc thoại thành công' })
+    }
   } catch (error) {
     res.status(500).json({ success: false, data: null, message: error.message })
   }
@@ -57,6 +61,36 @@ const deleteConversationById = async (req, res) => {
   }
 }
 
+const getConversationFriends = async (req, res) => {
+  try {
+    const result = await conversationService.getConversationFriends(req.params.id)
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: 'Lấy dữ liệu thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const getConversationWithoutFriends = async (req, res) => {
+  try {
+    const result = await conversationService.getConversationWithoutFriends(req.params.id)
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: 'Lấy dữ liệu thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const getFriendsWithoutPrivateChat = async (req, res) => {
+  try {
+    const result = await conversationService.getFriendsWithoutPrivateChat(req.params.id)
+    if (!result.success) return res.status(404).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: 'Lấy dữ liệu thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const ConversationController = {
   getConversations,
   getConversationById,
@@ -64,6 +98,9 @@ const ConversationController = {
   updateConversationById,
   updateAllConversations,
   deleteConversationById,
+  getConversationFriends,
+  getFriendsWithoutPrivateChat,
+  getConversationWithoutFriends
 }
 
 export  default ConversationController;

@@ -5,13 +5,14 @@ const MessageSchema = new mongoose.Schema(
     conversationId: { type: mongoose.Schema.Types.ObjectId, ref: "Conversation", required: true },
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     content: {
-      contentType: { type: String, enum: ['img', 'video', 'text', 'record'], required: true }, // Đổi từ 'type' thành 'contentType'
-      message: { type: String, required: function() { return this.contentType === 'text'; } }, // Chỉ bắt buộc nếu là 'text'
-      mediaUrl: { type: String, required: function() { return this.contentType !== 'text'; } } // Bắt buộc nếu là 'img', 'video' hoặc 'record'
+      contentType: { type: String, enum: ['img', 'video', 'text', 'record'], required: true },
+      message: { type: String, required: false },
+      mediaUrl: { type: String, required: false } 
     },
     seenBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-  },
-  { timestamps: true }
+    createAt: { type: Number, default: Date.now() },
+    updateAt: { type: Number, default: Date.now() }
+  }
 );
 
 const Message = mongoose.model('Message', MessageSchema);
