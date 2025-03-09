@@ -7,11 +7,11 @@ const MessageSchema = new mongoose.Schema(
     content: {
       contentType: { type: String, enum: ['img', 'video', 'text', 'record'], required: true },
       message: { type: String, required: false },
-      mediaUrl: { type: String, required: false } 
+      mediaUrl: { type: mongoose.Schema.Types.ObjectId, ref: "MyPhoto", required: false } 
     },
     seenBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    createAt: { type: Number, default: Date.now() },
-    updateAt: { type: Number, default: Date.now() }
+    createdAt: { type: Number, default: Date.now() },
+    updatedAt: { type: Number, default: () => Date.now() }
   }
 );
 

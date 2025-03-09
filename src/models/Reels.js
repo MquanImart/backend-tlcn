@@ -11,7 +11,7 @@ const ReelsSchema = new Schema({
   emoticons: { type: [String], default: [] },
   comments: { type: [String], default: [] },
   createdAt: { type: Number, required: true, default: Date.now },
-  updatedAt: { type: Number, default: Date.now },
+  updatedAt: { type: Number, default: () => Date.now() },
   destroyAt: { type: Number, default: null }
 });
 

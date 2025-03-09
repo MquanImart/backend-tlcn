@@ -32,7 +32,7 @@ const accountSchema = new mongoose.Schema({
     default: 'offline',
   },
   createdAt: { type: Number, default: Date.now },
-  updatedAt: { type: Number, default: Date.now },
+  updatedAt: { type: Number, default: () => Date.now() },
   _destroy: {
     type: Number,
     default: null,

@@ -93,6 +93,7 @@ const groupSchema = new Schema({
   },
   updatedAt: {
     type: Number,
+    default: () => Date.now()
   },
   _destroy: {
     type: Number,
