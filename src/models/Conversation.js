@@ -19,8 +19,8 @@ const ConversationSchema = new mongoose.Schema(
     avtGroup: { type: String, default: null }, 
     pageId: { type: mongoose.Schema.Types.ObjectId, ref: "Page", default: null },
     lastMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
-    createAt: { type: Number, default: Date.now() },
-    updateAt: { type: Number, default: Date.now() }
+    createdAt: { type: Number, default: Date.now() },
+    updatedAt: { type: Number, default: () => Date.now() }
   }
 );
 

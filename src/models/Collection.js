@@ -10,7 +10,7 @@ const CollectionSchema = new Schema(
       }
     ],
     createdAt: { type: Number, default: Date.now },
-    updatedAt: { type: Number, default: Date.now },
+    updatedAt: { type: Number, default: () => Date.now() },
     _destroy: { type: Number, required: false },
     type: {
       type: String,

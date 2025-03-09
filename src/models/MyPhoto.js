@@ -27,9 +27,9 @@ const myPhotoSchema = new Schema({
     type: Number,
     default: Date.now,
   },
-  updateAt: {
+  updatedAt: {
     type: Number,
-    default: null,
+    default: () => Date.now()
   },
   _destroy: {
     type: Number,

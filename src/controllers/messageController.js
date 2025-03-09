@@ -21,10 +21,15 @@ const getMessageById = async (req, res) => {
 
 const createMessage = async (req, res) => {
   try {
-    const newMessage = await messageService.createMessage(req.body)
-    res.status(201).json({ success: true, data: newMessage, message: 'Tạo Tin nhắn thành công' })
+    const result = await messageService.createMessage(req.body, req.file);
+
+    res.status(201).json({
+      success: true,
+      data: result,
+      message: "Tạo bài viết thành công",
+    });
   } catch (error) {
-    res.status(500).json({ success: false, data: null, message: error.message })
+    res.status(500).json({ success: false, data: null, message: error.message });
   }
 }
 
@@ -67,6 +72,16 @@ const getMessagesByConversationId = async (req, res) => {
   }
 }
 
+const getPhotosByConversation = async (req, res) => {
+  try {
+    const result = await messageService.getPhotosByConversation(req.params.id)
+    if (!result.success) return res.status(404).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: 'Lấy dữ liệu thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const MessageController = { 
   getMessages,
   getMessageById,
@@ -74,7 +89,8 @@ const MessageController = {
   updateMessageById,
   updateAllMessages,
   deleteMessageById,
-  getMessagesByConversationId
+  getMessagesByConversationId,
+  getPhotosByConversation
 }
 
 export  default MessageController;
