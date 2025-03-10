@@ -1,4 +1,5 @@
 import express from 'express';
+import upload from '../config/multerConfig.js';
 import { identificationController } from '../controllers/identificationController.js';
 
 const Router = express.Router();
@@ -44,44 +45,28 @@ Router.get('/:id', identificationController.getIdentificationById);
  * @swagger
  * /identifications:
  *   post:
- *     summary: Tạo chứng minh thư mới
+ *     summary: Tạo chứng minh thư mới từ ảnh CCCD
  *     tags: [Identifications]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
- *               number:
+ *               cccdImage:
  *                 type: string
- *                 example: "1234567890"
- *               fullName:
- *                 type: string
- *                 example: "Nguyễn Văn A"
- *               dateOfBirth:
- *                 type: string
- *                 example: "1990-01-01"
- *               sex:
- *                 type: string
- *                 example: "male"
- *               nationality:
- *                 type: string
- *                 example: "Vietnamese"
- *               placeOfOrigin:
- *                 type: string
- *                 example: "Hà Nội"
- *               placeOfResidence:
- *                 type: string
- *                 example: "Hà Nội"
- *               dateOfExpiry:
- *                 type: string
- *                 example: "2030-12-31"
+ *                 format: binary
+ *                 description: Ảnh chứng minh thư (CCCD) để nhận diện thông tin và tạo chứng minh thư
  *     responses:
  *       201:
- *         description: Tạo chứng minh thư thành công
+ *         description: Tạo chứng minh thư thành công từ ảnh
+ *       400:
+ *         description: Lỗi khi tải lên ảnh hoặc ảnh không hợp lệ
+ *       500:
+ *         description: Lỗi hệ thống hoặc lỗi không xác định
  */
-Router.post('/', identificationController.createIdentification);
+Router.post('/', upload.single('cccdImage'), identificationController.createIdentification);
 
 /**
  * @swagger

@@ -37,7 +37,7 @@ const uploadAndSaveFile = async (file, userId, type, folderType, referenceId, ol
     let newFile;
 
     if (oldFileUrl) {
-      const fileName = oldFileUrl.split("/").pop(); // Lấy tên file cũ từ URL
+      const fileName = oldFileUrl.split("/").pop();
       const destination = `src/images/${folderType}/${referenceId}/${fileName}`;
 
       const fileUrl = await cloudStorageService.uploadImageBufferToStorage(
@@ -50,7 +50,6 @@ const uploadAndSaveFile = async (file, userId, type, folderType, referenceId, ol
         throw new Error("Không lấy được URL sau khi upload!");
       }
 
-      // Cập nhật URL trong database
       newFile = await MyPhoto.findOneAndUpdate(
         { url: oldFileUrl },
         { url: fileUrl, name: file.originalname },
@@ -58,7 +57,6 @@ const uploadAndSaveFile = async (file, userId, type, folderType, referenceId, ol
       );
 
     } else {
-      // Nếu không có ảnh cũ, tạo mới ảnh
       newFile = await MyPhoto.create({
         name: file.originalname,
         idAuthor: userId,
