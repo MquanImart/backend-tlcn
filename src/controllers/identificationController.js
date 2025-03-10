@@ -19,12 +19,17 @@ const getIdentificationById = async (req, res) => {
   }
 };
 
+
 const createIdentification = async (req, res) => {
   try {
-    const newIdentification = await identificationService.createIdentification(req.body);
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Không có file được tải lên' });
+    }
+    const imageBuffer = req.file.buffer;
+    const newIdentification = await identificationService.createIdentification(imageBuffer);
     res.status(201).json({ success: true, data: newIdentification, message: 'Tạo chứng minh thư thành công' });
   } catch (error) {
-    res.status(500).json({ success: false, data: null, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

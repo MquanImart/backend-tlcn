@@ -12,7 +12,7 @@ const getGroups = async () => {
 const getGroupById = async (id) => {
   return await Group.findOne({ _id: id, _destroy: null }) 
     .populate('avt', 'url name') 
-    .populate('members.idUser', '_id'); // Lấy _id của các thành viên trong nhóm
+    .populate('members.idUser', '_id'); 
 };
 
 
@@ -32,7 +32,7 @@ const createGroup = async ({ groupName, type, idCreater, introduction, rule, hob
       hobbies: normalizeHobbies,
       members: [{
         idUser: idCreater,
-        state: 'accepted', // Add the creator as a member with state 'accepted'
+        state: 'accepted', 
         joinDate: new Date(),
       }],
       article: [],
@@ -48,7 +48,7 @@ const createGroup = async ({ groupName, type, idCreater, introduction, rule, hob
 
     const user = await User.findById(idCreater);
     if (user) {
-      user.groups.createGroups.push(newGroup._id); // Add the new group ID to the createGroups array
+      user.groups.createGroups.push(newGroup._id); 
       await user.save();
     } else {
       throw new Error("User not found");
