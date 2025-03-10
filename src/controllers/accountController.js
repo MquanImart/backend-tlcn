@@ -53,13 +53,12 @@ const createAccount = async (req, res) => {
 
       await newAccount.save();
 
-      // Tạo User mới liên kết với Account
       const newUser = new User({
           account: newAccount._id,
-          identification: null, // Không có thông tin ID
+          identification: null,
           displayName,
           hashtag,
-          address: null, // Không có địa chỉ ban đầu
+          address: null,
           avt: [],
           aboutMe: "",
           hobbies: [],
