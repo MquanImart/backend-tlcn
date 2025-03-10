@@ -18,6 +18,9 @@ export const env = {
   BUCKET_NAME: process.env.BUCKET_NAME,
   KEYFILENAME: process.env.KEYFILENAME,
 
+  API_ENDPOINT_CCCD: process.env.API_ENDPOINT_CCCD,
+  API_KEY_CCCD: process.env.API_KEY_CCCD,
+
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS
 }
