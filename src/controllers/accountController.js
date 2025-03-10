@@ -28,65 +28,13 @@ const getAccountById = async (req, res) => {
 
 const createAccount = async (req, res) => {
   try {
-      const { email, password, displayName, hashtag } = req.body;
-
-      console.log("📩 Dữ liệu nhận từ client:", { email, password, displayName, hashtag });
-
-      // Kiểm tra dữ liệu đầu vào
-      if (!email || !password || !displayName || !hashtag) {
-          return res.status(400).json({ success: false, message: "Vui lòng nhập đầy đủ email, password, displayName, hashtag." });
-      }
-
-      // Kiểm tra xem email đã tồn tại chưa
-      const existingAccount = await Account.findOne({ email });
-      if (existingAccount) {
-          return res.status(400).json({ success: false, message: "Email đã tồn tại!" });
-      }
-
-      // Tạo Account mới
-      const newAccount = new Account({
-          email,
-          phone: null, // Không có phone
-          password, // Nếu muốn hash thì dùng bcrypt
-          role: "user",
-      });
-
-      await newAccount.save();
-
-      const newUser = new User({
-          account: newAccount._id,
-          identification: null,
-          displayName,
-          hashtag,
-          address: null,
-          avt: [],
-          aboutMe: "",
-          hobbies: [],
-          friends: [],
-          articles: [],
-          reels: [],
-          pages: {
-              _id: newAccount._id,
-              createPages: [],
-              followerPages: [],
-          },
-          saveAddress: [],
-          trips: [],
-          collections: [],
-          groups: {
-              _id: newAccount._id,
-              createGroups: [],
-              saveGroups: [],
-          },
-          follow: [],
-      });
-
-      await newUser.save();
-
-      return res.status(201).json({ success: true, message: "Tạo tài khoản thành công!", account: newAccount, user: newUser });
+    const { email, password, displayName, hashtag } = req.body;
+    // Gọi hàm tạo tài khoản từ service
+    const { newAccount, newUser } = await accountService.createAccount({ email, password, displayName, hashtag });
+    return res.status(201).json({ success: true, message: "Tạo tài khoản thành công!", account: newAccount, user: newUser });
   } catch (error) {
-      console.error("❌ Lỗi tạo tài khoản:", error);
-      return res.status(500).json({ success: false, message: "Lỗi hệ thống, vui lòng thử lại." });
+    console.error("❌ Lỗi tạo tài khoản:", error);
+    return res.status(500).json({ success: false, message: error.message || "Lỗi hệ thống, vui lòng thử lại." });
   }
 };
 
@@ -121,141 +69,51 @@ const deleteAccountById = async (req, res) => {
 const loginAccount = async (req, res) => {
   try {
     const { email, password } = req.body
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Vui lòng nhập email và mật khẩu' })
+    if (!email || !password) {return res.status(400).json({ success: false, message: 'Vui lòng nhập email và mật khẩu' })}
+    const loginResult = await accountService.loginAccount(email, password)  
+    if (!loginResult.success) {return res.status(401).json({ success: false, message: loginResult.message })
     }
-
-    const account = await accountService.getAccountByEmail(email)
-    if (!account) {
-      return res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không đúng' })
-    }
-
-    const isPasswordValid = await accountService.comparePassword(password, account.password)
-    if (!isPasswordValid) {
-      return res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không đúng' })
-    }
-
-    // Tạo token JWT
-    const token = jwt.sign(
-      { id: account.id, email: account.email, role: account.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' } // Token hết hạn sau 7 ngày
-    )
-
-    res.status(200).json({
-      success: true,
-      data: { token, account },
-      message: 'Đăng nhập thành công',
+    res.status(200).json({success: true,data: loginResult.data,message: 'Đăng nhập thành công'
     })
   } catch (error) {
     res.status(500).json({ success: false, data: null, message: error.message })
   }
 }
-const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
-// Hàm gửi OTP
 const sendOtp = async (req, res) => {
   try {
     const { input } = req.body;
-    
-    if (!input) {
-      return res.status(400).json({ success: false, message: "Vui lòng nhập email của bạn." });
-    }
-
-    // Kiểm tra email hợp lệ
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
-    if (!isEmail) {
-      return res.status(400).json({ success: false, message: "Email không hợp lệ." });
-    }
-
-    // Kiểm tra email có tồn tại trong hệ thống không
-    const account = await accountService.getAccountByEmail(input);
-    if (!account) {
-      return res.status(404).json({ success: false, message: "Email không tồn tại trong hệ thống." });
-    }
-
-    // Tạo mã OTP ngẫu nhiên
-    const otp = Math.floor(100000 + Math.random() * 900000); // 6 chữ số
-
-    // Cấu hình transporter để gửi email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER, // Email gửi đi
-        pass: process.env.EMAIL_PASS, // Mật khẩu email
-      },
-    });
-
-    // Nội dung email
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: input,
-      subject: "Mã OTP Xác Minh",
-      text: `Mã OTP của bạn là: ${otp}. Vui lòng không chia sẻ mã này với bất kỳ ai.`,
-    };
-
-    // Gửi OTP qua email
-    await transporter.sendMail(mailOptions);
-
-    // Lưu OTP vào cơ sở dữ liệu hoặc Redis
-    await accountService.storeOtp(input, otp);
-
-    return res.status(200).json({
-      success: true,
-      message: "Mã OTP đã được gửi đến email của bạn.",
-    });
+    if (!input) {return res.status(400).json({ success: false, message: "Vui lòng nhập email của bạn." });}
+    const sendOtpResult = await accountService.sendOtp(input);
+    if (!sendOtpResult.success) {return res.status(sendOtpResult.status || 400).json({ success: false, message: sendOtpResult.message });}
+    return res.status(200).json({success: true,message: "Mã OTP đã được gửi đến email của bạn."});
 
   } catch (error) {
-    console.error("Lỗi gửi OTP:", error);
     return res.status(500).json({ success: false, message: "Lỗi máy chủ. Vui lòng thử lại." });
   }
 };
 const verifyOtp = async (req, res) => {
   try {
-      const { input, otp } = req.body;
-      // Lấy OTP đã lưu từ DB hoặc Redis
-      const storedOtp = await accountService.getOtp(input);
-
-      if (!storedOtp) {
-          return res.status(400).json({ success: false, message: "OTP đã hết hạn hoặc không tồn tại." });
-      }
-
-      // Kiểm tra OTP có khớp không
-      if (storedOtp !== otp) {
-          return res.status(400).json({ success: false, message: "Mã OTP không chính xác." });
-      }
-
-      // Xóa OTP sau khi xác minh thành công (tránh dùng lại)
-      await accountService.deleteOtp(input);
-
-      return res.status(200).json({ success: true, message: "Xác minh OTP thành công!" });
-
+    const { input, otp } = req.body; // Lấy input và otp từ request body
+    const storedOtp = await accountService.getOtp(input);
+    if (!storedOtp) { return res.status(400).json({ success: false, message: "OTP đã hết hạn hoặc không tồn tại." });}
+    // Kiểm tra OTP có khớp không
+    if (storedOtp !== otp) {return res.status(400).json({ success: false, message: "Mã OTP không chính xác." });}
+    // Xóa OTP sau khi xác minh thành công (tránh dùng lại)
+    await accountService.deleteOtp(input);
+    return res.status(200).json({ success: true, message: "Xác minh OTP thành công!" });
   } catch (error) {
-      console.error("❌ Lỗi xác minh OTP:", error);
-      return res.status(500).json({ success: false, message: "Lỗi máy chủ, vui lòng thử lại." });
+    return res.status(500).json({ success: false, message: "Lỗi máy chủ, vui lòng thử lại." });
   }
 };
 const updatePassword = async (req, res) => {
   try {
       const { email, newPassword } = req.body;
-
-      console.log("🔍 Nhận yêu cầu đổi mật khẩu:", { email, newPassword });
-
-      if (!email || !newPassword) {
-          return res.status(400).json({ success: false, message: "Vui lòng cung cấp email và mật khẩu mới." });
-      }
-
-      // Kiểm tra email có tồn tại không
+      if (!email || !newPassword) {return res.status(400).json({ success: false, message: "Vui lòng cung cấp email và mật khẩu mới." });}
       const account = await accountService.getAccountByEmail(email);
-      if (!account) {
-          return res.status(404).json({ success: false, message: "Email không tồn tại trong hệ thống." });
-      }
-
-      // Cập nhật mật khẩu mà KHÔNG mã hóa
+      if (!account) {return res.status(404).json({ success: false, message: "Email không tồn tại trong hệ thống." });}
       await accountService.updatePassword(email, newPassword);
-
       return res.status(200).json({ success: true, message: "Mật khẩu đã được cập nhật thành công." });
   } catch (error) {
-      console.error("❌ Lỗi cập nhật mật khẩu:", error);
       return res.status(500).json({ success: false, message: "Lỗi hệ thống, vui lòng thử lại." });
   }
 };
