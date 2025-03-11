@@ -10,7 +10,7 @@ const MessageSchema = new mongoose.Schema(
       mediaUrl: { type: mongoose.Schema.Types.ObjectId, ref: "MyPhoto", required: false } 
     },
     seenBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    createdAt: { type: Number, default: Date.now() },
+    createdAt: { type: Number, default: () => Date.now() },
     updatedAt: { type: Number, default: () => Date.now() }
   }
 );

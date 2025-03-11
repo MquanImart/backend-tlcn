@@ -10,7 +10,7 @@ const hobbySchema = new Schema({
   },
   createdAt: {
     type: Number,
-    default: Date.now,
+    default: () => Date.now(),
   },
   updatedAt: {
     type: Number,
