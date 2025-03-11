@@ -1,13 +1,22 @@
 import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js'
+import Page from '../models/Page.js'
 
 const getAll = async () => {
     return await Conversation.find();
 };
 
 const getById = async (id) => {
-    return await Conversation.findById(id);
+    const conversation = await Conversation.findById(id)
+      .populate("participants", "_id displayName avt")
+      .populate("pageId", "_id name avt")
+      .populate({
+        path: "lastMessage",
+        select: "_id sender content seenBy createdAt"
+      })
+      .lean(); 
+    return conversation;
 };
 
 const createConversation = async (data) => {
@@ -24,15 +33,16 @@ const createConversation = async (data) => {
           return { success: false, message: "Cuộc trò chuyện giữa hai người dùng đã tồn tại" };
       }
     }
-
+    console.log(data); 
     const conversation = await Conversation.create({
       participants: data.participants,
       groupName: data.groupName,
       avtGroup: data.avtGroup,
       pageId: data.pageId
     })
-    if (!conversation) return {success: false, message: "Không thể tạo hộp thoại"};
 
+    if (!conversation) return {success: false, message: "Không thể tạo hộp thoại"};
+    
     const message = await Message.create({
       conversationId: conversation._id,
       sender: data.lastMessage.sender,
@@ -43,6 +53,7 @@ const createConversation = async (data) => {
       },
       seenBy: []
     })
+    
     if (!message) return {success: false, message: "Không thể tạo tin nhắn"};
 
     const updateConversation = await Conversation.findByIdAndUpdate(message.conversationId, {
@@ -92,26 +103,50 @@ const getConversationOfUser = async (userId) => {
 const getConversationsFiltered = async (userId, filterByFriends) => {
   try {
     const { user, conversations } = await getConversationOfUser(userId);
-    const filteredConversations = conversations.filter((conversation) => {
-      if (conversation.type === "private") {
-        // Lấy participant còn lại
-        const otherParticipant = conversation.participants.find(
-          (p) => p._id.toString() !== userId.toString()
-        );
-        // Nếu không có participant còn lại, bỏ qua hội thoại
-        if (!otherParticipant) return false;
+    const filteredConversations = conversations
+      .filter((conversation) => {
+        if (conversation.type === "private") {
+          // Lấy participant còn lại
+          const otherParticipant = conversation.participants.find(
+            (p) => p._id.toString() !== userId.toString()
+          );
+          // Nếu không có participant còn lại, bỏ qua hội thoại
+          if (!otherParticipant) return false;
 
-        // Kiểm tra xem participant còn lại có trong danh sách bạn bè không
-        const isFriend = user.friends.some(
-          (friendId) => friendId.toString() === otherParticipant._id.toString()
-        );
+          // Kiểm tra xem participant còn lại có trong danh sách bạn bè không
+          const isFriend = user.friends.some(
+            (friendId) => friendId.toString() === otherParticipant._id.toString()
+          );
 
-        return filterByFriends ? isFriend : !isFriend;
-      }
-      return filterByFriends;
-    });
+          return filterByFriends ? isFriend : !isFriend;
+        }
+        return filterByFriends;
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.lastMessage?.createdAt || 0).getTime() -
+          new Date(a.lastMessage?.createdAt || 0).getTime()
+      ); // Sắp xếp giảm dần theo thời gian
 
-    return { success: true, data: filteredConversations };
+    const resultConversations = await Promise.all(
+      filteredConversations.map(async (conversation) => {
+        if (conversation.type === "page" && conversation.pageId !== null) {
+          const page = await Page.findById(conversation.pageId);
+          return {
+            ...conversation,
+            pageId: {
+              _id: page._id,
+              name: page.name,
+              avt: page.avt,
+            },
+          };
+        }
+        return conversation;
+      })
+    );
+    
+    return { success: true, data: resultConversations };
+      
   } catch (error) {
     return { success: false, message: "Có lỗi xảy ra trong quá trình lấy dữ liệu" };
   }

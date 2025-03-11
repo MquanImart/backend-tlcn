@@ -55,7 +55,7 @@ const pageSchema = new Schema({
     },
     joinDate: {
       type: Number,
-      default: Date.now,
+      default: () => Date.now(),
     },
   }],
   listTicket: [{
@@ -64,7 +64,7 @@ const pageSchema = new Schema({
   }],
   createdAt: {
     type: Number,
-    default: Date.now,
+    default: () => Date.now(),
   },
   updatedAt: {
     type: Number,

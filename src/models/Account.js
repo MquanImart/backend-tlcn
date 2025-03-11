@@ -31,7 +31,7 @@ const accountSchema = new mongoose.Schema({
     enum: ['online', 'offline'],
     default: 'offline',
   },
-  createdAt: { type: Number, default: Date.now },
+  createdAt: { type: Number, default: () => Date.now() },
   updatedAt: { type: Number, default: () => Date.now() },
   _destroy: {
     type: Number,

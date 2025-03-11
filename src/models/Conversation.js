@@ -19,7 +19,7 @@ const ConversationSchema = new mongoose.Schema(
     avtGroup: { type: String, default: null }, 
     pageId: { type: mongoose.Schema.Types.ObjectId, ref: "Page", default: null },
     lastMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
-    createdAt: { type: Number, default: Date.now() },
+    createdAt: { type: Number, default: () => Date.now() },
     updatedAt: { type: Number, default: () => Date.now() }
   }
 );
@@ -41,7 +41,7 @@ ConversationSchema.pre("save", function (next) {
 
   // Kiểm tra ràng buộc khi type là "group"
   if (this.type === "group") {
-    if (!this.groupName || !this.avtGroup) {
+    if (!this.groupName) {
       return next(new Error("Nhóm phải có tên và ảnh đại diện"));
     }
   } else {
