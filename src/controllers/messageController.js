@@ -64,7 +64,7 @@ const deleteMessageById = async (req, res) => {
 
 const getMessagesByConversationId = async (req, res) => {
   try {
-    const result = await messageService.getMessagesByConversationId(req.params.id)
+    const result = await messageService.getMessagesByConversationId(req.params.id, req.query.limit, req.query.skip)
     if (!result) return res.status(404).json({ success: false, data: null, message: result.message })
     res.status(200).json({ success: true, data: result, message: 'Lấy dữ liệu thành công' })
   } catch (error) {

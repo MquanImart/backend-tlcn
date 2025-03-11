@@ -19,7 +19,7 @@ const historySearchSchema = new Schema({
   },
   createdAt: {
     type: Number,
-    default: Date.now,
+    default: () => Date.now(),
   },
   _destroy: {
     type: Number,

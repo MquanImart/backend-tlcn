@@ -21,8 +21,8 @@ const createMessage = async (data, file) => {
     }
 
     let newFile;
-    if (type !== 'text'){
-
+    if (type !== 'text'){ 
+ 
         if (!file || !file.buffer) {
             throw new Error("Không có file hợp lệ để upload!");
         }
@@ -50,15 +50,30 @@ const createMessage = async (data, file) => {
         await newFile.save();
     }
 
-    return await Message.create({
+    const newMessage = await Message.create({
         conversationId: conversationId,
         sender: sender,
         content: {
             contentType: type,
             message: type === 'text'? message : null,
             mediaUrl: type !== 'text'? newFile._id : null,
-        }
+        },
+        seenBy: [sender]
     })
+
+    await Conversation.findByIdAndUpdate(conversationId, {lastMessage: newMessage._id});
+
+    if (newMessage.content.mediaUrl && newMessage.content.mediaUrl !== null){
+        const photo = await MyPhoto.findById(newMessage.content.mediaUrl);
+        return {
+            ...newMessage.toObject(),
+            content: {
+                ...newMessage.content,
+                mediaUrl: photo
+            }
+        }
+    }
+    return newMessage;
 }
 
 const updateMessageById = async (id, data) => {
@@ -73,9 +88,17 @@ const deleteMessageById = async (id) => {
     return await Message.findByIdAndDelete(id)
 }
 
-const getMessagesByConversationId = async (conversationId) => {
-    return await Message.find({conversationId: conversationId});
-}
+const getMessagesByConversationId = async (conversationId, limit = 20, skip = 0) => {
+    return await Message.find({ conversationId })
+        .sort({ createdAt: -1 }) // Sắp xếp mới nhất trước
+        .skip(skip) // Bỏ qua tin nhắn đã tải
+        .limit(limit) // Giới hạn số lượng tin nhắn 
+        .populate({
+            path: "content.mediaUrl",
+            model: "MyPhoto",
+        });   
+};
+
 
 const getPhotosByConversation = async (conversationId) => {
     try {
