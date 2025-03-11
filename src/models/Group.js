@@ -80,7 +80,7 @@ const groupSchema = new Schema({
     },
     joinDate: {
       type: Number,
-      default: Date.now,
+      default: () => Date.now(),
     },
   }],
   hobbies: [{
@@ -89,7 +89,7 @@ const groupSchema = new Schema({
   }],
   createdAt: {
     type: Number,
-    default: Date.now,
+    default: () => Date.now(),
   },
   updatedAt: {
     type: Number,

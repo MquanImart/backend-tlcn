@@ -10,7 +10,7 @@ const AddFriendSchema = new Schema(
       default: 'pending',
     },
     message: { type: String, required: false },
-    createdAt: { type: Number, default: Date.now },
+    createdAt: { type: Number, default: () => Date.now() },
     acceptedAt: { type: Number, required: false },
   }
 );
