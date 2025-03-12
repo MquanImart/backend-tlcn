@@ -91,6 +91,16 @@ const getFriendsWithoutPrivateChat = async (req, res) => {
   }
 }
 
+const updateUserSetting = async (req, res) => {
+  try {
+    const result = await conversationService.updateUserSetting(req.params.id, req.body.setting);
+    if (!result.success) return res.status(404).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: 'Cập nhật thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const ConversationController = {
   getConversations,
   getConversationById,
@@ -100,7 +110,8 @@ const ConversationController = {
   deleteConversationById,
   getConversationFriends,
   getFriendsWithoutPrivateChat,
-  getConversationWithoutFriends
+  getConversationWithoutFriends,
+  updateUserSetting
 }
 
 export  default ConversationController;
