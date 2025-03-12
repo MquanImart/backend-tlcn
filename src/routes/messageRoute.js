@@ -217,6 +217,20 @@ Router.delete('/:id', MessageController.deleteMessageById);
  *         schema:
  *           type: string
  *         description: ID của hộp thoại
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         required: false
+ *         description: Số lượng tin nhắn tối đa cần lấy
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         required: false
+ *         description: Số lượng tin nhắn cần bỏ qua
  *     responses:
  *       200:
  *         description: Lấy dữ liệu thành công
@@ -245,6 +259,82 @@ Router.get('/of-conversation/:id', MessageController.getMessagesByConversationId
  *         description: Không tìm thấy tin nhắn
  */
 Router.get('/:id/photo', MessageController.getPhotosByConversation);
+
+/**
+ * @swagger
+ * /messages/of-conversation/{id}/photo:
+ *   get:
+ *     summary: Lấy tin nhắn của một hộp thoại (chỉ một loại img hoặc video)
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của hộp thoại
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [img, video]
+ *         required: true
+ *         description: Loại tin nhắn cần lấy (chỉ 'img' hoặc 'video')
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         required: false
+ *         description: Số lượng tin nhắn tối đa cần lấy
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         required: false
+ *         description: Số lượng tin nhắn cần bỏ qua
+ *     responses:
+ *       200:
+ *         description: Lấy dữ liệu thành công
+ *       404:
+ *         description: Không tìm thấy tin nhắn
+ *       500:
+ *         description: Lỗi server
+ */
+
+Router.get('/of-conversation/:id/photo', MessageController.getMessagePhoto);
+
+/**
+ * @swagger
+ * /messages/of-conversation/{id}/seen-all:
+ *   patch:
+ *     summary: Đánh dấu đã đọc tin nhắn
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của tin nhắn cần cập nhật
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID của người dùng cần cập nhật setting
+ *     responses:
+ *       200:
+ *         description: Cập nhật tin nhắn thành công
+ *       404:
+ *         description: Không tìm thấy tin nhắn
+ */
+Router.patch('/of-conversation/:id/seen-all', MessageController.seenMessage);
 
 export const messageRoute = Router;
 

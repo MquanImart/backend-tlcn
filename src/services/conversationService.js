@@ -204,6 +204,30 @@ const getFriendsWithoutPrivateChat = async (userId) => {
   }
 };
 
+
+const updateUserSetting = async (conversationId, newSetting) => {
+  try {
+      const updatedConversation = await Conversation.findOneAndUpdate(
+          { 
+              _id: conversationId, 
+              "settings.userId": newSetting.userId // Tìm phần tử có userId trùng khớp
+          },
+          { 
+              $set: { 
+                  "settings.$.notifications": newSetting.notifications, 
+                  "settings.$.muteUntil": newSetting.muteUntil 
+              }
+          },
+          { new: true } // Trả về bản ghi sau khi cập nhật
+      );
+
+      return {success: true, data: updatedConversation};
+  } catch (error) {
+    return {success: false, data: null, message: error};
+  }
+};
+
+
 const conversationService = {
     getAll,
     getById,
@@ -213,7 +237,8 @@ const conversationService = {
     deleteConversationById,
     getConversationFriends,
     getFriendsWithoutPrivateChat,
-    getConversationWithoutFriends
+    getConversationWithoutFriends,
+    updateUserSetting
 }
 
 export default conversationService;
