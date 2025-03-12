@@ -2,6 +2,7 @@ import Conversation from '../models/Conversation.js'
 import Message from '../models/Message.js';
 import MyPhoto from '../models/MyPhoto.js'
 import { cloudStorageService } from "../config/cloudStorage.js";
+import { emitEvent } from "../socket/socket.js";
 
 const getAll = async () => {
     return await Message.find();
@@ -63,17 +64,21 @@ const createMessage = async (data, file) => {
 
     await Conversation.findByIdAndUpdate(conversationId, {lastMessage: newMessage._id});
 
-    if (newMessage.content.mediaUrl && newMessage.content.mediaUrl !== null){
+    let fullMessage = newMessage;
+    if (newMessage.content.mediaUrl) {
         const photo = await MyPhoto.findById(newMessage.content.mediaUrl);
-        return {
+        fullMessage = {
             ...newMessage.toObject(),
             content: {
                 ...newMessage.content,
-                mediaUrl: photo
-            }
-        }
+                mediaUrl: photo,
+            },
+        };
     }
-    return newMessage;
+
+    emitEvent("chat", conversationId, "newMessage", fullMessage);
+
+    return fullMessage;
 }
 
 const updateMessageById = async (id, data) => {
@@ -121,6 +126,27 @@ const getPhotosByConversation = async (conversationId) => {
     }
   };
 
+  const getMessagePhoto = async (conversationId, type, limit = 20, skip = 0) => {
+    return await Message.find({ 
+            conversationId, 
+            "content.contentType": type // Chỉ lấy tin nhắn có contentType là 'img'
+        })
+        .sort({ createdAt: -1 }) // Sắp xếp mới nhất trước
+        .skip(skip) // Bỏ qua tin nhắn đã tải
+        .limit(limit) // Giới hạn số lượng tin nhắn 
+        .populate({
+            path: "content.mediaUrl",
+            model: "MyPhoto",
+        });   
+};
+
+const seenMessage = async (conversationId, userId) => {
+    await Message.updateMany(
+        { conversationId },
+        { $addToSet: { seenBy: userId } }
+    );
+};
+
 const messageService = {
     getAll,
     getById,
@@ -129,7 +155,9 @@ const messageService = {
     updateAllMessages,
     deleteMessageById,
     getMessagesByConversationId,
-    getPhotosByConversation
+    getPhotosByConversation,
+    getMessagePhoto,
+    seenMessage
 }
 
 export default messageService;

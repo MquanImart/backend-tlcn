@@ -278,4 +278,48 @@ Router.get('/user/:id/without-friend', ConversationController.getConversationWit
  */
 Router.get('/user/:id/new-chat', ConversationController.getFriendsWithoutPrivateChat);
 
+/**
+ * @swagger
+ * /conversations/{id}/setting:
+ *   patch:
+ *     summary: Cập nhật setting một cuộc trò chuyện
+ *     tags: [Conversations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của cuộc trò chuyện
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID của người dùng cần cập nhật setting
+ *               notifications:
+ *                 type: boolean
+ *                 description: Bật hoặc tắt thông báo
+ *               muteUntil:
+ *                 type: number
+ *                 nullable: true
+ *                 description: Thời gian tắt thông báo (timestamp), null nếu không tắt
+ *               _id:
+ *                 type: string
+ *                 description: ID của setting cần cập nhật
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công cuộc trò chuyện
+ *       404:
+ *         description: Không tìm thấy cuộc trò chuyện
+ *       500:
+ *         description: Lỗi server
+ */
+
+Router.patch('/:id/setting', ConversationController.updateUserSetting);
+
 export const conversationdRoute = Router;

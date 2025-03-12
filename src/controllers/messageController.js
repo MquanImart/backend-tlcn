@@ -82,6 +82,26 @@ const getPhotosByConversation = async (req, res) => {
   }
 }
 
+const getMessagePhoto = async (req, res) => {
+  try {
+    const result = await messageService.getMessagePhoto(req.params.id, req.query.type, req.query.limit, req.query.skip)
+    if (!result) return res.status(404).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result, message: 'Lấy dữ liệu thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const seenMessage = async (req, res) => {
+  try {
+    const result = await messageService.seenMessage(req.params.id, req.body.userId)
+    if (!result) return res.status(404).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result, message: 'Cập nhật thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const MessageController = { 
   getMessages,
   getMessageById,
@@ -90,7 +110,9 @@ const MessageController = {
   updateAllMessages,
   deleteMessageById,
   getMessagesByConversationId,
-  getPhotosByConversation
+  getPhotosByConversation,
+  getMessagePhoto,
+  seenMessage
 }
 
 export  default MessageController;
