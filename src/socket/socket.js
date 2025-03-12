@@ -1,40 +1,69 @@
-// initSocket.js
-import { Server } from 'socket.io';
+import { Server } from "socket.io";
 
 let io;
 
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: 'http://localhost:3001', // Địa chỉ front-end
-      credentials: true, // Cho phép gửi cookie qua CORS nếu cần
+      origin: "*", // Địa chỉ front-end hoặc mobile app
+      methods: ["GET", "POST"]
     },
   });
 
-  io.on('connection', (socket) => {
-    // Khi người dùng tham gia bài kiểm tra, cho họ vào phòng tương ứng
-    socket.on('joinQuiz', (quizId) => {
-      socket.join(`online-quiz-${quizId}`);
-      console.log(`User ${socket.id} joined room online-quiz-${quizId}`);
+  io.on("connection", (socket) => {
+    console.log(`User ${socket.id} connected`);
+
+    // Người dùng tham gia vào phòng tin nhắn (chat)**
+    socket.on("joinChat", (chatId) => {
+      socket.join(`chat-${chatId}`);
+      console.log(`User ${socket.id} joined chat room chat-${chatId}`);
     });
 
-    // Khi người dùng rời phòng
-    socket.on('leaveQuiz', (quizId) => {
-      socket.leave(`online-quiz-${quizId}`);
-      console.log(`User ${socket.id} left room online-quiz-${quizId}`);
+    // Người dùng gửi tin nhắn**
+    socket.on("sendMessage", ({ chatId, message }) => {
+      const room = `chat-${chatId.toString()}`;
+      console.log(`Broadcasting newMessage to ${room}:`, message);
+      io.to(room).emit("newMessage", message); // Thống nhất tên sự kiện
+    });
+    
+
+    // Người dùng rời khỏi phòng tin nhắn**
+    socket.on("leaveChat", (chatId) => {
+      socket.leave(`chat-${chatId}`);
+      console.log(`User ${socket.id} left chat room chat-${chatId}`);
     });
 
-    socket.on('disconnect', () => {
+    // Người dùng tham gia vào phòng bài viết**
+    socket.on("joinPost", (postId) => {
+      socket.join(`post-${postId}`);
+      console.log(`User ${socket.id} joined post room post-${postId}`);
+    });
+
+    // Người dùng bình luận hoặc cập nhật bài viết**
+    socket.on("updatePost", ({ postId, update }) => {
+      io.to(`post-${postId}`).emit("postUpdated", update);
+    });
+
+    // Người dùng rời khỏi phòng bài viết**
+    socket.on("leavePost", (postId) => {
+      socket.leave(`post-${postId}`);
+      console.log(`User ${socket.id} left post room post-${postId}`);
+    });
+
+    // Khi người dùng ngắt kết nối**
+    socket.on("disconnect", () => {
       console.log(`User ${socket.id} disconnected`);
     });
   });
 };
 
-// Hàm để phát ra sự kiện từ các nơi khác trong ứng dụng, chỉ phát trong phòng tương ứng
-export const emitEvent = (quizId, event, data) => {
+// **Hàm phát sự kiện từ server đến client**
+export const emitEvent = (roomType, id, event, data) => {
   if (io) {
-    io.to(`online-quiz-${quizId}`).emit(event, data); // Emit chỉ trong phòng `online-quiz-${quizId}`
+    const room = `${roomType}-${id.toString()}`; // Chắc chắn ID là string
+    io.to(room).emit(event, data);
   } else {
-    console.error('Socket.io is not initialized');
+    console.error("Socket.io is not initialized");
   }
 };
+

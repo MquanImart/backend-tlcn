@@ -39,16 +39,6 @@ ConversationSchema.pre("save", function (next) {
     this.type = "group";
   }
 
-  // Kiểm tra ràng buộc khi type là "group"
-  if (this.type === "group") {
-    if (!this.groupName) {
-      return next(new Error("Nhóm phải có tên và ảnh đại diện"));
-    }
-  } else {
-    this.groupName = null;
-    this.avtGroup = null;
-  }
-
   // Kiểm tra ràng buộc khi type là "page"
   if (this.type === "page") {
     if (!this.pageId) {
