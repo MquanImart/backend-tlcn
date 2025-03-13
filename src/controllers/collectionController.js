@@ -59,13 +59,18 @@ const deleteCollectionById = async (req, res) => {
 
 const addNewItemCollection = async (req, res) => {
   try {
-    const result = await collectionService.addNewItem(req.params.id, req.query.itemId)
-    if (!result.success) return res.status(result.code).json({ success: false, data: null, message: result.message })
-    res.status(200).json({ success: true, data: result.data, message: result.message })
+    const { id, idarticle } = req.params; 
+    const result = await collectionService.addNewItem(id, idarticle); 
+
+    if (!result.success) {
+      return res.status(result.code).json({ success: false, data: null, message: result.message });
+    }
+
+    res.status(200).json({ success: true, data: result.data, message: result.message });
   } catch (error) {
-    res.status(500).json({ success: false, data: null, message: error.message })
+    res.status(500).json({ success: false, data: null, message: error.message });
   }
-}
+};
 
 const deleteItemCollection = async (req, res) => {
   try {
