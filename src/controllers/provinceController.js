@@ -9,6 +9,16 @@ const getProvinces = async (req, res) => {
   }
 }
 
+const getAllNotPage = async (req, res) => {
+  try {
+    const Provinces = await provinceService.getAllNotPage()
+    res.status(200).json({ success: true, data: Provinces, message: 'Lấy danh sách tỉnh thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+
 const getProvinceById = async (req, res) => {
   try {
     const Province = await provinceService.getById(req.params.id)
@@ -57,6 +67,46 @@ const deleteProvinceById = async (req, res) => {
   }
 }
 
+const addNewPage = async (req, res) => {
+  try {
+    const result = await provinceService.addNewPage(req.params.id, req.body.pageId)
+    if (!result) return res.status(404).json({ success: false, data: null, message: 'Tỉnh không tồn tại' })
+    res.status(200).json({ success: true, data: result, message: 'Thêm trang thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const getArticleOfPage = async (req, res) => {
+  try {
+    const result = await provinceService.getArticleOfPage(req.params.id, req.query.limit, req.query.skip)
+    if (!result.success) return res.status(404).json({ success: false, data: null, message: 'Tỉnh không tồn tại' })
+    res.status(200).json({ success: true, data: result.data, message: 'Thêm trang thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const getHotPage = async (req, res) => {
+  try {
+    const result = await provinceService.getHotPage(req.params.id, req.query.limit, req.query.skip)
+    if (!result) return res.status(404).json({ success: false, data: null, message: 'Tỉnh không tồn tại' })
+    res.status(200).json({ success: true, data: result, message: 'Thêm trang thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const getAllPage = async (req, res) => {
+  try {
+    const result = await provinceService.getAllPage(req.params.id, req.query.limit, req.query.skip)
+    if (!result) return res.status(404).json({ success: false, data: null, message: 'Tỉnh không tồn tại' })
+    res.status(200).json({ success: true, data: result, message: 'Thêm trang thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const ProvinceController = {
   getProvinces,
   getProvinceById,
@@ -64,6 +114,11 @@ const ProvinceController = {
   updateProvinceById,
   updateAllProvinces,
   deleteProvinceById,
+  addNewPage,
+  getArticleOfPage,
+  getHotPage,
+  getAllNotPage,
+  getAllPage
 }
 
 export  default ProvinceController;

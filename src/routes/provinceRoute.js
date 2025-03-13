@@ -50,6 +50,18 @@ Router.get('/', ProvinceController.getProvinces);
 
 /**
  * @swagger
+ * /province/not-page:
+ *   get:
+ *     summary: Lấy danh sách tất cả các tỉnh/thành phố không lấy danh sách trang
+ *     tags: [Provinces]
+ *     responses:
+ *       200:
+ *         description: Danh sách các tỉnh/thành phố
+ */
+Router.get('/not-page', ProvinceController.getAllNotPage);
+
+/**
+ * @swagger
  * /province/{id}:
  *   get:
  *     summary: Lấy thông tin một tỉnh/thành phố theo ID
@@ -146,5 +158,140 @@ Router.patch('/', ProvinceController.updateAllProvinces);
  *         description: Không tìm thấy tỉnh/thành phố
  */
 Router.delete('/:id', ProvinceController.deleteProvinceById);
+
+/**
+ * @swagger
+ * /province/{id}/add-page:
+ *   patch:
+ *     summary: Thêm 1 trang vào tỉnh
+ *     tags: [Provinces]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pageId:
+ *                 type: string
+ *                 example: "67d29568980d899657cc410d"
+ *     responses:
+ *       200:
+ *         description: Cập nhật thành công tỉnh/thành phố
+ *       404:
+ *         description: Không tìm thấy tỉnh/thành phố
+ */
+Router.patch('/:id/add-page', ProvinceController.addNewPage);
+
+/**
+ * @swagger
+ * /province/{id}/articles:
+ *   get:
+ *     summary: Lấy danh sách bài viết trong tỉnh/thành phố
+ *     tags: [Provinces]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của tỉnh/thành phố
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng bài viết tối đa trả về trên mỗi trang
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số lượng bài viết bỏ qua (dùng cho phân trang)
+ *     responses:
+ *       200:
+ *         description: Danh sách bài viết của tỉnh/thành phố
+ *       404:
+ *         description: Tỉnh không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/:id/articles', ProvinceController.getArticleOfPage);
+
+/**
+ * @swagger
+ * /province/{id}/hot-page:
+ *   get:
+ *     summary: Lấy danh sách trang trong tỉnh/thành phố
+ *     tags: [Provinces]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của tỉnh/thành phố
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng trang tối đa trả về trên mỗi trang
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số lượng trang bỏ qua (dùng cho phân trang)
+ *     responses:
+ *       200:
+ *         description: Danh sách trang của tỉnh/thành phố
+ *       404:
+ *         description: Tỉnh không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/:id/hot-page', ProvinceController.getHotPage);
+
+/**
+ * @swagger
+ * /province/{id}/all-page:
+ *   get:
+ *     summary: Lấy danh sách trang trong tỉnh/thành phố
+ *     tags: [Provinces]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của tỉnh/thành phố
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng trang tối đa trả về trên mỗi trang
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số lượng trang bỏ qua (dùng cho phân trang)
+ *     responses:
+ *       200:
+ *         description: Danh sách trang của tỉnh/thành phố
+ *       404:
+ *         description: Tỉnh không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/:id/all-page', ProvinceController.getAllPage);
 
 export const provinceRoute = Router;
