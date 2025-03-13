@@ -256,7 +256,7 @@ const getEarliestItems = async (userId, limit) => {
     
           return {
             article: article,
-            updateDate: item.updateDate.getTime(),
+            updateDate: item.updateDate,
             representImg: representImg,
             author: {
               _id: author._id,
