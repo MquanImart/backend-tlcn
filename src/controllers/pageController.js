@@ -20,7 +20,7 @@ const getPageById = async (req, res) => {
 
 const createPage = async (req, res) => {
   try {
-    const newPage = await pageService.createPage(req.body);
+    const newPage = await pageService.createPage(req);
     res.status(201).json({ success: true, data: newPage, message: 'Tạo Page thành công' });
   } catch (error) {
     res.status(500).json({ success: false, data: null, message: error.message });

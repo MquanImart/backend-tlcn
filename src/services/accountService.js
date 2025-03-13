@@ -1,6 +1,7 @@
 import Account from "../models/Account.js"
 import OtpModel from "../models/OtpModel.js";
 import bcrypt from 'bcrypt';
+import User from "../models/User.js";
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto'; // Dùng để tạo mã OTP ngẫu nhiên
 import twilio from 'twilio'; // Thêm Twilio vào để gửi SMS
