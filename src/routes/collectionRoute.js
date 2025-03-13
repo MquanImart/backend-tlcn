@@ -217,33 +217,6 @@ Router.delete('/:id', CollectionController.deleteCollectionById);
 /**
  * @swagger
  * /collections/{id}/item:
- *   post:
- *     summary: Thêm item vào bộ sưu tập
- *     tags: [Collections]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID của bộ sưu tập
- *       - in: query
- *         name: itemId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID của item cần thêm
- *     responses:
- *       201:
- *         description: Thêm thành công
- *       400:
- *         description: Dữ liệu không hợp lệ
- */
-Router.post('/:id/item', CollectionController.addNewItemCollection);
-
-/**
- * @swagger
- * /collections/{id}/item:
  *   patch:
  *     summary: Xóa item bộ sưu tập
  *     tags: [Collections]
@@ -331,5 +304,37 @@ Router.get('/:id/article', CollectionController.getAllArticlebyId);
  *         description: Dữ liệu không hợp lệ
  */
 Router.patch('/item/change', CollectionController.changeCollections);
+
+
+/**
+ * @swagger
+ * /collections/{id}/article/{idarticle}:
+ *   post:
+ *     summary: Thêm item vào bộ sưu tập
+ *     tags: [Collections]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của bộ sưu tập
+ *       - in: path
+ *         name: idarticle
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của bài viết cần thêm
+ *     responses:
+ *       201:
+ *         description: Thêm thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ *       404:
+ *         description: Không tìm thấy bộ sưu tập
+ *       409:
+ *         description: Bài viết đã tồn tại trong bộ sưu tập
+ */
+Router.post('/:id/article/:idarticle', CollectionController.addNewItemCollection);
 
 export const collectiondRoute = Router;

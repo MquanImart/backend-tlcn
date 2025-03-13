@@ -5,7 +5,10 @@ const CollectionSchema = new Schema(
     name: { type: String, required: true },
     items: [
       {
-        _id: { type: Schema.Types.ObjectId, required: true },
+        _id: { 
+          type: Schema.Types.ObjectId, 
+          ref: 'Article',
+          required: true },
         updateDate: { type: Number, default: () => Date.now() },
       }
     ],

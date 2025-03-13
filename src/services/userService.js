@@ -200,7 +200,7 @@ const getAllCollection = async (userId) => {
           const firstImg = article.listPhoto.find((photo) => photo.type === "img");
           if (firstImg) {
             representImg = firstImg.url;
-            return true; // Dừng vòng lặp sớm
+            return true; 
           }
         }
         return false;
