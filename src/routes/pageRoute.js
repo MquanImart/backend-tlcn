@@ -1,7 +1,10 @@
 import express from 'express';
 import { pageController } from '../controllers/pageController.js';
+import upload from '../config/multerConfig.js';
 
 const Router = express.Router();
+
+const uploadMiddleware = upload.single('avt');
 
 /**
  * @swagger
@@ -46,24 +49,42 @@ Router.get('/:id', pageController.getPageById);
  *   post:
  *     summary: Tạo Page mới
  *     tags: [Pages]
+ *     consumes:
+ *       - multipart/form-data
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Trang học tập"
  *               idCreater:
  *                 type: string
- *                 example: "60f7ebeb2f8fb814b56fa181"
+ *               avt:
+ *                 type: string
+ *                 format: binary
+ *               address:
+ *                 type: string
+ *                 description: JSON string của thông tin địa chỉ
+ *               timeOpen:
+ *                 type: string
+ *               timeClose:
+ *                 type: string
+ *               hobbies:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     responses:
  *       201:
  *         description: Tạo Page thành công
+ *       400:
+ *         description: Thiếu thông tin bắt buộc
+ *       500:
+ *         description: Lỗi server
  */
-Router.post('/', pageController.createPage);
+Router.post('/', uploadMiddleware, pageController.createPage);
 
 /**
  * @swagger

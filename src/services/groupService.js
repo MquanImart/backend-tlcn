@@ -386,6 +386,9 @@ const updateMemberStatus = async (groupID, userID, state) => {
     group.Administrators = group.Administrators.filter(admin => admin.idUser.toString() !== userID);
   } else if (state === "accepted" && isMember) {
     isMember.state = "accepted";
+    if (!user.groups.saveGroups.some(groupId => groupId.toString() === groupID)) {
+      user.groups.saveGroups.push(groupID);
+    }
   } else if (state === "rejected") {
     group.members = group.members.filter((member) => member.idUser.toString() !== userID);
     user.groups.saveGroups = user.groups.saveGroups.filter(groupId => groupId.toString() !== groupID);
@@ -506,13 +509,16 @@ const getUserApprovedArticles = async (groupID, userID) => {
 
 const checkAdminInvite = async (groupID, administratorsID) => {
   try {
-    // 🔍 Kiểm tra nhóm có tồn tại không
+    console.log("Debug - groupID:", groupID, "administratorsID:", administratorsID); // Debug đầu vào
+
     const group = await Group.findById(groupID)
       .populate({
         path: "idCreater",
         select: "displayName avt",
         populate: { path: "avt", select: "url" },
       });
+
+    console.log("Debug - group found:", group); // Debug dữ liệu nhóm
 
     if (!group) {
       throw { status: 404, message: "Nhóm không tồn tại" };
@@ -522,17 +528,23 @@ const checkAdminInvite = async (groupID, administratorsID) => {
       (admin) => admin.idUser.toString() === administratorsID && admin.state === "pending"
     );
 
+    console.log("Debug - adminInvite:", adminInvite); // Debug lời mời
+
     return {
       hasInvite: adminInvite ? true : false,
       groupId: group._id.toString(),
       groupName: group.groupName,
       inviterName: group.idCreater?.displayName || "Không có thông tin",
-      inviteDate: adminInvite?.joinDate ? adminInvite.joinDate.toISOString() : null,
+      inviteDate: adminInvite?.joinDate,
       inviterAvatar: group.idCreater?.avt[0]?.url || "",
     };
   } catch (error) {
-    console.error("❌ Lỗi khi kiểm tra lời mời làm quản trị viên:", error);
-    throw { status: 500, message: "Lỗi máy chủ" };
+    console.error("❌ Lỗi chi tiết khi kiểm tra lời mời làm quản trị viên:", error); // Log lỗi chi tiết
+    throw {
+      status: error.status || 500,
+      message: error.message || "Lỗi máy chủ",
+      details: error.stack || "Không có chi tiết lỗi", // Thêm stack trace
+    };
   }
 };
 
