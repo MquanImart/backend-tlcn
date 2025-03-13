@@ -142,7 +142,7 @@ const getAllArticlebyId = async (id) => {
 
                 return {
                   article: article,
-                  updateDate: item.updateDate.getTime(),
+                  updateDate: item.updateDate,
                   representImg: representImg,
                   author: {
                     _id: author._id,
