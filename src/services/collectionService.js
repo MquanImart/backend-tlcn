@@ -1,6 +1,7 @@
 import Collection from '../models/Collection.js';
 import Article from '../models/Article.js'
 import User from '../models/User.js'
+import mongoose from 'mongoose';
 
 const getAll = async () => {
     return await Collection.find();
@@ -36,28 +37,67 @@ const deleteCollectionById = async (id) => {
     return await Collection.findByIdAndDelete(id)
 }
 
+// const addNewItem = async (id, itemId) => {
+//     if (!mongoose.Types.ObjectId.isValid(itemId)) {
+//       return { success: false, code: 400, data: null, message: "ID của item không hợp lệ" };
+//     }
+  
+//     const collection = await Collection.findById(id);
+//     if (!collection) {
+//       return { success: false, code: 404, data: null, message: "Không tìm thấy bộ sưu tập" };
+//     }
+  
+//     const isItemExists = collection.items.some(item => item._id.toString() === itemId);
+//     if (isItemExists) {
+//       return { success: false, code: 409, data: null, message: "Đã tồn tại trong bộ sưu tập" };
+//     }
+  
+//     const updatedCollection = await Collection.findByIdAndUpdate(
+//       id,
+//       { 
+//         $push: { 
+//           items: {
+//             _id: itemId,
+//             updateDate: Date.now(),
+//           } 
+//         } 
+//       }, 
+//       { new: true }
+//     );
+  
+//     return { success: true, code: 200, data: updatedCollection, message: "Thành công thêm vào bộ sưu tập" };
+//   };
+
+
 const addNewItem = async (id, itemId) => {
-    const collection = await Collection.findById(id);
-    if (!collection) {
-        return {success: false, code: 404, data: null, message: "Không tìm thấy bộ sưu tập"}
-    }
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return { success: false, code: 400, data: null, message: "ID của item không hợp lệ" };
+  }
 
-    const isItemExists = collection.items.some(item => item._id.toString() === itemId);
-    if (isItemExists) return {success: false, code: 409, data: null, message: "Đã tồn tại trong bộ sưu tập"};
+  const collection = await Collection.findById(id);
+  if (!collection) {
+    return { success: false, code: 404, data: null, message: "Không tìm thấy bộ sưu tập" };
+  }
 
-    const updatedCollection = await Collection.findByIdAndUpdate(
-        id,
-        { 
-            $push: { 
-                items: {
-                    _id: itemId,
-                    updateDate: new Date(),
-                } 
-            } 
-        }, 
-        { new: true }
-    );
-    return {success: true, code: 200, data: updatedCollection, message: "Thành công thêm vào bộ sưu tập"};
+  const isItemExists = collection.items.some(item => item._id.toString() === itemId);
+  if (isItemExists) {
+    return { success: false, code: 409, data: null, message: "Đã tồn tại trong bộ sưu tập" };
+  }
+
+  const updatedCollection = await Collection.findByIdAndUpdate(
+    id,
+    { 
+      $push: { 
+        items: {
+          _id: itemId,
+          updateDate: Date.now(),
+        } 
+      } 
+    }, 
+    { new: true }
+  );
+
+  return { success: true, code: 200, data: updatedCollection, message: "Thành công thêm vào bộ sưu tập" };
 };
 
 const deleteItem = async (id, itemId) => {
