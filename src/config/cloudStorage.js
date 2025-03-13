@@ -17,7 +17,7 @@ const uploadImageBufferToStorage = async (buffer, destination, mimetype) => {
   
       const stream = file.createWriteStream({
         metadata: {
-          contentType: mimetype, // Định dạng file chính xác
+          contentType: mimetype, 
           cacheControl: 'public, max-age=31536000',
         },
       });

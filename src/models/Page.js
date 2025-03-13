@@ -62,6 +62,10 @@ const pageSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Ticket',
   }],
+  hobbies: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Hobby', 
+  }],
   createdAt: {
     type: Number,
     default: () => Date.now(),
