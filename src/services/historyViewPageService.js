@@ -44,11 +44,19 @@ const deleteHistoryViewPageById = async (id) => {
 
 const getViewByUserId = async (userId) => {
     const views = await HistoryViewPage.find({ idUser: userId })
-    .populate('idPage', '_id name avt')
-    .sort({ viewDate: -1 });
+        .populate({
+            path: 'idPage',
+            select: '_id name avt',
+            populate: {
+                path: 'avt',
+                model: 'MyPhoto'
+            },
+        })
+        .sort({ viewDate: -1 });
 
-    return views; 
-}
+    return views;
+};
+
 
 const historyViewPageService = {
     getAll,
