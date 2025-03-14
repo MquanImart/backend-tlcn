@@ -1,5 +1,6 @@
 import Page from "../models/Page.js";
 import Province from "../models/Province.js";
+import User from "../models/User.js";
 import { myPhotoService } from "./myPhotoService.js";
 import {addressService} from "./addressService.js"
 
@@ -98,6 +99,13 @@ const createPage = async (req) => {
     { name: provinceName },
     { $addToSet: { listPage: newPage._id } },
     { upsert: true, new: true }
+  );
+
+  // 7. Cập nhật User: thêm newPage._id vào pages.createPages
+  await User.findOneAndUpdate(
+    { _id: idCreater }, // Tìm user bằng idCreater
+    { $addToSet: { 'pages.createPages': newPage._id } }, // Thêm _id của Page vào mảng createPages
+    { upsert: false, new: true } // Không tạo mới nếu user không tồn tại
   );
 
   return newPage;

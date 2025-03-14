@@ -413,6 +413,32 @@ const addHobbyByEmail = async (email, hobbies) => {
     throw new Error(error.message || "Lỗi hệ thống, vui lòng thử lại.");
   }
 };
+
+const getCreatedPages =  async (userId, limit = 5, skip = 0) => {
+  // Chuyển đổi limit và skip thành số nguyên
+  const limitNum = parseInt(limit, 10);
+  const skipNum = parseInt(skip, 10);
+
+  // Tìm user và populate createPages
+  const user = await User.findById(userId)
+    .populate('pages.createPages') // Populate danh sách Page từ createPages
+    .lean(); // Chuyển thành plain object để xử lý dễ hơn
+
+  if (!user) {
+    return null; // Trả về null nếu không tìm thấy user
+  }
+
+  // Lấy danh sách createPages
+  let listPages = user.pages?.createPages || [];
+
+  // Sắp xếp theo số lượng follower (tùy chọn, tương tự getHotPage)
+  listPages = listPages.sort((a, b) => (b.follower?.length || 0) - (a.follower?.length || 0));
+
+  // Áp dụng phân trang
+  listPages = listPages.slice(skipNum, skipNum + limitNum);
+
+  return listPages;
+}
 export const userService = {
   getUsers,
   getUserById,
@@ -433,5 +459,6 @@ export const userService = {
   getAllFriends,
   unFriends,
   suggestFriends,
-  addHobbyByEmail
+  addHobbyByEmail,
+  getCreatedPages
 };

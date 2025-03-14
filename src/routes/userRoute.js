@@ -508,4 +508,40 @@ Router.patch('/:id/unfriend', userController.unFriends);
  */
 Router.get('/:id/suggest', userController.suggestedFriends);
 
+
+/**
+ * @swagger
+ * /users/{id}/created-pages:
+ *   get:
+ *     summary: Lấy danh sách các Page do người dùng tạo
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng Page tối đa trả về trên mỗi trang
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số lượng Page bỏ qua (dùng cho phân trang)
+ *     responses:
+ *       200:
+ *         description: Danh sách các Page do người dùng tạo
+ *       404:
+ *         description: Người dùng không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/:id/created-pages', userController.getCreatedPages);
+
 export const userRoute = Router;

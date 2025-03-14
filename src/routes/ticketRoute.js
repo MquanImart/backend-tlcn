@@ -44,7 +44,7 @@ Router.get('/:id', ticketController.getTicketById);
  * @swagger
  * /tickets:
  *   post:
- *     summary: Tạo vé mới
+ *     summary: Tạo một vé mới và cập nhật listTicket trong Page
  *     tags: [Tickets]
  *     requestBody:
  *       required: true
@@ -52,19 +52,108 @@ Router.get('/:id', ticketController.getTicketById);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - pageId
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Vé VIP"
+ *                 description: "Tên của vé"
+ *                 example: "Vé 01"
  *               price:
  *                 type: number
- *                 example: 100
+ *                 description: "Giá của vé (đơn vị: đồng)"
+ *                 example: 10000
  *               description:
  *                 type: string
- *                 example: "Vé dành cho khách VIP"
+ *                 description: "Mô tả của vé (không bắt buộc)"
+ *                 example: "Vé vào cổng chính"
+ *               pageId:
+ *                 type: string
+ *                 description: "ID của Page mà vé thuộc về"
+ *                 example: "507f1f77bcf86cd799439011"
  *     responses:
  *       201:
- *         description: Tạo vé thành công
+ *         description: Vé được tạo thành công và listTicket trong Page đã được cập nhật
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: "ID của vé vừa tạo"
+ *                       example: "507f1f77bcf86cd799439012"
+ *                     name:
+ *                       type: string
+ *                       example: "Vé 01"
+ *                     price:
+ *                       type: number
+ *                       example: 10000
+ *                     description:
+ *                       type: string
+ *                       example: "Vé vào cổng chính"
+ *                     pageId:
+ *                       type: string
+ *                       example: "507f1f77bcf86cd799439011"
+ *                 message:
+ *                   type: string
+ *                   example: "Tạo vé thành công"
+ *       400:
+ *         description: Yêu cầu không hợp lệ (thiếu pageId hoặc dữ liệu không đúng)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: "pageId is required to create a ticket"
+ *       404:
+ *         description: Không tìm thấy Page với pageId cung cấp
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: "Page not found"
+ *       500:
+ *         description: Lỗi server khi xử lý yêu cầu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 Router.post('/', ticketController.createTicket);
 
