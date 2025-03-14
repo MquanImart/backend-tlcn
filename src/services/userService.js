@@ -287,7 +287,8 @@ const getAllFriends = async (id) => {
 
   const allFriends = await Promise.all(
     user.friends.map(async (friend) => {
-      const FriendData = await User.findById(friend);
+      const FriendData = await User.findById(friend)
+        .populate('avt')
       return {
         _id: FriendData._id,
         displayName: FriendData.displayName,
@@ -339,7 +340,8 @@ const suggestFriends = async (id) => {
 
     const result = await Promise.all(
       suggestedFriends.map(async (item) => {
-        const friend = await User.findById(item.friendId);
+        const friend = await User.findById(item.friendId)
+          .populate('avt')
         if (friend) {
           return {
             friend: {
