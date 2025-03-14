@@ -249,6 +249,34 @@ const suggestedFriends = async (req, res) => {
   }
 }
 
+const getCreatedPages = async (req, res) => {
+  try {
+    const result = await userService.getCreatedPages(
+      req.params.id,
+      req.query.limit,
+      req.query.skip
+    );
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Người dùng không tồn tại',
+      });
+    }
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Lấy danh sách Page thành công',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+}
+
 export const userController = {
   getUsers,
   getUserById,
@@ -269,5 +297,6 @@ export const userController = {
   updateUserSetting,
   getAllFriends,
   unFriends,
-  suggestedFriends
+  suggestedFriends,
+  getCreatedPages
 };
