@@ -1,6 +1,7 @@
 import Article from "../models/Article.js";
 import Comment from "../models/Comment.js";
 import Group from "../models/Group.js";
+import Page from "../models/Page.js";
 import User from "../models/User.js";
 import { myPhotoService } from "./myPhotoService.js";
 
@@ -65,7 +66,7 @@ const getArticleById = async (id) => {
 
 const createArticle = async (data, files) => {
   try {
-    const { createdBy, content, hashTag, scope, groupID } = data;
+    const { createdBy, content, hashTag, scope, groupID, pageId } = data;
 
     if (!createdBy || !content) {
       throw new Error("❌ Thiếu thông tin bắt buộc"); 
@@ -107,7 +108,15 @@ const createArticle = async (data, files) => {
         { $push: { article: { idArticle: newArticle._id, state: "pending" } } },
         { new: true }
       );
-    } else {
+    }
+    if (pageId) {
+      const updatedPage = await Page.findByIdAndUpdate(
+        pageId,
+        { $push: { listArticle: newArticle._id } },
+        { new: true }
+      );
+    }
+    else {
       await User.findByIdAndUpdate(
         createdBy,
         { $push: { articles: newArticle._id } },
