@@ -44,7 +44,7 @@ const createPage = async (req) => {
     street: addressData.street,
     placeName: addressData.placeName || '',
     lat: addressData.lat || null,
-    long: addressData.lon || null,
+    long: addressData.long || null,
   });
 
   // 2. Xử lý hobbies linh hoạt
