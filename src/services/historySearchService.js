@@ -45,7 +45,16 @@ const addHistorySearch = async (idUser, keySearch) => {
   });
   return newHistorySearch;
 };
-
+const getHistorySearchByIdUser = async (idUser) => {
+  return await HistorySearch.findOne({ idUser, _destroy: null });
+};
+const updateHistorySearchByIdUser = async (idUser, keySearch) => {
+  return await HistorySearch.findOneAndUpdate(
+    { idUser, _destroy: null }, // Tìm bản ghi theo idUser và chưa bị xóa mềm
+    { keySearch }, // Cập nhật mảng keySearch mới
+    { new: true, upsert: true } // Trả về bản ghi mới, tạo mới nếu không tồn tại
+  );
+};
 export const historySearchService = {
   getHistorySearches,
   getHistorySearchById,
@@ -54,4 +63,6 @@ export const historySearchService = {
   updateAllHistorySearches,
   deleteHistorySearchById,
   addHistorySearch,
+  getHistorySearchByIdUser,
+  updateHistorySearchByIdUser,
 };

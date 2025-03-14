@@ -390,4 +390,146 @@ Router.delete('/:id', historySearchController.deleteHistorySearchById);
  *                   example: "Error message"
  */
 Router.post('/', historySearchController.addHistorySearch);
+/**
+ * @swagger
+ * /historysearches/user/{idUser}:
+ *   get:
+ *     summary: Lấy lịch sử tìm kiếm theo idUser
+ *     tags: [HistorySearches]
+ *     parameters:
+ *       - in: path
+ *         name: idUser
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng để lấy lịch sử tìm kiếm
+ *     responses:
+ *       200:
+ *         description: Trả về lịch sử tìm kiếm của người dùng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/HistorySearch'
+ *                 message:
+ *                   type: string
+ *                   example: "Lấy lịch sử tìm kiếm theo idUser thành công"
+ *       404:
+ *         description: Không tìm thấy lịch sử tìm kiếm
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: "Không tìm thấy lịch sử tìm kiếm cho người dùng này"
+ *       500:
+ *         description: Lỗi server
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: "Error message"
+ */
+Router.get('/user/:idUser', historySearchController.getHistorySearchByIdUser);
+/**
+ * @swagger
+ * /historysearches/user/{idUser}:
+ *   patch:
+ *     summary: Cập nhật lịch sử tìm kiếm theo idUser
+ *     tags: [HistorySearches]
+ *     description: Cập nhật toàn bộ danh sách keySearch cho người dùng theo idUser. Nếu bản ghi không tồn tại, tạo mới.
+ *     parameters:
+ *       - in: path
+ *         name: idUser
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng để cập nhật lịch sử tìm kiếm
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               keySearch:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Danh sách từ khóa tìm kiếm mới
+ *                 example: ["search1", "search2"]
+ *             required:
+ *               - keySearch
+ *     responses:
+ *       200:
+ *         description: Cập nhật lịch sử tìm kiếm thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/HistorySearch'
+ *                 message:
+ *                   type: string
+ *                   example: "Cập nhật lịch sử tìm kiếm theo idUser thành công"
+ *       400:
+ *         description: Dữ liệu đầu vào không hợp lệ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: "keySearch must be an array"
+ *       500:
+ *         description: Lỗi server
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: "Error message"
+ */
+Router.patch('/user/:idUser', historySearchController.updateHistorySearchByIdUser);
 export const historySearchRoute = Router;
