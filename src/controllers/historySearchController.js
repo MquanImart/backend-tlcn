@@ -128,7 +128,61 @@ const addHistorySearch = async (req, res) => {
     });
   }
 };
+const getHistorySearchByIdUser = async (req, res) => {
+  try {
+    const { idUser } = req.params;
+    const historySearch = await historySearchService.getHistorySearchByIdUser(idUser);
 
+    if (!historySearch) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Không tìm thấy lịch sử tìm kiếm cho người dùng này",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: historySearch,
+      message: "Lấy lịch sử tìm kiếm theo idUser thành công",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+const updateHistorySearchByIdUser = async (req, res) => {
+  try {
+    const { idUser } = req.params;
+    const { keySearch } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!keySearch || !Array.isArray(keySearch)) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "keySearch must be an array",
+      });
+    }
+
+    const updatedHistorySearch = await historySearchService.updateHistorySearchByIdUser(idUser, keySearch);
+
+    res.status(200).json({
+      success: true,
+      data: updatedHistorySearch,
+      message: "Cập nhật lịch sử tìm kiếm theo idUser thành công",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
 export const historySearchController = {
   getHistorySearches,
   getHistorySearchById,
@@ -137,4 +191,6 @@ export const historySearchController = {
   updateAllHistorySearches,
   deleteHistorySearchById,
   addHistorySearch,
+  getHistorySearchByIdUser,
+  updateHistorySearchByIdUser,
 };
