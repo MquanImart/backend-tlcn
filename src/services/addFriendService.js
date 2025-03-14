@@ -76,9 +76,11 @@ const getAddFriendBySenderId = async (id) => {
         const { senderId, receiverId } = request;
   
         // Lấy danh sách bạn bè của senderId và receiverId
-        const sender = await User.findById(senderId);
-        const receiver = await User.findById(receiverId);
-  
+        const sender = await User.findById(senderId)
+          .populate('avt');
+        const receiver = await User.findById(receiverId)
+          .populate('avt');
+
         const senderFriends = sender?.friends.map((f) => f.toString()) || [];
         const receiverFriends = receiver?.friends.map((f) => f.toString()) || [];
   
