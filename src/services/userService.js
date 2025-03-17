@@ -6,7 +6,21 @@ import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
 
 const getUsers = async () => {
-  return await User.find()
+  // Lấy tất cả người dùng và populate trường 'friends' và 'avt'
+  const users = await User.find()
+    .populate({
+      path: 'friends', // Populate danh sách bạn bè
+      select: '_id displayName avt aboutMe' // Chỉ lấy các trường cần thiết
+    })
+    .populate('avt'); // Populate trường avatar nếu cần
+
+  // Trả về danh sách người dùng đã được populate
+  return users.map(user => ({
+    _id: user._id,
+    displayName: user.displayName,
+    avt: user.avt,
+    aboutMe: user.aboutMe,
+  }));
 };
 
 const getUserById = async (id) => {
