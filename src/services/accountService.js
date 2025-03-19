@@ -65,9 +65,22 @@ const loginAccount = async (email, password) => {
       message: 'Email hoặc mật khẩu không đúng'
     }
   }
+
+  const user = await User.findOne({account: account._id});
+
   return {
     success: true,
-    data: account 
+    data: {
+      user: {
+        _id: user._id,
+        displayName: user.displayName,
+        hashtag: user.hashtag,
+        avt: user.avt,
+        hobbies: user.hobbies,
+        setting: user.setting
+      },
+      account: account
+    } 
   }
 }
 
