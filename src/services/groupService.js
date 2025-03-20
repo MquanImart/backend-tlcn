@@ -350,7 +350,7 @@ const getPendingMembers = async (groupID) => {
         fullName: member.idUser?.displayName,
         email: member.idUser?.account?.email,
         phone: member.idUser?.account?.phone,
-        avatar: member.idUser?.avt[0]?.url || null,
+        avatar: member.idUser?.avt[member.idUser.avt.length - 1]?.url || [],
         joinDate: member.joinDate,
       }));
 
@@ -431,7 +431,7 @@ const getGroupMembers = async (groupID) => {
     .map((admin) => ({
       id: admin.idUser?._id?.toString(),
       name: admin.idUser?.displayName || "Không có thông tin",
-      avatar: admin.idUser?.avt[0]?.url || "",
+      avatar: admin.idUser?.avt[admin.idUser.avt.length - 1]?.url || "", // Thay đổi ở đây
       description: admin.idUser?.aboutMe || "",
     }));
 
@@ -444,7 +444,7 @@ const getGroupMembers = async (groupID) => {
     .map((member) => ({
       id: member.idUser?._id?.toString(),
       name: member.idUser?.displayName || "Không có thông tin",
-      avatar: member.idUser?.avt[0]?.url || "",
+      avatar: member.idUser?.avt[member.idUser.avt.length - 1]?.url || "", // Thay đổi ở đây
       description: member.idUser?.aboutMe || "",
     }));
 
@@ -452,7 +452,7 @@ const getGroupMembers = async (groupID) => {
     idCreater: {
       id: idCreaterID,
       name: group.idCreater?.displayName || "Không có thông tin",
-      avatar: group.idCreater?.avt[0]?.url || "",
+      avatar: group.idCreater?.avt[group.idCreater.avt.length - 1]?.url || "", // Thay đổi ở đây
       description: group.idCreater?.aboutMe || "",
     },
     Administrators: uniqueAdmins,
