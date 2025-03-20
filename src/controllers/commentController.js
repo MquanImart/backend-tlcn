@@ -1,5 +1,6 @@
 import { commentService } from '../services/commentService.js';
 import { articleService } from '../services/articleService.js';
+import reelsService from '../services/reelsService.js';
 import mongoose from "mongoose";
 
 const getComments = async (req, res) => {
@@ -44,24 +45,38 @@ const createComment = async (req, res) => {
 
     if (articleId && !replyComment) {
       const article = await articleService.getArticleById(articleId);
-      if (!article) {
-        return res.status(404).json({
-          success: false,
-          data: null,
-          message: "Bài viết không tồn tại",
+      if (article) {
+        // Trường hợp 1: Bài viết tồn tại
+        newComment = await commentService.createComment(newCommentData);
+        article.comments.push(newComment._id);
+        await article.save();
+
+        return res.status(201).json({
+          success: true,
+          data: newComment,
+          message: "Tạo bình luận thành công",
+        });
+      } else {
+        // Trường hợp 2: Kiểm tra Reel
+        const reel = await reelsService.getReelById(articleId);
+        if (!reel) {
+          return res.status(404).json({
+            success: false,
+            data: null,
+            message: "Bài viết hoặc reel không tồn tại",
+          });
+        }
+
+        newComment = await commentService.createComment(newCommentData);
+        reel.comments.push(newComment._id); // Giả sử reel có trường comments
+        await reel.save();
+
+        return res.status(201).json({
+          success: true,
+          data: newComment,
+          message: "Tạo bình luận thành công",
         });
       }
-
-      newComment = await commentService.createComment(newCommentData);
-      
-      article.comments.push(newComment._id);
-      await article.save();
-
-      return res.status(201).json({
-        success: true,
-        data: newComment,
-        message: "Tạo bình luận thành công",
-      });
     }
 
     if (replyComment && !articleId) {
@@ -75,7 +90,6 @@ const createComment = async (req, res) => {
       }
 
       newComment = await commentService.createComment(newCommentData);
-
       parentComment.replyComment.push(newComment._id);
       await parentComment.save();
 
@@ -91,7 +105,6 @@ const createComment = async (req, res) => {
       data: null,
       message: "Cần có `articleId` hoặc `replyComment` để tạo bình luận",
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -100,7 +113,6 @@ const createComment = async (req, res) => {
     });
   }
 };
-
 
 const updateCommentById = async (req, res) => {
   try {

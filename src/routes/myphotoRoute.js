@@ -128,7 +128,7 @@ Router.delete('/:id', myPhotoController.deleteMyPhotoById);
  *                 example: "img"
  *               folderType:
  *                 type: string
- *                 enum: ['articles', 'users']
+ *                 enum: ['articles', 'users', 'reels']
  *                 example: "articles"
  *               referenceId:
  *                 type: string

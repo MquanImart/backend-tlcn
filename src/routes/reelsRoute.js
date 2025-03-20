@@ -1,102 +1,45 @@
 import express from 'express';
-import ReelsController from '../controllers/reelsController.js';
+import { reelsController } from '../controllers/reelsController.js';
+import upload from '../config/multerConfig.js';
 
 const Router = express.Router();
-
 /**
  * @swagger
  * tags:
  *   name: Reels
- *   description: API quản lý bài đăng dạng video ngắn (Reels)
- */
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     Reels:
- *       type: object
- *       required:
- *         - createdBy
- *         - content
- *         - photo
- *       properties:
- *         createdBy:
- *           type: string
- *           description: ID của người tạo bài đăng
- *           example: "user123"
- *         reports:
- *           type: array
- *           description: Danh sách ID của những người đã báo cáo bài viết
- *           items:
- *             type: string
- *           example: ["user456", "user789"]
- *         content:
- *           type: string
- *           description: Nội dung của bài đăng
- *           example: "Hôm nay là một ngày đẹp trời!"
- *         address:
- *           type: string
- *           description: Địa điểm liên quan đến bài đăng (nếu có)
- *           example: "Hồ Gươm, Hà Nội"
- *         hashTag:
- *           type: array
- *           description: Danh sách hashtag liên quan
- *           items:
- *             type: string
- *           example: ["#travel", "#hanoi"]
- *         photo:
- *           type: string
- *           description: URL của ảnh hoặc video đi kèm bài đăng
- *           example: "https://example.com/image.jpg"
- *         scope:
- *           type: string
- *           description: Phạm vi hiển thị bài đăng (công khai, bạn bè,...)
- *           example: "public"
- *         emoticons:
- *           type: array
- *           description: Danh sách cảm xúc trên bài đăng
- *           items:
- *             type: string
- *           example: ["like", "love"]
- *         comments:
- *           type: array
- *           description: Danh sách ID của các bình luận
- *           items:
- *             type: string
- *           example: ["comment1", "comment2"]
- *         createdAt:
- *           type: number
- *           description: Thời gian tạo bài đăng (timestamp)
- *           example: 1708402200000
- *         updatedAt:
- *           type: number
- *           description: Thời gian cập nhật bài đăng gần nhất (timestamp)
- *           example: 1708498600000
- *         destroyAt:
- *           type: string
- *           format: date-time
- *           description: Thời gian bài đăng bị xóa (nếu có)
- *           example: "2025-12-31T23:59:59.999Z"
+ *   description: API quản lý reels
  */
 
 /**
  * @swagger
  * /reels:
  *   get:
- *     summary: Lấy danh sách tất cả các bài đăng Reels
+ *     summary: Lấy danh sách tất cả các reels
  *     tags: [Reels]
  *     responses:
  *       200:
- *         description: Danh sách các bài đăng Reels
+ *         description: Danh sách các reels
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Reel'
+ *                 message:
+ *                   type: string
  */
-Router.get('/', ReelsController.getReels);
+Router.get('/', reelsController.getReels);
 
 /**
  * @swagger
  * /reels/{id}:
  *   get:
- *     summary: Lấy thông tin một bài đăng Reels theo ID
+ *     summary: Lấy thông tin reel theo ID
  *     tags: [Reels]
  *     parameters:
  *       - in: path
@@ -104,40 +47,62 @@ Router.get('/', ReelsController.getReels);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID của bài đăng Reels cần lấy
+ *         description: ID của reel
  *     responses:
  *       200:
- *         description: Trả về thông tin bài đăng Reels
+ *         description: Thông tin reel
  *       404:
- *         description: Không tìm thấy bài đăng Reels
+ *         description: Reel không tồn tại
  */
-Router.get('/:id', ReelsController.getReelsById);
+Router.get('/:id', reelsController.getReelById);
 
 /**
  * @swagger
  * /reels:
  *   post:
- *     summary: Tạo một bài đăng Reels mới
+ *     summary: Tạo một reel mới
  *     tags: [Reels]
+ *     consumes:
+ *       - multipart/form-data
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/Reels'
+ *             type: object
+ *             properties:
+ *               createdBy:
+ *                 type: string
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *               hashTag:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["#travel", "#food"]
+ *               scope:
+ *                 type: string
+ *                 enum: [Công khai, Riêng tư]
+ *                 example: "Công khai"
+ *               content:
+ *                 type: string
+ *                 example: "Đây là nội dung bài viết"
+ *               media:
+ *                 type: string
+ *                 format: binary
+ *                 description: File video (chỉ chấp nhận video)
  *     responses:
  *       201:
- *         description: Bài đăng Reels được tạo thành công
+ *         description: Reel được tạo thành công
  *       400:
- *         description: Dữ liệu không hợp lệ
+ *         description: Lỗi khi tạo reel
  */
-Router.post('/', ReelsController.createReels);
+Router.post('/', upload.fields([{ name: 'media', maxCount: 1 }]), reelsController.createReel);
 
 /**
  * @swagger
  * /reels/{id}:
- *   patch:
- *     summary: Cập nhật thông tin một bài đăng Reels theo ID
+ *   put:
+ *     summary: Cập nhật reel theo ID
  *     tags: [Reels]
  *     parameters:
  *       - in: path
@@ -145,37 +110,44 @@ Router.post('/', ReelsController.createReels);
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID của reel
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Reels'
+ *             $ref: '#/components/schemas/Reel'
  *     responses:
  *       200:
- *         description: Cập nhật thành công bài đăng Reels
+ *         description: Reel được cập nhật thành công
  *       404:
- *         description: Không tìm thấy bài đăng Reels
+ *         description: Reel không tồn tại
  */
-Router.patch('/:id', ReelsController.updateReelsById);
+Router.put('/:id', reelsController.updateReelById);
 
 /**
  * @swagger
  * /reels:
- *   patch:
- *     summary: Cập nhật tất cả bài đăng Reels
+ *   put:
+ *     summary: Cập nhật tất cả reels
  *     tags: [Reels]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Reel'
  *     responses:
  *       200:
- *         description: Cập nhật thành công tất cả bài đăng Reels
+ *         description: Tất cả reels được cập nhật thành công
  */
-Router.patch('/', ReelsController.updateAllReels);
+Router.put('/', reelsController.updateAllReels);
 
 /**
  * @swagger
  * /reels/{id}:
  *   delete:
- *     summary: Xóa một bài đăng Reels theo ID
+ *     summary: Xóa reel theo ID
  *     tags: [Reels]
  *     parameters:
  *       - in: path
@@ -183,12 +155,91 @@ Router.patch('/', ReelsController.updateAllReels);
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID của reel
  *     responses:
  *       200:
- *         description: Bài đăng Reels đã được xóa thành công
+ *         description: Reel được xóa thành công
  *       404:
- *         description: Không tìm thấy bài đăng Reels
+ *         description: Reel không tồn tại
  */
-Router.delete('/:id', ReelsController.deleteReelsById);
+Router.delete('/:id', reelsController.deleteReelById);
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ReelRequest:
+ *       type: object
+ *       properties:
+ *         userId:
+ *           type: string
+ *           example: "67d2e8e01a29ef48e08a19f4"
+ *       required:
+ *         - userId
+ *     ReelResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *         data:
+ *           type: object
+ *           properties:
+ *             _id:
+ *               type: string
+ *             emoticons:
+ *               type: array
+ *               items:
+ *                 type: string
+ *         message:
+ *           type: string
+ * /reels/{reelId}/toggle-like:
+ *   patch:
+ *     summary: Thích hoặc bỏ thích một reel
+ *     tags: [Reels]
+ *     parameters:
+ *       - in: path
+ *         name: reelId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "65d2ebeb2f8fb814b56fa112"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ReelRequest'
+ *     responses:
+ *       200:
+ *         description: Thích/bỏ thích reel thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ReelResponse'
+ *       400:
+ *         description: Thiếu userId
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:reelId/toggle-like', reelsController.toggleLike);
+
+/**
+ * @swagger
+ * /reels/{reelId}/comments:
+ *   get:
+ *     summary: Lấy danh sách bình luận của reel
+ *     tags: [Reels]
+ *     parameters:
+ *       - in: path
+ *         name: reelId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của reel
+ *     responses:
+ *       200:
+ *         description: Danh sách bình luận
+ */
+Router.get('/:reelId/comments', reelsController.getCommentsByReelId);
 
 export const reelsRoute = Router;
