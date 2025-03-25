@@ -20,7 +20,6 @@ const addressSchema = new Schema({
   },
   street: {
     type: String,
-    required: true,
     trim: true,
   },
   placeName: {
