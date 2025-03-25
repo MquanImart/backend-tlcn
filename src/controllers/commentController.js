@@ -26,6 +26,7 @@ const getCommentById = async (req, res) => {
 const createComment = async (req, res) => {
   try {
     const { _iduser, content, img, articleId, replyComment } = req.body;
+    const files = req.files; // Lấy files từ middleware upload
 
     if (!_iduser || !content) {
       return res.status(400).json({
@@ -35,75 +36,20 @@ const createComment = async (req, res) => {
       });
     }
 
-    let newCommentData = {
+    const newCommentData = {
       _iduser,
       content,
       img,
+      articleId,
+      replyComment,
     };
 
-    let newComment;
+    const newComment = await commentService.createComment(newCommentData, files);
 
-    if (articleId && !replyComment) {
-      const article = await articleService.getArticleById(articleId);
-      if (article) {
-        // Trường hợp 1: Bài viết tồn tại
-        newComment = await commentService.createComment(newCommentData);
-        article.comments.push(newComment._id);
-        await article.save();
-
-        return res.status(201).json({
-          success: true,
-          data: newComment,
-          message: "Tạo bình luận thành công",
-        });
-      } else {
-        // Trường hợp 2: Kiểm tra Reel
-        const reel = await reelsService.getReelById(articleId);
-        if (!reel) {
-          return res.status(404).json({
-            success: false,
-            data: null,
-            message: "Bài viết hoặc reel không tồn tại",
-          });
-        }
-
-        newComment = await commentService.createComment(newCommentData);
-        reel.comments.push(newComment._id); // Giả sử reel có trường comments
-        await reel.save();
-
-        return res.status(201).json({
-          success: true,
-          data: newComment,
-          message: "Tạo bình luận thành công",
-        });
-      }
-    }
-
-    if (replyComment && !articleId) {
-      const parentComment = await commentService.getCommentById(replyComment);
-      if (!parentComment) {
-        return res.status(404).json({
-          success: false,
-          data: null,
-          message: "Bình luận cha không tồn tại",
-        });
-      }
-
-      newComment = await commentService.createComment(newCommentData);
-      parentComment.replyComment.push(newComment._id);
-      await parentComment.save();
-
-      return res.status(201).json({
-        success: true,
-        data: newComment,
-        message: "Tạo bình luận cấp 2+ thành công",
-      });
-    }
-
-    return res.status(400).json({
-      success: false,
-      data: null,
-      message: "Cần có `articleId` hoặc `replyComment` để tạo bình luận",
+    return res.status(201).json({
+      success: true,
+      data: newComment,
+      message: "Tạo bình luận thành công",
     });
   } catch (error) {
     res.status(500).json({

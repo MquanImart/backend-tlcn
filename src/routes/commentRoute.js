@@ -1,5 +1,6 @@
 import express from 'express';
 import { commentController } from '../controllers/commentController.js';
+import upload from '../config/multerConfig.js';
 
 const Router = express.Router();
 
@@ -44,15 +45,18 @@ Router.get('/:id', commentController.getCommentById);
  * @swagger
  * /comments:
  *   post:
- *     summary: Tạo bình luận mới
+ *     summary: Tạo bình luận mới (hỗ trợ upload ảnh/video)
  *     description: |
  *       - **Bình luận cấp 1** (trên bài viết): Chỉ cần truyền `articleId`
  *       - **Bình luận cấp 2+** (trả lời bình luận khác): Chỉ cần truyền `replyComment`
+ *       - Hỗ trợ upload ảnh/video thông qua `media` hoặc `images`
  *     tags: [Comments]
+ *     consumes:
+ *       - multipart/form-data
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -64,12 +68,6 @@ Router.get('/:id', commentController.getCommentById);
  *                 type: string
  *                 description: Nội dung bình luận
  *                 example: "Đây là một bình luận"
- *               img:
- *                 type: array
- *                 description: Danh sách hình ảnh đính kèm bình luận
- *                 items:
- *                   type: string
- *                 example: ["image-url-1", "image-url-2"]
  *               articleId:
  *                 type: string
  *                 description: ID của bài viết (chỉ dùng cho bình luận cấp 1)
@@ -78,9 +76,32 @@ Router.get('/:id', commentController.getCommentById);
  *                 type: string
  *                 description: ID của bình luận cha (chỉ dùng khi trả lời bình luận khác)
  *                 example: "65d2ebeb2f8fb814b56fa112"
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Danh sách tệp ảnh hoặc video đính kèm
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Danh sách tệp ảnh đính kèm
  *     responses:
  *       201:
  *         description: Bình luận được tạo thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                 message:
+ *                   type: string
  *       400:
  *         description: Thiếu thông tin bắt buộc (`_iduser` hoặc `content`)
  *       404:
@@ -88,7 +109,14 @@ Router.get('/:id', commentController.getCommentById);
  *       500:
  *         description: Lỗi máy chủ khi xử lý yêu cầu
  */
-Router.post('/', commentController.createComment);
+Router.post(
+    '/',
+    upload.fields([
+      { name: 'media', maxCount: 1 }, // Giới hạn 1 file
+      { name: 'images', maxCount: 1 }, // Giới hạn 1 file
+    ]),
+    commentController.createComment
+  );
 
 /**
  * @swagger
