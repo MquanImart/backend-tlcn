@@ -24,8 +24,6 @@ const getReelById = async (req, res) => {
 
 const createReel = async (req, res) => {
   try {
-    console.log("📂 Files nhận được:", req.files);
-    console.log("📝 Data nhận được:", req.body);
     const reel = await reelsService.createReel(req.body, req.files);
     res.status(201).json({ success: true, data: reel, message: 'Tạo reel thành công' });
   } catch (error) {
