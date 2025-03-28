@@ -543,5 +543,95 @@ Router.get('/:id/suggest', userController.suggestedFriends);
  *         description: Lỗi server
  */
 Router.get('/:id/created-pages', userController.getCreatedPages);
+/**
+ * @swagger
+ * /users/account/{accountId}:
+ *   get:
+ *     summary: Lấy thông tin người dùng theo Account ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: accountId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của tài khoản (Account) liên kết với người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về thông tin người dùng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "507f191e810c19729de860ea"
+ *                     displayName:
+ *                       type: string
+ *                       example: "John Doe"
+ *                     avt:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "507f191e810c19729de860eb"
+ *                           url:
+ *                             type: string
+ *                             example: "https://example.com/avatar.jpg"
+ *                     aboutMe:
+ *                       type: string
+ *                       example: "I am a developer"
+ *                     account:
+ *                       type: object
+ *                       properties:
+ *                         email:
+ *                           type: string
+ *                           example: "john@example.com"
+ *                         phone:
+ *                           type: string
+ *                           example: "1234567890"
+ *                         role:
+ *                           type: string
+ *                           example: "user"
+ *                         state:
+ *                           type: string
+ *                           example: "online"
+ *                     friends:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "507f191e810c19729de860ec"
+ *                           displayName:
+ *                             type: string
+ *                             example: "Jane Smith"
+ *                           avt:
+ *                             type: string
+ *                             example: "https://example.com/jane.jpg"
+ *                           aboutMe:
+ *                             type: string
+ *                             example: "Jane's bio"
+ *                     createdAt:
+ *                       type: number
+ *                       example: 1698765432100
+ *       400:
+ *         description: Account ID không hợp lệ
+ *       404:
+ *         description: Không tìm thấy người dùng với Account ID này
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/account/:accountId', userController.getUserByAccountId);
 
 export const userRoute = Router;
