@@ -453,6 +453,30 @@ const getCreatedPages =  async (userId, limit = 5, skip = 0) => {
 
   return listPages;
 }
+const getUserByAccountId = async (accountId) => {
+  const user = await User.findOne({ account: accountId })
+    .populate({
+      path: 'friends',
+      select: '_id displayName avt aboutMe'
+    })
+    .populate('avt')
+    .populate('account', 'email phone role state')
+    .lean();
+
+  if (!user) {
+    throw new Error('Không tìm thấy user với account ID này');
+  }
+
+  return {
+    _id: user._id,
+    displayName: user.displayName,
+    avt: user.avt,
+    aboutMe: user.aboutMe,
+    account: user.account,
+    friends: user.friends,
+    createdAt: user.createdAt
+  };
+};
 export const userService = {
   getUsers,
   getUserById,
@@ -474,5 +498,6 @@ export const userService = {
   unFriends,
   suggestFriends,
   addHobbyByEmail,
-  getCreatedPages
+  getCreatedPages,
+  getUserByAccountId
 };

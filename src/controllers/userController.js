@@ -276,7 +276,24 @@ const getCreatedPages = async (req, res) => {
     });
   }
 }
+export const getUserByAccountId = async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    
+    const user = await userService.getUserByAccountId(accountId);
 
+    return res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy user theo account ID:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Lỗi server'
+    });
+  }
+};
 export const userController = {
   getUsers,
   getUserById,
@@ -298,5 +315,7 @@ export const userController = {
   getAllFriends,
   unFriends,
   suggestedFriends,
-  getCreatedPages
+  getCreatedPages,
+  getUserByAccountId
+
 };
