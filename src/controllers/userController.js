@@ -497,6 +497,6 @@ export const userController = {
   getAllSavedLocation,
   checkSavedLocation,
   getAllTrip,
-  createTrip
+  createTrip,
   getUserByAccountId
 };

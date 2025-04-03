@@ -623,6 +623,6 @@ export const userService = {
   getAllSavedLocation,
   checkSavedLocation,
   getAllTrip,
-  createTrip
+  createTrip,
   getUserByAccountId
 };
