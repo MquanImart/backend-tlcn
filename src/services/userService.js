@@ -6,7 +6,10 @@ import { groupService } from "./groupService.js";
 import { articleService } from "./articleService.js";
 import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
+import Location from "../models/Location.js";
+import { tripService } from "./tripService.js";
 import { hobbyService } from "../services/hobbyService.js";
+
 const getUsers = async () => {
   // Lấy tất cả người dùng và populate trường 'friends' và 'avt'
   const users = await User.find()
@@ -454,6 +457,120 @@ const getCreatedPages =  async (userId, limit = 5, skip = 0) => {
 
   return listPages;
 }
+
+const addSavedLocation = async (userId, savedLocation) => {
+  const newLocation = await Location.create(savedLocation);
+
+  if (!newLocation) return {success: false, message: "Không thể tạo địa điểm mới"};
+
+  const updateUser = await User.findByIdAndUpdate(
+    userId,
+    { $push: { savedLocation: newLocation._id } },
+    { new: true }
+  );
+
+  if (!updateUser) {
+    return { success: false, message: "Không thể cập nhật người dùng" };
+  }
+
+  return { success: true, message: "Đã thêm địa điểm", user: updateUser };
+}
+
+const deleteSavedLocation = async (userId, savedId) => {
+  const deletedLocation = await Location.findByIdAndDelete(savedId);
+
+  if (!deletedLocation) {
+    return { success: false, message: "Không tìm thấy địa điểm" };
+  }
+
+  const updateUser = await User.findByIdAndUpdate(
+    userId,
+    { $pull: { savedLocation: savedId } },
+    { new: true }
+  );
+
+  if (!updateUser) {
+    return { success: false, message: "Không thể cập nhật người dùng" };
+  }
+
+  return { success: true, message: "Đã xóa địa điểm", user: updateUser };
+};
+
+const getAllSavedLocation = async (userId) => {
+  const user = await User.findById(userId).select('savedLocation').populate('savedLocation');
+  
+  if (!user) {
+    return { success: false, message: "Không tìm thấy người dùng", savedLocations: [] };
+  }
+
+  return { success: true, savedLocations: user.savedLocation };
+};
+
+const checkSavedLocation = async (userId, location) => {
+  const user = await User.findById(userId).select('savedLocation');
+
+  if (!user) {
+    return { success: false, message: "Không tìm thấy người dùng", saved: false };
+  }
+
+  // Kiểm tra xem có location nào có latitude & longitude trùng khớp không
+  const savedLocation = await Location.findOne({
+    _id: { $in: user.savedLocation },
+    latitude: location.latitude,
+    longitude: location.longitude,
+  });
+
+  return { 
+    success: true, 
+    saved: !!savedLocation, 
+    savedLocation 
+  };
+};
+
+const getAllTrip = async (userId) => {
+  const user = await User.findById(userId).select('trips').populate({
+    path: 'trips',
+    match: { deleteAt: null }, // Lọc ra các trip chưa bị xóa
+    populate: [
+      { path: 'startAddress' },
+      { path: 'listAddress' },
+      { path: 'endAddress' }
+    ]
+  });
+
+  if (!user) {
+    return { success: false, message: "Không tìm thấy người dùng", trips: [] };
+  }
+
+  return { success: true, trips: user.trips };
+};
+
+const createTrip = async (userId, data) => {
+  try {
+    // Tạo chuyến đi mới
+    const newTrip = await tripService.createTrip(data);
+
+    if (newTrip) {
+      // Cập nhật danh sách trips của user
+      await User.findByIdAndUpdate(
+        userId,
+        { $push: { trips: newTrip._id } }, // Thêm trip vào mảng trips
+        { new: true } // Trả về bản ghi mới sau khi cập nhật
+      );
+
+      return { success: true, message: "Tạo chuyến đi thành công", trip: newTrip };
+    }
+
+    return { success: false, message: "Không thể tạo chuyến đi" };
+
+  } catch (error) {
+    console.error("Lỗi khi tạo chuyến đi:", error);
+    return { success: false, message: "Có lỗi khi tạo chuyến đi" };
+  }
+};
+
+
+
 const getUserByAccountId = async (accountId) => {
   const user = await User.findOne({ account: accountId })
     .populate({
@@ -478,6 +595,7 @@ const getUserByAccountId = async (accountId) => {
     createdAt: user.createdAt
   };
 };
+
 export const userService = {
   getUsers,
   getUserById,
@@ -500,5 +618,11 @@ export const userService = {
   suggestFriends,
   addHobbyByEmail,
   getCreatedPages,
+  addSavedLocation,
+  deleteSavedLocation,
+  getAllSavedLocation,
+  checkSavedLocation,
+  getAllTrip,
+  createTrip
   getUserByAccountId
 };

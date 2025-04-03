@@ -281,7 +281,6 @@ export const getUserByAccountId = async (req, res) => {
     const { accountId } = req.params;
     
     const user = await userService.getUserByAccountId(accountId);
-
     return res.status(200).json({
       success: true,
       data: user
@@ -294,6 +293,183 @@ export const getUserByAccountId = async (req, res) => {
     });
   }
 };
+
+const addSavedLocation = async (req, res) => {
+  try {
+    const result = await userService.addSavedLocation(
+      req.params.id,
+      req.body
+    );
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: result.message,
+      });
+    }
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Cập nhật thành công',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+}
+
+const deleteSavedLocation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { savedId } = req.query;
+
+    if (!savedId) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "Thiếu savedId",
+      });
+    }
+
+    const result = await userService.deleteSavedLocation(id, savedId);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: result.message,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.user,
+      message: "Đã xóa địa điểm thành công",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+
+const getAllSavedLocation = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy userId từ URL
+
+    const result = await userService.getAllSavedLocation(id);
+
+    if (!result.success){
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: result.message,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      savedLocations: result.savedLocations,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      savedLocations: [],
+    });
+  }
+};
+
+const checkSavedLocation = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy userId từ URL
+    const { location } = req.body;
+
+    const result = await userService.checkSavedLocation(id, location);
+
+    if (!result.success){
+      return res.status(400).json({
+        success: false,
+        data: null,
+        saved: false,
+        message: result.message,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      savedLocation: result.savedLocation,
+      saved: result.saved
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      saved: false,
+      message: error.message
+    });
+  }
+};
+
+const getAllTrip = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy userId từ URL
+
+    const result = await userService.getAllTrip(id);
+
+    if (!result.success){
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: result.message,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      trips: result.trips
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      saved: false,
+      message: error.message
+    });
+  }
+};
+
+const createTrip = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy userId từ URL
+    const data = req.body;
+
+    const result = await userService.createTrip(id, data);
+
+    if (!result.success){
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: result.message,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      trip: result.trip
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      saved: false,
+      message: error.message
+    });
+  }
+};
+
 export const userController = {
   getUsers,
   getUserById,
@@ -316,6 +492,11 @@ export const userController = {
   unFriends,
   suggestedFriends,
   getCreatedPages,
+  addSavedLocation,
+  deleteSavedLocation,
+  getAllSavedLocation,
+  checkSavedLocation,
+  getAllTrip,
+  createTrip
   getUserByAccountId
-
 };
