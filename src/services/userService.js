@@ -1,10 +1,12 @@
 import User from "../models/User.js";
 import Group from "../models/Group.js";
+import Account from "../models/Account.js";
+import Hobby from "../models/Hobby.js";
 import { groupService } from "./groupService.js";
 import { articleService } from "./articleService.js";
 import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
-
+import { hobbyService } from "../services/hobbyService.js";
 const getUsers = async () => {
   // Lấy tất cả người dùng và populate trường 'friends' và 'avt'
   const users = await User.find()
@@ -373,59 +375,58 @@ const suggestFriends = async (id) => {
 };
 
 const addHobbyByEmail = async (email, hobbies) => {
-  try {
-    // Kiểm tra đầu vào
-    if (!email || !Array.isArray(hobbies) || hobbies.length === 0) {
-      throw new Error("Vui lòng cung cấp email và danh sách hobbies hợp lệ.");
-    }
-
-    // Tìm `account` theo `email`
-    const account = await Account.findOne({ email });
-    if (!account) {
-      throw new Error("Tài khoản không tồn tại.");
-    }
-
-    // Tìm `user` theo `account._id`
-    const user = await User.findOne({ account: account._id });
-    if (!user) {
-      throw new Error("Người dùng không tồn tại.");
-    }
-
-    // Kiểm tra xem sở thích đã có trong database chưa
-    const existingHobbies = await Hobby.find({ name: { $in: hobbies } });
-
-    // Lọc ra các hobby đã tồn tại
-    const existingHobbyIds = existingHobbies.map(hobby => hobby._id);
-    const existingNames = existingHobbies.map(hobby => hobby.name);
-
-    // Tạo mới các hobby chưa có trong database
-    const newHobbies = hobbies
-      .filter(hobby => !existingNames.includes(hobby))
-      .map(name => ({ name }));
-
-    let insertedHobbies = [];
-    if (newHobbies.length > 0) {
-      insertedHobbies = await Hobby.insertMany(newHobbies);
-    }
-
-    // Lấy danh sách ID của các hobby mới thêm
-    const allHobbyIds = [...existingHobbyIds, ...insertedHobbies.map(hobby => hobby._id)];
-
-    // Kiểm tra xem user đã có những sở thích này chưa
-    const hobbiesToAdd = allHobbyIds.filter(hobbyId => !user.hobbies.includes(hobbyId));
-
-    if (hobbiesToAdd.length === 0) {
-      throw new Error("Người dùng đã có những sở thích này.");
-    }
-
-    // Cập nhật danh sách sở thích của user
-    user.hobbies.push(...hobbiesToAdd);
-    await user.save();
-
-    return { user, message: "Thêm sở thích thành công!" };
-  } catch (error) {
-    throw new Error(error.message || "Lỗi hệ thống, vui lòng thử lại.");
+  // Kiểm tra đầu vào
+  if (!email || !hobbies || !Array.isArray(hobbies) || hobbies.length === 0) {
+    throw new Error('Email và mảng hobbies là bắt buộc, hobbies phải là mảng không rỗng');
   }
+
+  // Tìm tài khoản qua email
+  const account = await Account.findOne({ email });
+
+  if (!account) {
+    throw new Error('Không tìm thấy tài khoản với email này');
+  }
+
+  // Tìm user dựa trên account
+  const user = await User.findOne({ account: account._id });
+
+  if (!user) {
+    throw new Error('Không tìm thấy user với email này');
+  }
+
+  // Kiểm tra và lọc các hobby đã tồn tại (sử dụng ObjectId)
+  const existingHobbies = user.hobbies.map(hobby => hobby.toString()); // Chuyển ObjectId thành chuỗi
+  const newHobbies = [];
+
+  for (const hobbyName of hobbies) {
+    // Kiểm tra nếu hobby đã tồn tại trong danh sách
+    let hobby = await Hobby.findOne({ name: hobbyName });
+
+    if (!hobby) {
+      // Nếu hobby chưa tồn tại, tạo mới
+      hobby = new Hobby({ name: hobbyName });
+      await hobby.save();
+    }
+
+    // Nếu hobby chưa có trong user, thêm vào mảng newHobbies
+    if (!existingHobbies.includes(hobby._id.toString())) {
+      newHobbies.push(hobby._id);
+    }
+  }
+
+  // Nếu không có hobby mới, ném lỗi
+  if (newHobbies.length === 0) {
+    throw new Error('Tất cả sở thích đã tồn tại');
+  }
+
+  // Thêm các hobby mới vào mảng hobbies của user
+  user.hobbies.push(...newHobbies);
+  await user.save();
+
+  return {
+    email: user.email,
+    hobbies: user.hobbies,
+  };
 };
 
 const getCreatedPages =  async (userId, limit = 5, skip = 0) => {
