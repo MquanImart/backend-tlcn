@@ -494,13 +494,34 @@ const deleteSavedLocation = async (userId, savedId) => {
 };
 
 const getAllSavedLocation = async (userId) => {
-  const user = await User.findById(userId).select('savedLocation');
-
+  const user = await User.findById(userId).select('savedLocation').populate('savedLocation');
+  
   if (!user) {
     return { success: false, message: "Không tìm thấy người dùng", savedLocations: [] };
   }
 
   return { success: true, savedLocations: user.savedLocation };
+};
+
+const checkSavedLocation = async (userId, location) => {
+  const user = await User.findById(userId).select('savedLocation');
+
+  if (!user) {
+    return { success: false, message: "Không tìm thấy người dùng", saved: false };
+  }
+
+  // Kiểm tra xem có location nào có latitude & longitude trùng khớp không
+  const savedLocation = await Location.findOne({
+    _id: { $in: user.savedLocation },
+    latitude: location.latitude,
+    longitude: location.longitude,
+  });
+
+  return { 
+    success: true, 
+    saved: !!savedLocation, 
+    savedLocation 
+  };
 };
 
 
@@ -528,5 +549,6 @@ export const userService = {
   getCreatedPages,
   addSavedLocation,
   deleteSavedLocation,
-  getAllSavedLocation
+  getAllSavedLocation,
+  checkSavedLocation
 };

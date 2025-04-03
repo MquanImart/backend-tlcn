@@ -547,7 +547,7 @@ Router.get('/:id/created-pages', userController.getCreatedPages);
 /**
  * @swagger
  * /users/{id}/add-saved-location:
- *   patch:
+ *   post:
  *     summary: Thêm địa điểm lưu trên bản đồ
  *     tags: [Users]
  *     parameters:
@@ -594,7 +594,7 @@ Router.get('/:id/created-pages', userController.getCreatedPages);
  *       500:
  *         description: Lỗi hệ thống
  */
-Router.patch("/:id/add-saved-location", userController.addSavedLocation);
+Router.post("/:id/add-saved-location", userController.addSavedLocation);
 
 /**
  * @swagger
@@ -643,36 +643,6 @@ Router.delete("/:id/delete-saved-location", userController.deleteSavedLocation);
  *     responses:
  *       200:
  *         description: Trả về danh sách địa điểm đã lưu
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 savedLocations:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       _id:
- *                         type: string
- *                         example: "65f9b4e8c9d3b7a1e45d2b6e"
- *                       displayName:
- *                         type: string
- *                         example: "Hồ Gươm"
- *                       placeId:
- *                         type: string
- *                         example: "ChIJy3mhDWBdNTERZyOqrwR7wAQ"
- *                       latitude:
- *                         type: string
- *                         example: "21.0285"
- *                       longitude:
- *                         type: string
- *                         example: "105.8542"
- *                       address:
- *                         type: string
- *                         example: "Đinh Tiên Hoàng, Hoàn Kiếm, Hà Nội"
  *       404:
  *         description: Không tìm thấy người dùng
  *       500:
@@ -680,5 +650,45 @@ Router.delete("/:id/delete-saved-location", userController.deleteSavedLocation);
  */
 
 Router.get("/:id/saved-locations", userController.getAllSavedLocation);
+
+/**
+ * @swagger
+ * /users/{id}/check-saved-location:
+ *   post:
+ *     summary: Kiểm tra xem người dùng đã lưu địa điểm hay chưa
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               location:
+ *                 type: object
+ *                 properties:
+ *                   latitude:
+ *                     type: number
+ *                     example: 21.0285
+ *                   longitude:
+ *                     type: number
+ *                     example: 105.8542
+ *     responses:
+ *       200:
+ *         description: Trả về kết quả kiểm tra địa điểm đã lưu
+ *       400:
+ *         description: Yêu cầu không hợp lệ hoặc không tìm thấy người dùng
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+
+Router.post("/:id/check-saved-location", userController.checkSavedLocation);
 
 export const userRoute = Router;
