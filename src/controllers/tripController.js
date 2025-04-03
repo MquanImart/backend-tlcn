@@ -57,6 +57,36 @@ const deleteTripById = async (req, res) => {
   }
 };
 
+const addNewLocation = async (req, res) => {
+  try {
+    const result = await tripService.addNewLocation(req.params.id, req.body);
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message });
+    res.status(200).json({ success: true, data: result.data, message: 'Thêm thành công' });
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
+
+const deleteNewLocation = async (req, res) => {
+  try {
+    const result = await tripService.deleteNewLocation(req.params.id, req.query.locationId);
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message });
+    res.status(200).json({ success: true, data: null, message: 'Xóa thành công' });
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
+
+const changePosition = async (req, res) => {
+  try {
+    const result = await tripService.changePosition(req.params.id, req.query.locationId1, req.query.locationId2);
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message });
+    res.status(200).json({ success: true, data: result.data, message: 'Đổi vị trí thành công' });
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
+
 export const tripController = {
   getTrips,
   getTripById,
@@ -64,4 +94,7 @@ export const tripController = {
   updateTripById,
   updateAllTrips,
   deleteTripById,
+  addNewLocation,
+  deleteNewLocation,
+  changePosition
 };

@@ -4,6 +4,7 @@ import { groupService } from "./groupService.js";
 import { articleService } from "./articleService.js";
 import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
+import Location from "../models/Location.js";
 
 const getUsers = async () => {
   // Lấy tất cả người dùng và populate trường 'friends' và 'avt'
@@ -453,6 +454,56 @@ const getCreatedPages =  async (userId, limit = 5, skip = 0) => {
 
   return listPages;
 }
+
+const addSavedLocation = async (userId, savedLocation) => {
+  const newLocation = await Location.create(savedLocation);
+
+  if (!newLocation) return {success: false, message: "Không thể tạo địa điểm mới"};
+
+  const updateUser = await User.findByIdAndUpdate(
+    userId,
+    { $push: { savedLocation: newLocation._id } },
+    { new: true }
+  );
+
+  if (!updateUser) {
+    return { success: false, message: "Không thể cập nhật người dùng" };
+  }
+
+  return { success: true, message: "Đã thêm địa điểm", user: updateUser };
+}
+
+const deleteSavedLocation = async (userId, savedId) => {
+  const deletedLocation = await Location.findByIdAndDelete(savedId);
+
+  if (!deletedLocation) {
+    return { success: false, message: "Không tìm thấy địa điểm" };
+  }
+
+  const updateUser = await User.findByIdAndUpdate(
+    userId,
+    { $pull: { savedLocation: savedId } },
+    { new: true }
+  );
+
+  if (!updateUser) {
+    return { success: false, message: "Không thể cập nhật người dùng" };
+  }
+
+  return { success: true, message: "Đã xóa địa điểm", user: updateUser };
+};
+
+const getAllSavedLocation = async (userId) => {
+  const user = await User.findById(userId).select('savedLocation');
+
+  if (!user) {
+    return { success: false, message: "Không tìm thấy người dùng", savedLocations: [] };
+  }
+
+  return { success: true, savedLocations: user.savedLocation };
+};
+
+
 export const userService = {
   getUsers,
   getUserById,
@@ -474,5 +525,8 @@ export const userService = {
   unFriends,
   suggestFriends,
   addHobbyByEmail,
-  getCreatedPages
+  getCreatedPages,
+  addSavedLocation,
+  deleteSavedLocation,
+  getAllSavedLocation
 };

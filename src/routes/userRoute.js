@@ -544,4 +544,141 @@ Router.get('/:id/suggest', userController.suggestedFriends);
  */
 Router.get('/:id/created-pages', userController.getCreatedPages);
 
+/**
+ * @swagger
+ * /users/{id}/add-saved-location:
+ *   patch:
+ *     summary: Thêm địa điểm lưu trên bản đồ
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               displayName:
+ *                 type: string
+ *                 description: Tên hiển thị của địa điểm
+ *                 example: "Hồ Gươm"
+ *               placeId:
+ *                 type: string
+ *                 description: ID của địa điểm trên Google Maps
+ *                 example: "ChIJy3mhDWBdNTERZyOqrwR7wAQ"
+ *               latitude:
+ *                 type: string
+ *                 description: Vĩ độ
+ *                 example: "21.0285"
+ *               longitude:
+ *                 type: string
+ *                 description: Kinh độ
+ *                 example: "105.8542"
+ *               address:
+ *                 type: string
+ *                 description: Địa chỉ đầy đủ của địa điểm
+ *                 example: "Đinh Tiên Hoàng, Hoàn Kiếm, Hà Nội"
+ *     responses:
+ *       200:
+ *         description: Địa điểm đã được thêm vào danh sách lưu của user
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ *       404:
+ *         description: Không tìm thấy người dùng
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+Router.patch("/:id/add-saved-location", userController.addSavedLocation);
+
+/**
+ * @swagger
+ * /users/{id}/delete-saved-location:
+ *   delete:
+ *     summary: Xóa địa điểm lưu trên bản đồ
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của user
+ *       - in: query
+ *         name: savedId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của địa điểm cần xóa khỏi danh sách lưu
+ *     responses:
+ *       200:
+ *         description: Địa điểm đã được xóa khỏi danh sách lưu của user
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc không tìm thấy địa điểm
+ *       404:
+ *         description: Không tìm thấy người dùng
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+Router.delete("/:id/delete-saved-location", userController.deleteSavedLocation);
+
+/**
+ * @swagger
+ * /users/{id}/saved-locations:
+ *   get:
+ *     summary: Lấy danh sách địa điểm đã lưu của người dùng
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của user
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách địa điểm đã lưu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 savedLocations:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "65f9b4e8c9d3b7a1e45d2b6e"
+ *                       displayName:
+ *                         type: string
+ *                         example: "Hồ Gươm"
+ *                       placeId:
+ *                         type: string
+ *                         example: "ChIJy3mhDWBdNTERZyOqrwR7wAQ"
+ *                       latitude:
+ *                         type: string
+ *                         example: "21.0285"
+ *                       longitude:
+ *                         type: string
+ *                         example: "105.8542"
+ *                       address:
+ *                         type: string
+ *                         example: "Đinh Tiên Hoàng, Hoàn Kiếm, Hà Nội"
+ *       404:
+ *         description: Không tìm thấy người dùng
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+
+Router.get("/:id/saved-locations", userController.getAllSavedLocation);
+
 export const userRoute = Router;

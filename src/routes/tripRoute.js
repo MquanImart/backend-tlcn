@@ -55,23 +55,69 @@ Router.get('/:id', tripController.getTripById);
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Chuyến đi Hà Nội"
+ *                 description: Tên của chuyến đi
  *               startAddress:
- *                 type: string
- *                 example: "60f7ebeb2f8fb814b56fa181"
- *               listAddress:
- *                 type: array
- *                 items:
- *                   type: string
- *                   example: "60f7ebeb2f8fb814b56fa182"
+ *                 type: object
+ *                 description: Địa điểm bắt đầu
+ *                 properties:
+ *                   displayName:
+ *                     type: string
+ *                     description: Tên hiển thị của địa điểm
+ *                   placeId:
+ *                     type: string
+ *                     description: ID của địa điểm
+ *                   latitude:
+ *                     type: string
+ *                     description: Vĩ độ của địa điểm
+ *                   longitude:
+ *                     type: string
+ *                     description: Kinh độ của địa điểm
+ *                   address:
+ *                     type: string
+ *                     description: Địa chỉ chi tiết
  *               endAddress:
- *                 type: string
- *                 example: "60f7ebeb2f8fb814b56fa183"
+ *                 type: object
+ *                 description: Địa điểm kết thúc
+ *                 properties:
+ *                   displayName:
+ *                     type: string
+ *                     description: Tên hiển thị của địa điểm
+ *                   placeId:
+ *                     type: string
+ *                     description: ID của địa điểm
+ *                   latitude:
+ *                     type: number
+ *                     description: Vĩ độ của địa điểm
+ *                   longitude:
+ *                     type: number
+ *                     description: Kinh độ của địa điểm
+ *                   address:
+ *                     type: string
+ *                     description: Địa chỉ chi tiết
  *     responses:
  *       201:
  *         description: Tạo chuyến đi thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   description: Dữ liệu của chuyến đi mới tạo
+ *                 message:
+ *                   type: string
+ *                   example: "Tạo chuyến đi thành công"
+ *       400:
+ *         description: Dữ liệu đầu vào không hợp lệ
+ *       500:
+ *         description: Lỗi server
  */
 Router.post('/', tripController.createTrip);
+
 
 /**
  * @swagger
@@ -122,5 +168,125 @@ Router.patch('/', tripController.updateAllTrips);
  *         description: Xóa chuyến đi thành công
  */
 Router.delete('/:id', tripController.deleteTripById);
+
+/**
+ * @swagger
+ * /trips/{id}/locations:
+ *   post:
+ *     summary: Thêm địa điểm mới vào chuyến đi
+ *     tags: [Trips]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của chuyến đi cần thêm địa điểm
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               displayName:
+ *                 type: string
+ *                 description: Tên hiển thị của địa điểm
+ *               placeId:
+ *                 type: string
+ *                 description: ID của địa điểm
+ *               latitude:
+ *                 type: number
+ *                 description: Vĩ độ của địa điểm
+ *               longitude:
+ *                 type: number
+ *                 description: Kinh độ của địa điểm
+ *               address:
+ *                 type: string
+ *                 description: Địa chỉ chi tiết
+ *     responses:
+ *       200:
+ *         description: Thêm địa điểm thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc lỗi nghiệp vụ
+ *       500:
+ *         description: Lỗi server
+ */
+Router.post('/:id/locations', tripController.addNewLocation);
+
+/**
+ * @swagger
+ * /trips/{id}/locations:
+ *   delete:
+ *     summary: Xóa địa điểm khỏi chuyến đi
+ *     tags: [Trips]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của chuyến đi
+ *       - in: query
+ *         name: locationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của địa điểm cần xóa khỏi chuyến đi
+ *     responses:
+ *       200:
+ *         description: Xóa địa điểm thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc lỗi nghiệp vụ
+ *       500:
+ *         description: Lỗi server
+ */
+Router.delete('/:id/locations', tripController.deleteNewLocation);
+
+/**
+ * @swagger
+ * /trips/{id}/locations:
+ *   patch:
+ *     summary: Thay đổi vị trí 2 phần tử trong danh sách địa điểm
+ *     tags: [Trips]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của chuyến đi
+ *       - in: query
+ *         name: locationId1
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của địa điểm thứ 1
+ *       - in: query
+ *         name: locationId2
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của địa điểm thứ 2
+ *     responses:
+ *       200:
+ *         description: Thay đổi địa điểm thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Đổi vị trí thành công"
+ *       400:
+ *         description: Dữ liệu không hợp lệ hoặc lỗi nghiệp vụ
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/locations', tripController.changePosition);
 
 export const tripRoute = Router;

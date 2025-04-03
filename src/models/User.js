@@ -79,6 +79,10 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Address', 
   }],
+  savedLocation: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Location', 
+  }],
   trips: [{
     type: Schema.Types.ObjectId,
     ref: 'Trip', 
