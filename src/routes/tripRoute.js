@@ -67,10 +67,10 @@ Router.get('/:id', tripController.getTripById);
  *                     type: string
  *                     description: ID của địa điểm
  *                   latitude:
- *                     type: string
+ *                     type: number
  *                     description: Vĩ độ của địa điểm
  *                   longitude:
- *                     type: string
+ *                     type: number
  *                     description: Kinh độ của địa điểm
  *                   address:
  *                     type: string
