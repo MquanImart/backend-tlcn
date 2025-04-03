@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import Address from './Address.js';
 
 const { Schema } = mongoose;
 
@@ -11,16 +10,16 @@ const tripSchema = new Schema({
   },
   startAddress: {
     type: Schema.Types.ObjectId,
-    ref: 'Address', 
+    ref: 'Location', 
     required: true,
   },
   listAddress: [{
     type: Schema.Types.ObjectId,
-    ref: 'Address', 
+    ref: 'Location', 
   }],
   endAddress: {
     type: Schema.Types.ObjectId,
-    ref: 'Address',
+    ref: 'Location',
     required: true,
   },
   createdAt: {
