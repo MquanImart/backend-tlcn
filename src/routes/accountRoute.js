@@ -355,11 +355,106 @@ Router.post("/updatePassword", accountController.updatePassword);
  *                 type: string
  *                 description: Hashtag người dùng
  *                 example: "#john123"
+ *               number:
+ *                 type: string
+ *                 description: Số căn cước công dân
+ *                 example: "075203018233"
+ *               fullName:
+ *                 type: string
+ *                 description: Họ và tên
+ *                 example: "Nguyen Van A"
+ *               dateOfBirth:
+ *                 type: string
+ *                 description: Ngày sinh
+ *                 example: "03/03/2000"
+ *               sex:
+ *                 type: string
+ *                 description: Giới tính
+ *                 example: "Nam"
+ *               nationality:
+ *                 type: string
+ *                 description: Quốc tịch
+ *                 example: "Việt Nam"
+ *               placeOfOrigin:
+ *                 type: string
+ *                 description: Nơi sinh
+ *                 example: "Hà Nội"
+ *               placeOfResidence:
+ *                 type: string
+ *                 description: Nơi cư trú
+ *                 example: "123 Phố Huế, Hàng Bông, Hoàn Kiếm, Hà Nội"
+ *               dateOfExpiry:
+ *                 type: string
+ *                 description: Ngày hết hạn CCCD
+ *                 example: "03/03/2030"
+ *               province:
+ *                 type: string
+ *                 description: Tỉnh/Thành phố
+ *                 example: "Hà Nội"
+ *               district:
+ *                 type: string
+ *                 description: Quận/Huyện
+ *                 example: "Hoàn Kiếm"
+ *               ward:
+ *                 type: string
+ *                 description: Phường/Xã
+ *                 example: "Hàng Bông"
+ *               street:
+ *                 type: string
+ *                 description: Đường/Phố
+ *                 example: "123 Phố Huế"
+ *               placeName:
+ *                 type: string
+ *                 description: Tên địa điểm
+ *                 example: "Nơi ở"
+ *               lat:
+ *                 type: number
+ *                 description: Vĩ độ
+ *                 example: null
+ *               long:
+ *                 type: number
+ *                 description: Kinh độ
+ *                 example: null
  *     responses:
  *       201:
  *         description: Tạo tài khoản thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Tạo tài khoản thành công!"
+ *                 account:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "60f7ebeb2f8fb814b56fa181"
+ *                     email:
+ *                       type: string
+ *                       example: "user@example.com"
+ *                     role:
+ *                       type: string
+ *                       example: "user"
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "60f7ebeb2f8fb814b56fa182"
+ *                     displayName:
+ *                       type: string
+ *                       example: "John Doe"
+ *                     hashtag:
+ *                       type: string
+ *                       example: "#john123"
  *       400:
- *         description: Email đã tồn tại hoặc dữ liệu không hợp lệ
+ *         description: Email hoặc CCCD đã tồn tại, hoặc dữ liệu không hợp lệ
  *       500:
  *         description: Lỗi hệ thống
  */

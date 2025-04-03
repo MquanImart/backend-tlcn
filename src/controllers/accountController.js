@@ -28,13 +28,62 @@ const getAccountById = async (req, res) => {
 
 const createAccount = async (req, res) => {
   try {
-    const { email, password, displayName, hashtag } = req.body;
-    // Gọi hàm tạo tài khoản từ service
-    const { newAccount, newUser } = await accountService.createAccount({ email, password, displayName, hashtag });
-    return res.status(201).json({ success: true, message: "Tạo tài khoản thành công!", account: newAccount, user: newUser });
+    const {
+      email,
+      password,
+      displayName,
+      hashtag,
+      number,
+      fullName,
+      dateOfBirth,
+      sex,
+      nationality,
+      placeOfOrigin,
+      placeOfResidence,
+      dateOfExpiry,
+      province,
+      district,
+      ward,
+      street,
+      placeName,
+      lat,
+      long,
+    } = req.body;
+
+    const { newAccount, newUser } = await accountService.createAccount({
+      email,
+      password,
+      displayName,
+      hashtag,
+      number,
+      fullName,
+      dateOfBirth,
+      sex,
+      nationality,
+      placeOfOrigin,
+      placeOfResidence,
+      dateOfExpiry,
+      province,
+      district,
+      ward,
+      street,
+      placeName,
+      lat,
+      long,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Tạo tài khoản thành công!",
+      account: newAccount,
+      user: newUser,
+    });
   } catch (error) {
     console.error("❌ Lỗi tạo tài khoản:", error);
-    return res.status(500).json({ success: false, message: error.message || "Lỗi hệ thống, vui lòng thử lại." });
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Lỗi hệ thống, vui lòng thử lại.",
+    });
   }
 };
 
