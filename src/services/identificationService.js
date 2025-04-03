@@ -73,7 +73,11 @@ const extractCCCDData = async (imageBuffer) => {
       dateOfExpiry: cccdData.doe,
     };
   } catch (error) {
-    console.error('Error in extractCCCDData:', error);
+    console.error( error);
+    if (error.code === 11000 && error.keyPattern?.number) {
+      throw new Error('Số CCCD này đã được sử dụng');
+      
+    }
     throw new Error(`Lỗi khi xử lý ảnh CCCD: ${error.message}`);
   }
 };
