@@ -5,21 +5,25 @@ const getTrips = async () => {
     return await Trip.find({ deleteAt: null })
   };
 
-  const getTripById = async (id) => {
-    return await Trip.findOne({ _id: id, deleteAt: null }) 
-  };
+const getTripById = async (id) => {
+  return await Trip.findOne({ _id: id, deleteAt: null })
+    .populate('startAddress')
+    .populate('listAddress')
+    .populate('endAddress');
+};  
 
 const createTrip = async (data) => {
   const start = await Location.findOneAndUpdate(
-    { placeId: data.startAddress.placeId },
+    { latitude: data.startAddress.latitude, longitude: data.startAddress.longitude }, // Tìm theo lat & long
     { $setOnInsert: data.startAddress },
     { new: true, upsert: true }
   );
+  
   const end = await Location.findOneAndUpdate(
-    { placeId: data.endAddress.placeId },
+    { latitude: data.endAddress.latitude, longitude: data.endAddress.longitude }, // Tìm theo lat & long
     { $setOnInsert: data.endAddress },
-    { new: true, upsert: true } 
-  );
+    { new: true, upsert: true }
+  );  
 
   if (!start || !end) return null;
   return await Trip.create({

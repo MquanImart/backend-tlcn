@@ -5,6 +5,7 @@ import { articleService } from "./articleService.js";
 import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
 import Location from "../models/Location.js";
+import { tripService } from "./tripService.js";
 
 const getUsers = async () => {
   // Lấy tất cả người dùng và populate trường 'friends' và 'avt'
@@ -524,6 +525,48 @@ const checkSavedLocation = async (userId, location) => {
   };
 };
 
+const getAllTrip = async (userId) => {
+  const user = await User.findById(userId).select('trips').populate({
+    path: 'trips',
+    match: { deleteAt: null }, // Lọc ra các trip chưa bị xóa
+    populate: [
+      { path: 'startAddress' },
+      { path: 'listAddress' },
+      { path: 'endAddress' }
+    ]
+  });
+
+  if (!user) {
+    return { success: false, message: "Không tìm thấy người dùng", trips: [] };
+  }
+
+  return { success: true, trips: user.trips };
+};
+
+const createTrip = async (userId, data) => {
+  try {
+    // Tạo chuyến đi mới
+    const newTrip = await tripService.createTrip(data);
+
+    if (newTrip) {
+      // Cập nhật danh sách trips của user
+      await User.findByIdAndUpdate(
+        userId,
+        { $push: { trips: newTrip._id } }, // Thêm trip vào mảng trips
+        { new: true } // Trả về bản ghi mới sau khi cập nhật
+      );
+
+      return { success: true, message: "Tạo chuyến đi thành công", trip: newTrip };
+    }
+
+    return { success: false, message: "Không thể tạo chuyến đi" };
+
+  } catch (error) {
+    console.error("Lỗi khi tạo chuyến đi:", error);
+    return { success: false, message: "Có lỗi khi tạo chuyến đi" };
+  }
+};
+
 
 export const userService = {
   getUsers,
@@ -550,5 +593,7 @@ export const userService = {
   addSavedLocation,
   deleteSavedLocation,
   getAllSavedLocation,
-  checkSavedLocation
+  checkSavedLocation,
+  getAllTrip,
+  createTrip
 };

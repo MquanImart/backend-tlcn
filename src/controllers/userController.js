@@ -398,6 +398,61 @@ const checkSavedLocation = async (req, res) => {
   }
 };
 
+const getAllTrip = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy userId từ URL
+
+    const result = await userService.getAllTrip(id);
+
+    if (!result.success){
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: result.message,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      trips: result.trips
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      saved: false,
+      message: error.message
+    });
+  }
+};
+
+const createTrip = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy userId từ URL
+    const data = req.body;
+
+    const result = await userService.createTrip(id, data);
+
+    if (!result.success){
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: result.message,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      trip: result.trip
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      saved: false,
+      message: error.message
+    });
+  }
+};
+
 export const userController = {
   getUsers,
   getUserById,
@@ -423,5 +478,7 @@ export const userController = {
   addSavedLocation,
   deleteSavedLocation,
   getAllSavedLocation,
-  checkSavedLocation
+  checkSavedLocation,
+  getAllTrip,
+  createTrip
 };

@@ -691,4 +691,100 @@ Router.get("/:id/saved-locations", userController.getAllSavedLocation);
 
 Router.post("/:id/check-saved-location", userController.checkSavedLocation);
 
+/**
+ * @swagger
+ * /users/{id}/trips:
+ *   get:
+ *     summary: Lấy tất cả chuyến đi của người dùng
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của user
+ *     responses:
+ *       200:
+ *         description: Trả về kết quả danh sách chuyến đi
+ *       400:
+ *         description: Yêu cầu không hợp lệ hoặc không tìm thấy người dùng
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+
+Router.get("/:id/trips", userController.getAllTrip);
+
+/**
+ * @swagger
+ * /users/{id}/trips:
+ *   post:
+ *     summary: Tạo chuyến đi mới
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Tên của chuyến đi
+ *               startAddress:
+ *                 type: object
+ *                 description: Địa điểm bắt đầu
+ *                 properties:
+ *                   displayName:
+ *                     type: string
+ *                     description: Tên hiển thị của địa điểm
+ *                   placeId:
+ *                     type: string
+ *                     description: ID của địa điểm
+ *                   latitude:
+ *                     type: number
+ *                     description: Vĩ độ của địa điểm
+ *                   longitude:
+ *                     type: number
+ *                     description: Kinh độ của địa điểm
+ *                   address:
+ *                     type: string
+ *                     description: Địa chỉ chi tiết
+ *               endAddress:
+ *                 type: object
+ *                 description: Địa điểm kết thúc
+ *                 properties:
+ *                   displayName:
+ *                     type: string
+ *                     description: Tên hiển thị của địa điểm
+ *                   placeId:
+ *                     type: string
+ *                     description: ID của địa điểm
+ *                   latitude:
+ *                     type: number
+ *                     description: Vĩ độ của địa điểm
+ *                   longitude:
+ *                     type: number
+ *                     description: Kinh độ của địa điểm
+ *                   address:
+ *                     type: string
+ *                     description: Địa chỉ chi tiết
+ *     responses:
+ *       200:
+ *         description: Trả về kết quả chuyến đi mới
+ *       400:
+ *         description: Yêu cầu không hợp lệ hoặc không tìm thấy người dùng
+ *       500:
+ *         description: Lỗi hệ thống
+ */
+
+Router.post("/:id/trips", userController.createTrip);
+
 export const userRoute = Router;
