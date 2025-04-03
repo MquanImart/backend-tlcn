@@ -2,6 +2,8 @@ import Account from "../models/Account.js"
 import OtpModel from "../models/OtpModel.js";
 import bcrypt from 'bcrypt';
 import User from "../models/User.js";
+import Identification from "../models/Identification.js";
+import Address from "../models/Address.js";
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto'; // Dùng để tạo mã OTP ngẫu nhiên
 import twilio from 'twilio'; // Thêm Twilio vào để gửi SMS
@@ -152,7 +154,27 @@ const updatePassword = async (email, newPassword) => {
       { new: true }
   );
 }
-const createAccount = async ({ email, password, displayName, hashtag }) => {
+const createAccount = async ({
+  email,
+  password,
+  displayName,
+  hashtag,
+  number,
+  fullName,
+  dateOfBirth,
+  sex,
+  nationality,
+  placeOfOrigin,
+  placeOfResidence,
+  dateOfExpiry,
+  province,
+  district,
+  ward,
+  street,
+  placeName,
+  lat,
+  long,
+}) => {
   try {
     // Kiểm tra dữ liệu đầu vào
     if (!email || !password || !displayName || !hashtag) {
@@ -165,23 +187,70 @@ const createAccount = async ({ email, password, displayName, hashtag }) => {
       throw new Error("Email đã tồn tại!");
     }
 
+    // Nếu có dữ liệu CCCD, tạo một bản ghi Identification
+    let identificationId = null;
+    if (number) {
+      const requiredFields = ["number", "fullName", "dateOfBirth", "sex", "dateOfExpiry"];
+      const cccdData = { number, fullName, dateOfBirth, sex, dateOfExpiry };
+      const missingFields = requiredFields.filter((field) => !cccdData[field] || cccdData[field].trim() === "");
+      if (missingFields.length > 0) {
+        throw new Error(`Thiếu các trường bắt buộc trong dữ liệu CCCD: ${missingFields.join(", ")}`);
+      }
+
+      const existingIdentification = await Identification.findOne({ number });
+      if (existingIdentification) {
+        throw new Error("Căn cước công dân đã được sử dụng!");
+      }
+
+      const newIdentification = new Identification({
+        number,
+        fullName,
+        dateOfBirth,
+        sex,
+        nationality: nationality || "Việt Nam",
+        placeOfOrigin,
+        placeOfResidence,
+        dateOfExpiry,
+      });
+
+      await newIdentification.save();
+      identificationId = newIdentification._id;
+    }
+
     // Tạo Account mới
     const newAccount = new Account({
       email,
-      phone: null, // Không có phone
-      password, // Nếu muốn hash thì dùng bcrypt
+      phone: null,
+      password,
       role: "user",
     });
 
     await newAccount.save();
 
-    // Tạo User mới
+    // Tạo Address từ các trường riêng lẻ (nếu có)
+    let addressId = null;
+    if (province || district || ward || street) {
+      const newAddress = new Address({
+        province: province || "",
+        district: district || "",
+        ward: ward || "",
+        street: street || "",
+        placeName: placeName || "Nơi ở",
+        lat: lat || null,
+        long: long || null,
+      });
+
+      await newAddress.save();
+      addressId = newAddress._id;
+    }
+
+    // Tạo User mới với addressId
     const newUser = new User({
       account: newAccount._id,
-      identification: null,
+      identification: identificationId,
       displayName,
       hashtag,
-      address: null,
+      address: addressId || null, // Liên kết với Address nếu có
       avt: [],
       aboutMe: "",
       hobbies: [],

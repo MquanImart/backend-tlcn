@@ -1,7 +1,12 @@
 import Hobby from "../models/Hobby.js";
 
 const getHobbies = async () => {
-  return await Hobby.find({ _destroy: null });
+  try {
+    const hobbies = await Hobby.find({ _destroy: null }, 'name'); // Chỉ lấy trường name
+    return hobbies.map(hobby => hobby.name); // Trả về mảng các chuỗi name
+  } catch (error) {
+    throw new Error("Lỗi khi lấy danh sách sở thích: " + error.message);
+  }
 };
 
 const getHobbyById = async (id) => {

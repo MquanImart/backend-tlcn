@@ -1,5 +1,5 @@
 import { userService } from '../services/userService.js';
-
+import { hobbyService } from '../services/hobbyService.js';
 import User from "../models/User.js";
 import Account from "../models/Account.js";
 import Hobby from "../models/Hobby.js";
@@ -63,7 +63,7 @@ const addHobbyByEmail = async (req, res) => {
   try {
     const { email, hobbies } = req.body;
     // Gọi hàm thêm sở thích từ service
-    const { user, message } = await hobbyService.addHobbyByEmail(email, hobbies);
+    const { user, message } = await userService.addHobbyByEmail(email, hobbies);
     return res.status(200).json({success: true,message: message,user,});
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message || "Lỗi hệ thống, vui lòng thử lại." });
@@ -276,6 +276,23 @@ const getCreatedPages = async (req, res) => {
     });
   }
 }
+export const getUserByAccountId = async (req, res) => {
+  try {
+    const { accountId } = req.params;
+    
+    const user = await userService.getUserByAccountId(accountId);
+    return res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy user theo account ID:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Lỗi server'
+    });
+  }
+};
 
 const addSavedLocation = async (req, res) => {
   try {
@@ -481,4 +498,5 @@ export const userController = {
   checkSavedLocation,
   getAllTrip,
   createTrip
+  getUserByAccountId
 };

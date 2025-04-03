@@ -4,6 +4,8 @@ import Group from "../models/Group.js";
 import Page from "../models/Page.js";
 import User from "../models/User.js";
 import { myPhotoService } from "./myPhotoService.js";
+import {addressService} from "./addressService.js";
+import mongoose from 'mongoose';
 
 const getArticles = async () => {
   return await Article.find({ _destroy: null })
@@ -66,7 +68,7 @@ const getArticleById = async (id) => {
 
 const createArticle = async (data, files) => {
   try {
-    const { createdBy, content, hashTag, scope, groupID, pageId } = data;
+    const { createdBy, content, hashTag, scope, groupID, pageId, address } = data;
 
     if (!createdBy || !content) {
       throw new Error("❌ Thiếu thông tin bắt buộc"); 
@@ -76,16 +78,43 @@ const createArticle = async (data, files) => {
       ? hashTag 
       : hashTag.split(",").map(tag => tag.trim());
 
-    // 🔥 1️⃣ Tạo bài viết mới (chưa có media)
+    // 🔥 1️⃣ Xử lý địa chỉ nếu có
+    let addressId = null;
+    if (address) {
+      try {
+        // Parse the address string if it's a string
+        const addressData = typeof address === 'string' ? JSON.parse(address) : address;
+        
+        const newAddress = await addressService.createAddress({
+          province: addressData.province,
+          district: addressData.district,
+          ward: addressData.ward,
+          street: addressData.street || '', // Ensure street has a default value
+          placeName: addressData.placeName || 
+            `${addressData.street || ''}, ${addressData.ward}, ${addressData.district}, ${addressData.province}`.trim(),
+          lat: addressData.lat,
+          long: addressData.long
+        });
+        addressId = newAddress._id;
+        console.log('📍 Đã tạo địa chỉ mới:', newAddress);
+      } catch (error) {
+        console.error('❌ Lỗi khi tạo địa chỉ:', error);
+        // Vẫn tiếp tục tạo bài viết nếu có lỗi địa chỉ
+      }
+    }
+
+    // 🔥 2️⃣ Tạo bài viết mới
     const newArticle = await Article.create({
       createdBy,
       content,
       hashTag: normalizedHashtags,
       scope,
       groupID: groupID || null,
+      address: addressId,
       listPhoto: [],
     });
 
+    // 🔥 3️⃣ Xử lý media
     let uploadedMedia = [];
     if (files && (files.media || files.images)) {
       const allFiles = [...(files.media || []), ...(files.images || [])];
@@ -102,6 +131,7 @@ const createArticle = async (data, files) => {
       await newArticle.save();
     }
 
+    // 🔥 4️⃣ Cập nhật group/page/user
     if (groupID) {
       await Group.findByIdAndUpdate(
         groupID,
@@ -110,21 +140,26 @@ const createArticle = async (data, files) => {
       );
     }
     if (pageId) {
-      const updatedPage = await Page.findByIdAndUpdate(
+      await Page.findByIdAndUpdate(
         pageId,
         { $push: { listArticle: newArticle._id } },
         { new: true }
       );
-    }
-    else {
+    } else {
       await User.findByIdAndUpdate(
         createdBy,
         { $push: { articles: newArticle._id } },
         { new: true }
       );
     }
+
     return newArticle;
   } catch (error) {
+    console.error("❌ Lỗi chi tiết khi tạo bài viết:", {
+      error: error.message,
+      stack: error.stack,
+      inputData: data
+    });
     throw error;
   }
 };
@@ -163,37 +198,22 @@ const toggleLike = async (articleId, userId) => {
 
 
 const deepPopulateComments = async (comments) => {
-  // Nếu không có bình luận nào, trả về ngay lập tức
   if (!comments || comments.length === 0) return comments;
 
-  // Dùng phương thức populate để lấy bình luận con cho từng bình luận
-  const populatedComments = await Comment.populate(comments, {
-    path: "replyComment",
-    match: { _destroy: null }, // Lọc các bình luận không bị xóa
-    populate: [
-      {
-        path: "_iduser",  // Populate thông tin người dùng cho từng bình luận
-        select: "displayName avt",
-        populate: { 
-          path: "avt",  // Populate URL avatar cho người dùng
-          select: "url" 
-        },
-      },
-      {
-        path: "replyComment",  // Tiếp tục đệ quy populate các bình luận con
-        match: { _destroy: null },
-        populate: [
-          {
-            path: "_iduser",
-            select: "displayName avt",
-            populate: { path: "avt", select: "url" },
-          },
-        ],
-      },
-    ],
-  });
+  // Populate img và replyComment cho các bình luận con nếu cần
+  const populatedComments = await mongoose.model('Comment').populate(comments, [
+    { path: "img", select: "url type", match: { _destroy: null } },
+    {
+      path: "replyComment",
+      match: { _destroy: null },
+      populate: [
+        { path: "img", select: "url type", match: { _destroy: null } },
+        { path: "_iduser", select: "displayName avt", populate: { path: "avt", select: "url" } },
+      ],
+    },
+  ]);
 
-  // Duyệt qua các bình luận và kiểm tra xem có bình luận con nào không để tiếp tục đệ quy
+  // Đệ quy cho replyComment
   for (let comment of populatedComments) {
     if (comment.replyComment && comment.replyComment.length > 0) {
       comment.replyComment = await deepPopulateComments(comment.replyComment);
@@ -217,6 +237,17 @@ const getCommentsByArticleId = async (articleId) => {
         {
           path: "replyComment",
           match: { _destroy: null },
+          // Populate img trong replyComment
+          populate: {
+            path: "img",
+            select: "url type",
+            match: { _destroy: null }, // Chỉ lấy media chưa bị xóa
+          },
+        },
+        {
+          path: "img", // Populate img trong comments chính
+          select: "url type",
+          match: { _destroy: null }, // Chỉ lấy media chưa bị xóa
         },
       ],
     })
@@ -226,8 +257,11 @@ const getCommentsByArticleId = async (articleId) => {
 
   let comments = article.comments;
 
-  // Gọi hàm đệ quy để lấy tất cả bình luận con
+  // Gọi hàm đệ quy để lấy tất cả bình luận con (nếu cần)
   comments = await deepPopulateComments(comments);
+
+  // Ghi log để kiểm tra dữ liệu img
+  console.log("Comments with img populated:", JSON.stringify(comments, null, 2));
 
   return comments;
 };
