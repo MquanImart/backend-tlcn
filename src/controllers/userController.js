@@ -347,7 +347,7 @@ const getAllSavedLocation = async (req, res) => {
 
     const result = await userService.getAllSavedLocation(id);
 
-    if (result.success){
+    if (!result.success){
       return res.status(400).json({
         success: false,
         data: null,
@@ -364,6 +364,36 @@ const getAllSavedLocation = async (req, res) => {
       success: false,
       message: error.message,
       savedLocations: [],
+    });
+  }
+};
+
+const checkSavedLocation = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy userId từ URL
+    const { location } = req.body;
+
+    const result = await userService.checkSavedLocation(id, location);
+
+    if (!result.success){
+      return res.status(400).json({
+        success: false,
+        data: null,
+        saved: false,
+        message: result.message,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      savedLocation: result.savedLocation,
+      saved: result.saved
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      saved: false,
+      message: error.message
     });
   }
 };
@@ -392,5 +422,6 @@ export const userController = {
   getCreatedPages,
   addSavedLocation,
   deleteSavedLocation,
-  getAllSavedLocation
+  getAllSavedLocation,
+  checkSavedLocation
 };
