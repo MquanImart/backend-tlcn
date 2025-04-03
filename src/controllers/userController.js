@@ -1,5 +1,5 @@
 import { userService } from '../services/userService.js';
-
+import { hobbyService } from '../services/hobbyService.js';
 import User from "../models/User.js";
 import Account from "../models/Account.js";
 import Hobby from "../models/Hobby.js";
@@ -63,7 +63,7 @@ const addHobbyByEmail = async (req, res) => {
   try {
     const { email, hobbies } = req.body;
     // Gọi hàm thêm sở thích từ service
-    const { user, message } = await hobbyService.addHobbyByEmail(email, hobbies);
+    const { user, message } = await userService.addHobbyByEmail(email, hobbies);
     return res.status(200).json({success: true,message: message,user,});
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message || "Lỗi hệ thống, vui lòng thử lại." });
