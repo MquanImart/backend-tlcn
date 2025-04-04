@@ -26,16 +26,44 @@ const createTrip = async (data) => {
   );  
 
   if (!start || !end) return null;
-  return await Trip.create({
+  const trip = await Trip.create({
     name: data.name,
     startAddress: start._id,
     endAddress: end._id
   });
+
+  return {
+    ...trip.toObject(),
+    startAddress: start,
+    endAddress: end
+  };
 };
 
 const updateTripById = async (id, data) => {
-    return await Trip.findByIdAndUpdate(id, data, { new: true })
+  // Cập nhật từng Location nếu có
+  if (data.startAddress && typeof data.startAddress === 'object' && data.startAddress._id) {
+    await Location.findByIdAndUpdate(data.startAddress._id, data.startAddress);
+  }
+
+  if (data.endAddress && typeof data.endAddress === 'object' && data.endAddress._id) {
+    await Location.findByIdAndUpdate(data.endAddress._id, data.endAddress);
+  }
+
+  if (Array.isArray(data.listAddress)) {
+    // Lọc ra các địa điểm có object _id
+    const updatedList = await Promise.all(
+      data.listAddress.map(async (addr) => {
+        if (addr && typeof addr === 'object' && addr._id) {
+          await Location.findByIdAndUpdate(addr._id, addr);
+        }
+      })
+    );
+  }
+
+  const updateTrip = await Trip.findByIdAndUpdate(id, {name: data.name}, { new: true });
+  return updateTrip;
 };
+
 
 const updateAllTrips = async (data) => {
   return await Trip.updateMany({}, data, { new: true });
@@ -47,7 +75,7 @@ const deleteTripById = async (id) => {
 
 const addNewLocation = async (id, newLocation) => {
   const existingLocation = await Location.findOneAndUpdate(
-    { placeId: newLocation.placeId },  // Điều kiện kiểm tra tồn tại
+    { latitude: newLocation.latitude, longitude: newLocation.longitude },  // Điều kiện kiểm tra tồn tại
     { $setOnInsert: newLocation },     // Chỉ thêm nếu chưa tồn tại
     { new: true, upsert: true }        // Trả về bản ghi mới hoặc cập nhật
   );
@@ -59,8 +87,12 @@ const addNewLocation = async (id, newLocation) => {
     { $push: { listAddress: existingLocation._id } },
     { new: true }
   );
+  const result = await Trip.findById(updateTrip._id)
+    .populate('startAddress')
+    .populate('endAddress')
+    .populate('listAddress')
 
-  if (updateTrip) return {success: true, data: updateTrip, message: ""}
+  if (result) return {success: true, data: result, message: ""}
   return {success: false, message: "Không thể thêm địa điểm mới"}
 };
 
