@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto'; // Dùng để tạo mã OTP ngẫu nhiên
 import twilio from 'twilio'; // Thêm Twilio vào để gửi SMS
 import nodemailer from 'nodemailer';
+
 const getAccounts = async () => {
   return await Account.find()
 }
@@ -139,7 +140,6 @@ const sendOtp = async (input) => {
     };
 
   } catch (error) {
-    console.error("Lỗi gửi OTP:", error);
     return {
       success: false,
       status: 500,
@@ -280,6 +280,20 @@ const createAccount = async ({
     throw new Error(error.message || "Lỗi hệ thống, vui lòng thử lại.");
   }
 };
+const checkEmail = async (email) => {
+  const existingAccount = await Account.findOne({ email });
+  return {
+    exists: !!existingAccount,
+    message: existingAccount ? "Email đã tồn tại trong hệ thống" : "Email khả dụng"
+  };
+};
+const checkHashtag = async (hashtag) => {
+  const existingUser = await User.findOne({ hashtag });
+  return {
+    exists: !!existingUser,
+    message: existingUser ? "Hashtag đã tồn tại trong hệ thống" : "Hashtag khả dụng",
+  };
+};
 export const accountService = {
   getAccounts,
   getAccountById,
@@ -295,6 +309,7 @@ export const accountService = {
   updatePassword,
   loginAccount,
   sendOtp,
-
+  checkEmail,
+  checkHashtag,
 
 }

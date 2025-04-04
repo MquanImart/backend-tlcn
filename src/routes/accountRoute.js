@@ -459,4 +459,128 @@ Router.post("/updatePassword", accountController.updatePassword);
  *         description: Lỗi hệ thống
  */
 Router.post("/create", accountController.createAccount);
+/**
+ * @swagger
+ * /accounts/check-email:
+ *   post:
+ *     summary: Kiểm tra xem email đã tồn tại trong hệ thống chưa
+ *     tags: [Accounts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email cần kiểm tra
+ *                 example: "user@example.com"
+ *     responses:
+ *       200:
+ *         description: Kết quả kiểm tra email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 exists:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Email khả dụng"
+ *       400:
+ *         description: Email không hợp lệ hoặc thiếu dữ liệu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Định dạng email không hợp lệ"
+ *       500:
+ *         description: Lỗi hệ thống
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Lỗi server khi kiểm tra email"
+ */
+Router.post("/check-email", accountController.checkEmail);
+/**
+ * @swagger
+ * /accounts/check-hashtag:
+ *   post:
+ *     summary: Kiểm tra xem hashtag đã tồn tại trong hệ thống chưa
+ *     tags: [Accounts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               hashtag:
+ *                 type: string
+ *                 description: Hashtag cần kiểm tra
+ *                 example: "#john123"
+ *     responses:
+ *       200:
+ *         description: Kết quả kiểm tra hashtag
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 exists:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Hashtag khả dụng"
+ *       400:
+ *         description: Hashtag không hợp lệ hoặc thiếu dữ liệu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Hashtag phải bắt đầu bằng ký tự #"
+ *       500:
+ *         description: Lỗi hệ thống
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Lỗi server khi kiểm tra hashtag"
+ */
+Router.post("/check-hashtag", accountController.checkHashtag);
 export const accountRoute = Router;
