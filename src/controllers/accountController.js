@@ -166,6 +166,70 @@ const updatePassword = async (req, res) => {
       return res.status(500).json({ success: false, message: "Lỗi hệ thống, vui lòng thử lại." });
   }
 };
+const checkEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Validate input
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email là trường bắt buộc",
+      });
+    }
+
+    // Kiểm tra định dạng email
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!isEmailValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Định dạng email không hợp lệ",
+      });
+    }
+
+    // Gọi service để kiểm tra email
+    const result = await accountService.checkEmail(email);
+
+    return res.status(200).json({
+      success: true,
+      exists: result.exists,
+      message: result.message,
+    });
+  } catch (error) {
+    console.error("Lỗi khi kiểm tra email:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Lỗi server khi kiểm tra email",
+    });
+  }
+};
+const checkHashtag = async (req, res) => {
+  try {
+    const { hashtag } = req.body;
+
+    // Validate input
+    if (!hashtag) {
+      return res.status(400).json({
+        success: false,
+        message: "Hashtag là trường bắt buộc",
+      });
+    }
+    // Gọi service để kiểm tra hashtag
+    const result = await accountService.checkHashtag(hashtag);
+
+    return res.status(200).json({
+      success: true,
+      exists: result.exists,
+      message: result.message,
+    });
+  } catch (error) {
+    console.error("Lỗi khi kiểm tra hashtag:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Lỗi server khi kiểm tra hashtag",
+    });
+  }
+};
 export const accountController = {
   getAccounts,
   getAccountById,
@@ -177,4 +241,6 @@ export const accountController = {
   sendOtp,
   verifyOtp,
   updatePassword,
+  checkEmail,
+  checkHashtag
 }
