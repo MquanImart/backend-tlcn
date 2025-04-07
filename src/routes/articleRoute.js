@@ -117,7 +117,6 @@ Router.get('/:id', articleController.getArticleById);
  */
 Router.post('/', upload.fields([{ name: 'media', maxCount: 5 }, { name: 'images', maxCount: 5 }]), articleController.createArticle);
 
-
 /**
  * @swagger
  * /articles/{id}:
