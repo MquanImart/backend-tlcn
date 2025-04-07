@@ -196,7 +196,6 @@ const toggleLike = async (articleId, userId) => {
   return article;
 };
 
-
 const deepPopulateComments = async (comments) => {
   if (!comments || comments.length === 0) return comments;
 

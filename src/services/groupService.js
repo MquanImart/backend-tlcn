@@ -535,6 +535,7 @@ const checkAdminInvite = async (groupID, administratorsID) => {
       groupId: group._id.toString(),
       groupName: group.groupName,
       inviterName: group.idCreater?.displayName || "Không có thông tin",
+      inviterId: group.idCreater || "Không có thông tin",
       inviteDate: adminInvite?.joinDate,
       inviterAvatar: group.idCreater?.avt[0]?.url || "",
     };
