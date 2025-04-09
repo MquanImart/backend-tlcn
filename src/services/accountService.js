@@ -181,15 +181,6 @@ const createAccount = async ({
       throw new Error("Vui lòng nhập đầy đủ email, password, displayName, hashtag.");
     }
 
-    // Kiểm tra xem email đã tồn tại chưa
-    const existingAccount = await Account.findOne({ email });
-    if (existingAccount) {
-      throw new Error("Email đã tồn tại!");
-    }
-
-    // Nếu có dữ liệu CCCD, tạo một bản ghi Identification
-    let identificationId = null;
-    if (number) {
       const requiredFields = ["number", "fullName", "dateOfBirth", "sex", "dateOfExpiry"];
       const cccdData = { number, fullName, dateOfBirth, sex, dateOfExpiry };
       const missingFields = requiredFields.filter((field) => !cccdData[field] || cccdData[field].trim() === "");
@@ -214,8 +205,7 @@ const createAccount = async ({
       });
 
       await newIdentification.save();
-      identificationId = newIdentification._id;
-    }
+
 
     // Tạo Account mới
     const newAccount = new Account({
@@ -229,7 +219,6 @@ const createAccount = async ({
 
     // Tạo Address từ các trường riêng lẻ (nếu có)
     let addressId = null;
-    if (province || district || ward || street) {
       const newAddress = new Address({
         province: province || "",
         district: district || "",
@@ -241,16 +230,15 @@ const createAccount = async ({
       });
 
       await newAddress.save();
-      addressId = newAddress._id;
-    }
 
+    
     // Tạo User mới với addressId
     const newUser = new User({
       account: newAccount._id,
-      identification: identificationId,
+      identification: newIdentification._id,
       displayName,
       hashtag,
-      address: addressId || null, // Liên kết với Address nếu có
+      address: newAddress._id,
       avt: [],
       aboutMe: "",
       hobbies: [],
