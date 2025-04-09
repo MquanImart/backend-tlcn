@@ -509,7 +509,6 @@ const getUserApprovedArticles = async (groupID, userID) => {
 
 const checkAdminInvite = async (groupID, administratorsID) => {
   try {
-    console.log("Debug - groupID:", groupID, "administratorsID:", administratorsID); // Debug đầu vào
 
     const group = await Group.findById(groupID)
       .populate({
@@ -518,8 +517,6 @@ const checkAdminInvite = async (groupID, administratorsID) => {
         populate: { path: "avt", select: "url" },
       });
 
-    console.log("Debug - group found:", group); // Debug dữ liệu nhóm
-
     if (!group) {
       throw { status: 404, message: "Nhóm không tồn tại" };
     }
@@ -527,8 +524,6 @@ const checkAdminInvite = async (groupID, administratorsID) => {
     const adminInvite = group.Administrators.find(
       (admin) => admin.idUser.toString() === administratorsID && admin.state === "pending"
     );
-
-    console.log("Debug - adminInvite:", adminInvite); // Debug lời mời
 
     return {
       hasInvite: adminInvite ? true : false,
