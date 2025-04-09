@@ -876,5 +876,109 @@ Router.get("/:id/trips", userController.getAllTrip);
  */
 
 Router.post("/:id/trips", userController.createTrip);
+/**
+ * @swagger
+ * /users/{id}/hobbies:
+ *   get:
+ *     summary: Lấy danh sách sở thích theo User ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách sở thích của người dùng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "507f191e810c19729de860ea"
+ *                       name:
+ *                         type: string
+ *                         example: "Bóng đá"
+ *                 message:
+ *                   type: string
+ *                   example: "Lấy danh sách sở thích thành công"
+ *       404:
+ *         description: Người dùng không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/:id/hobbies', userController.getHobbiesByUserId);
+
+/**
+ * @swagger
+ * /users/{id}/hobbies:
+ *   patch:
+ *     summary: Cập nhật danh sách sở thích theo User ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               hobbies:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Danh sách sở thích mới
+ *                 example: ["Bóng đá", "Nấu ăn", "Du lịch"]
+ *     responses:
+ *       200:
+ *         description: Cập nhật sở thích thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "507f191e810c19729de860ea"
+ *                       name:
+ *                         type: string
+ *                         example: "Bóng đá"
+ *                 message:
+ *                   type: string
+ *                   example: "Cập nhật sở thích thành công"
+ *       400:
+ *         description: Dữ liệu đầu vào không hợp lệ
+ *       404:
+ *         description: Người dùng không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/:id/hobbies', userController.updateHobbiesByUserId);
 
 export const userRoute = Router;
