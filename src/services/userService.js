@@ -4,6 +4,7 @@ import Account from "../models/Account.js";
 import Hobby from "../models/Hobby.js";
 import { groupService } from "./groupService.js";
 import { articleService } from "./articleService.js";
+import { myPhotoService } from "./myPhotoService.js";
 import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
 import Location from "../models/Location.js";
@@ -595,7 +596,66 @@ const getUserByAccountId = async (accountId) => {
     createdAt: user.createdAt
   };
 };
+const getHobbiesByUserId = async (userId) => {
+  try {
+    const user = await User.findById(userId)
+      .populate({
+        path: 'hobbies',
+        select: '_id name' // Chỉ lấy _id và name của hobby
+      })
+      .lean();
 
+    if (!user) {
+      throw new Error('Người dùng không tồn tại');
+    }
+
+    return user.hobbies || [];
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Cập nhật hobbies theo userId
+const updateHobbiesByUserId = async (userId, hobbies) => {
+  try {
+    // Kiểm tra đầu vào
+    if (!hobbies || !Array.isArray(hobbies) || hobbies.length === 0) {
+      throw new Error('Mảng hobbies là bắt buộc và không được rỗng');
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('Người dùng không tồn tại');
+    }
+
+    // Tạo hoặc tìm các hobby trong database
+    const hobbyIds = [];
+    for (const hobbyName of hobbies) {
+      let hobby = await Hobby.findOne({ name: hobbyName });
+      if (!hobby) {
+        hobby = new Hobby({ name: hobbyName });
+        await hobby.save();
+      }
+      hobbyIds.push(hobby._id);
+    }
+
+    // Cập nhật mảng hobbies của user
+    user.hobbies = hobbyIds;
+    await user.save();
+
+    // Populate lại hobbies để trả về kết quả
+    const updatedUser = await User.findById(userId)
+      .populate({
+        path: 'hobbies',
+        select: '_id name'
+      })
+      .lean();
+
+    return updatedUser.hobbies;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
 export const userService = {
   getUsers,
   getUserById,
@@ -624,5 +684,7 @@ export const userService = {
   checkSavedLocation,
   getAllTrip,
   createTrip,
-  getUserByAccountId
+  getUserByAccountId,
+  getHobbiesByUserId, 
+  updateHobbiesByUserId 
 };

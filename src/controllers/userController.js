@@ -469,7 +469,47 @@ const createTrip = async (req, res) => {
     });
   }
 };
+// Lấy danh sách hobbies theo userId
+const getHobbiesByUserId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const hobbies = await userService.getHobbiesByUserId(id);
 
+    res.status(200).json({
+      success: true,
+      data: hobbies,
+      message: 'Lấy danh sách sở thích thành công'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+};
+
+// Cập nhật hobbies theo userId
+const updateHobbiesByUserId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { hobbies } = req.body;
+
+    const updatedHobbies = await userService.updateHobbiesByUserId(id, hobbies);
+
+    res.status(200).json({
+      success: true,
+      data: updatedHobbies,
+      message: 'Cập nhật sở thích thành công'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+};
 export const userController = {
   getUsers,
   getUserById,
@@ -498,5 +538,7 @@ export const userController = {
   checkSavedLocation,
   getAllTrip,
   createTrip,
-  getUserByAccountId
+  getUserByAccountId,
+  getHobbiesByUserId,
+  updateHobbiesByUserId 
 };
