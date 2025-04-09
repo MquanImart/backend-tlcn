@@ -5,20 +5,20 @@ import Identification from './Identification.js';
 import MyPhoto from './MyPhoto.js';
 import Trip from './Trip.js';
 import Hobby from './Hobby.js';
-import Article from './Article.js'
+import Article from './Article.js';
 
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
   account: {
     type: Schema.Types.ObjectId,
-    ref: 'Account', 
+    ref: 'Account',
     required: true,
   },
   identification: {
     type: Schema.Types.ObjectId,
-    ref: 'Identification', 
-   // required: true,
+    ref: 'Identification',
+    // required: true,
   },
   displayName: {
     type: String,
@@ -31,12 +31,12 @@ const userSchema = new Schema({
   },
   address: {
     type: Schema.Types.ObjectId,
-    ref: 'Address', 
-  //  required: true,
+    ref: 'Address',
+    // required: true,
   },
   avt: [{
     type: Schema.Types.ObjectId,
-    ref: 'MyPhoto', 
+    ref: 'MyPhoto',
   }],
   aboutMe: {
     type: String,
@@ -48,11 +48,11 @@ const userSchema = new Schema({
   },
   hobbies: [{
     type: Schema.Types.ObjectId,
-    ref: 'Hobby', 
+    ref: 'Hobby',
   }],
   friends: [{
     type: Schema.Types.ObjectId,
-    ref: 'User', 
+    ref: 'User',
   }],
   articles: [{
     type: Schema.Types.ObjectId,
@@ -72,24 +72,24 @@ const userSchema = new Schema({
     }],
     followerPages: [{
       type: Schema.Types.ObjectId,
-      ref: 'Page', 
+      ref: 'Page',
     }],
   },
   saveAddress: [{
     type: Schema.Types.ObjectId,
-    ref: 'Address', 
+    ref: 'Address',
   }],
   savedLocation: [{
     type: Schema.Types.ObjectId,
-    ref: 'Location', 
+    ref: 'Location',
   }],
   trips: [{
     type: Schema.Types.ObjectId,
-    ref: 'Trip', 
+    ref: 'Trip',
   }],
   collections: [{
     type: Schema.Types.ObjectId,
-    ref: 'Collection', 
+    ref: 'Collection',
   }],
   groups: {
     _id: {
@@ -97,17 +97,21 @@ const userSchema = new Schema({
     },
     createGroups: [{
       type: Schema.Types.ObjectId,
-      ref: 'Group', 
+      ref: 'Group',
     }],
     saveGroups: [{
       type: Schema.Types.ObjectId,
-      ref: 'Group', 
+      ref: 'Group',
     }],
   },
-  follow: [{
+  followers: [{
     type: Schema.Types.ObjectId,
-    ref: 'User', 
-  }],
+    ref: 'User',
+  }], // Thêm trường followers
+  following: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  }], // Đổi từ follow thành following
   setting: {
     profileVisibility: {
       type: Boolean,
