@@ -96,7 +96,6 @@ const createArticle = async (data, files) => {
           long: addressData.long
         });
         addressId = newAddress._id;
-        console.log('📍 Đã tạo địa chỉ mới:', newAddress);
       } catch (error) {
         console.error('❌ Lỗi khi tạo địa chỉ:', error);
         // Vẫn tiếp tục tạo bài viết nếu có lỗi địa chỉ
@@ -258,9 +257,6 @@ const getCommentsByArticleId = async (articleId) => {
 
   // Gọi hàm đệ quy để lấy tất cả bình luận con (nếu cần)
   comments = await deepPopulateComments(comments);
-
-  // Ghi log để kiểm tra dữ liệu img
-  console.log("Comments with img populated:", JSON.stringify(comments, null, 2));
 
   return comments;
 };
