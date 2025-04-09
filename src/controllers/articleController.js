@@ -21,8 +21,6 @@ const getArticleById = async (req, res) => {
 
 const createArticle = async (req, res) => {
   try {
-    console.log("📂 Files nhận được:", req.files);
-    console.log("📝 Data nhận được:", req.body);
 
     const newArticle = await articleService.createArticle(req.body, req.files);
 
@@ -72,11 +70,7 @@ const toggleLike = async (req, res) => {
   try {
     const { articleId } = req.params;
     const { userId } = req.body; 
-    
-    console.log('Request Body:', req.body);
-    console.log('Request Query:', req.query);
-
-    console.log('userId:', userId);
+  
     if (!userId) {  
       return res.status(400).json({
         success: false,

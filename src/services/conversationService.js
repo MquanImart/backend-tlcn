@@ -33,7 +33,6 @@ const createConversation = async (data) => {
           return { success: false, message: "Cuộc trò chuyện giữa hai người dùng đã tồn tại" };
       }
     }
-    console.log(data); 
     const conversation = await Conversation.create({
       participants: data.participants,
       groupName: data.groupName,

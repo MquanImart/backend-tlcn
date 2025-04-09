@@ -12,8 +12,7 @@ const bucket = storage.bucket(env.BUCKET_NAME);
 const uploadImageBufferToStorage = async (buffer, destination, mimetype) => {
     try {
       const file = bucket.file(destination);
-  
-      console.log(`📤 Uploading file buffer to: ${destination}`);
+
   
       const stream = file.createWriteStream({
         metadata: {
@@ -30,8 +29,7 @@ const uploadImageBufferToStorage = async (buffer, destination, mimetype) => {
       });
   
       const fileUrl = `https://storage.googleapis.com/${env.BUCKET_NAME}/${destination}`;
-  
-      console.log(`✅ File uploaded successfully! URL: ${fileUrl}`);
+
   
       return fileUrl;
     } catch (error) {
