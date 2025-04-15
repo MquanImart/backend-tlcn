@@ -30,24 +30,28 @@ const addHistorySearch = async (idUser, keySearch) => {
   const existingHistorySearch = await HistorySearch.findOne({ idUser, _destroy: null });
 
   if (existingHistorySearch) {
-    // Nếu tồn tại, thêm keySearch mới vào mảng nếu chưa có
-    if (!existingHistorySearch.keySearch.includes(keySearch)) {
-      existingHistorySearch.keySearch.push(keySearch);
-      return await existingHistorySearch.save();
-    }
-    return existingHistorySearch; // Trả về bản ghi nếu không có thay đổi
+    // Loại bỏ keySearch nếu đã tồn tại để tránh trùng lặp
+    const updatedKeySearch = existingHistorySearch.keySearch.filter(
+      (item) => item !== keySearch
+    );
+    // Thêm keySearch mới vào đầu mảng
+    updatedKeySearch.unshift(keySearch);
+    existingHistorySearch.keySearch = updatedKeySearch;
+    return await existingHistorySearch.save();
   }
 
-  // Nếu không tồn tại, tạo mới bản ghi
+  // Nếu không tồn tại, tạo mới bản ghi với keySearch là mảng chỉ chứa một mục
   const newHistorySearch = await createHistorySearch({
     idUser,
     keySearch: [keySearch],
   });
   return newHistorySearch;
 };
+
 const getHistorySearchByIdUser = async (idUser) => {
   return await HistorySearch.findOne({ idUser, _destroy: null });
 };
+
 const updateHistorySearchByIdUser = async (idUser, keySearch) => {
   return await HistorySearch.findOneAndUpdate(
     { idUser, _destroy: null }, // Tìm bản ghi theo idUser và chưa bị xóa mềm
@@ -55,6 +59,7 @@ const updateHistorySearchByIdUser = async (idUser, keySearch) => {
     { new: true, upsert: true } // Trả về bản ghi mới, tạo mới nếu không tồn tại
   );
 };
+
 export const historySearchService = {
   getHistorySearches,
   getHistorySearchById,
