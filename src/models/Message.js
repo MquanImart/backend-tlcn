@@ -5,7 +5,7 @@ const MessageSchema = new mongoose.Schema(
     conversationId: { type: mongoose.Schema.Types.ObjectId, ref: "Conversation", required: true },
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     content: {
-      contentType: { type: String, enum: ['img', 'video', 'text', 'record'], required: true },
+      contentType: { type: String, enum: ['img', 'video', 'text', 'record', 'map'], required: true },
       message: { type: String, required: false },
       mediaUrl: { type: mongoose.Schema.Types.ObjectId, ref: "MyPhoto", required: false } 
     },
