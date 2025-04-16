@@ -22,7 +22,7 @@ const createMessage = async (data, file) => {
     }
 
     let newFile;
-    if (type !== 'text'){ 
+    if (type !== 'text' && type !== 'map'){ 
  
         if (!file || !file.buffer) {
             throw new Error("Không có file hợp lệ để upload!");
@@ -56,8 +56,8 @@ const createMessage = async (data, file) => {
         sender: sender,
         content: {
             contentType: type,
-            message: type === 'text'? message : null,
-            mediaUrl: type !== 'text'? newFile._id : null,
+            message: type === 'text' || type === 'map'? message : null,
+            mediaUrl: type !== 'text' && type !== 'map'? newFile._id : null,
         },
         seenBy: [sender]
     })
