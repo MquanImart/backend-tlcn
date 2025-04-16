@@ -101,6 +101,27 @@ const updateUserSetting = async (req, res) => {
   }
 }
 
+const updateSos = async (req, res) => {
+  try {
+    const { conversationsId } = req.body;
+    const result = await conversationService.updateSos(conversationsId, req.params.id);
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: result.message })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
+const getSosConversations = async (req, res) => {
+  try {
+    const result = await conversationService.getSosConversations(req.params.id);
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: result.message })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const ConversationController = {
   getConversations,
   getConversationById,
@@ -111,7 +132,9 @@ const ConversationController = {
   getConversationFriends,
   getFriendsWithoutPrivateChat,
   getConversationWithoutFriends,
-  updateUserSetting
+  updateUserSetting,
+  updateSos,
+  getSosConversations
 }
 
 export  default ConversationController;

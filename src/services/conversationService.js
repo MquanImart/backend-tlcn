@@ -226,6 +226,56 @@ const updateUserSetting = async (conversationId, newSetting) => {
   }
 };
 
+const updateSos = async (conversationsId, userId) => {
+  try {
+    // Cập nhật các conversation có _id thuộc conversationsId, set sos = true
+    const updateTrue = await Conversation.updateMany(
+      { _id: { $in: conversationsId } },
+      { $set: { "settings.$[elem].sos": true } },
+      { arrayFilters: [{ "elem.userId": userId }] }
+    );
+
+    const updateFalse = await Conversation.updateMany(
+      { _id: { $nin: conversationsId } },
+      { $set: { "settings.$[elem].sos": false } },
+      { arrayFilters: [{ "elem.userId": userId }] }
+    );
+
+    return {
+      success: true,
+      data: { modifiedTrue: updateTrue.modifiedCount, modifiedFalse: updateFalse.modifiedCount },
+      message: "Cập nhật thành công danh sách SOS"
+    };
+  } catch (error) {
+    return { success: false, data: null, message: error.message };
+  }
+};
+
+const getSosConversations = async (userId) => {
+  try {
+    const conversations = await Conversation.find({
+      "settings": {
+        $elemMatch: {
+          userId: userId,
+          sos: true
+        }
+      }
+    })
+    .populate("participants", "_id displayName avt");
+
+    return {
+      success: true,
+      data: conversations,
+      message: "Lấy danh sách SOS thành công"
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: null,
+      message: error.message
+    };
+  }
+};
 
 const conversationService = {
     getAll,
@@ -237,7 +287,9 @@ const conversationService = {
     getConversationFriends,
     getFriendsWithoutPrivateChat,
     getConversationWithoutFriends,
-    updateUserSetting
+    updateUserSetting,
+    updateSos,
+    getSosConversations
 }
 
 export default conversationService;

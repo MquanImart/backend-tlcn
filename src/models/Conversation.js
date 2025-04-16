@@ -7,7 +7,8 @@ const ConversationSchema = new mongoose.Schema(
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         notifications: { type: Boolean, default: true },
-        muteUntil: { type: Number, default: null }
+        muteUntil: { type: Number, default: null },
+        sos: {type: Boolean, default: false}
       },
     ],
     type: { 

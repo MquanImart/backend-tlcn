@@ -322,4 +322,64 @@ Router.get('/user/:id/new-chat', ConversationController.getFriendsWithoutPrivate
 
 Router.patch('/:id/setting', ConversationController.updateUserSetting);
 
+/**
+ * @swagger
+ * /conversations/sos/{id}:
+ *   patch:
+ *     summary: Cập nhật trạng thái SOS cho các cuộc trò chuyện của người dùng
+ *     tags: [Conversations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng cần cập nhật trạng thái SOS
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               conversationsId:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Danh sách ID các cuộc trò chuyện cần đặt SOS thành true
+ *             required:
+ *               - conversationsId
+ *     responses:
+ *       200:
+ *         description: Cập nhật trạng thái SOS thành công
+ *       404:
+ *         description: Lỗi khi cập nhật trạng thái SOS
+ *       500:
+ *         description: Lỗi server
+ */
+Router.patch('/sos/:id', ConversationController.updateSos);
+
+/**
+ * @swagger
+ * /conversations/sos/{id}:
+ *   get:
+ *     summary: Lấy danh sách cuộc trò chuyện có trạng thái SOS của người dùng
+ *     tags: [Conversations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng để lấy danh sách cuộc trò chuyện có SOS
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách cuộc trò chuyện SOS thành công
+ *       404:
+ *         description: Không tìm thấy cuộc trò chuyện SOS
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/sos/:id', ConversationController.getSosConversations);
+
 export const conversationdRoute = Router;
