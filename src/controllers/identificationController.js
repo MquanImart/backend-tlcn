@@ -61,7 +61,18 @@ const deleteIdentificationById = async (req, res) => {
     res.status(500).json({ success: false, data: null, message: error.message });
   }
 };
-
+const extractCCCD = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Không có file được tải lên' });
+    }
+    const imageBuffer = req.file.buffer;
+    const cccdData = await identificationService.extractCCCDData(imageBuffer);
+    res.status(200).json({ success: true, data: cccdData, message: 'Trích xuất dữ liệu CCCD thành công' });
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
 export const identificationController = {
   getIdentifications,
   getIdentificationById,
@@ -69,4 +80,5 @@ export const identificationController = {
   updateIdentificationById,
   updateAllIdentifications,
   deleteIdentificationById,
+  extractCCCD
 };
