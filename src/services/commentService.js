@@ -1,7 +1,10 @@
 import Comment from "../models/Comment.js";
+import Article from "../models/Article.js";
 import { articleService } from "./articleService.js";
 import reelsService from "./reelsService.js";
 import { myPhotoService } from "./myPhotoService.js";
+import mongoose from "mongoose";
+import { emitEvent } from "../socket/socket.js";
 
 const getComments = async () => {
   return await Comment.find({ _destroy: null })
@@ -48,20 +51,18 @@ const getCommentById = async (id) => {
 const createComment = async (data, files) => {
   const { _iduser, content, img, articleId, replyComment } = data;
 
-  // Kiểm tra số lượng file
   const allFiles = [...(files?.media || []), ...(files?.images || [])];
   if (allFiles.length > 1) {
-    throw new Error("Chỉ được phép đính kèm tối đa 1 ảnh hoặc video cho mỗi bình luận");
+    throw new Error("Chỉ được phép đính kèm tối đa 1 ảnh hoặc video");
   }
   const newCommentData = {
     _iduser,
     content,
-    img: img || [], 
+    img: img || [],
   };
 
   let newComment;
 
-  // 🔥 2️⃣ Tạo bình luận trước để có _id
   if (articleId && !replyComment) {
     const article = await articleService.getArticleById(articleId);
     if (article) {
@@ -77,6 +78,12 @@ const createComment = async (data, files) => {
       reel.comments.push(newComment._id);
       await reel.save();
     }
+
+    // Phát sự kiện Socket.IO
+    emitEvent("post", articleId, "newComment", {
+      comment: newComment,
+      articleId,
+    });
   } else if (replyComment && !articleId) {
     const parentComment = await Comment.findById(replyComment);
     if (!parentComment) {
@@ -85,25 +92,31 @@ const createComment = async (data, files) => {
     newComment = await Comment.create(newCommentData);
     parentComment.replyComment.push(newComment._id);
     await parentComment.save();
+
+    // Tìm articleId liên quan
+    const article = await Article.findOne({ comments: replyComment });
+    if (article) {
+      emitEvent("post", article._id, "newReplyComment", {
+        comment: newComment,
+        parentCommentId: replyComment,
+      });
+    }
   } else {
     throw new Error("Cần có `articleId` hoặc `replyComment` để tạo bình luận");
   }
 
-  // 🔥 3️⃣ Upload file với referenceId là _id của comment vừa tạo
   let uploadedMedia = [];
   if (allFiles.length > 0) {
-    const file = allFiles[0]; // Chỉ lấy file đầu tiên
+    const file = allFiles[0];
     const fileType = file.mimetype.startsWith("video/") ? "video" : "img";
     const uploadedFile = await myPhotoService.uploadAndSaveFile(
       file,
       _iduser,
       fileType,
       "comments",
-      newComment._id // Truyền _id của comment làm referenceId
+      newComment._id
     );
-    uploadedMedia = [uploadedFile]; // Chỉ lưu 1 file
-
-    // 🔥 4️⃣ Cập nhật lại trường img của comment với ID của ảnh/video
+    uploadedMedia = [uploadedFile];
     newComment.img = uploadedMedia.map((media) => media._id);
     await newComment.save();
   }
@@ -123,6 +136,44 @@ const deleteCommentById = async (id) => {
   return await Comment.findByIdAndUpdate(id, { _destroy: Date.now() }, { new: true });
 };
 
+const likeComment = async (commentId, userId) => {
+  if (!mongoose.Types.ObjectId.isValid(commentId)) {
+    return { success: false, data: null, message: "ID bình luận không hợp lệ" };
+  }
+
+  const comment = await getCommentById(commentId);
+  if (!comment) {
+    return { success: false, data: null, message: "Bình luận không tồn tại" };
+  }
+
+  const hasLiked = comment.emoticons.includes(userId);
+  if (hasLiked) {
+    comment.emoticons = comment.emoticons.filter(
+      (id) => id.toString() !== userId
+    );
+  } else {
+    comment.emoticons.push(userId);
+  }
+
+  await comment.save();
+
+  // Tìm articleId liên quan
+  const article = await Article.findOne({ comments: commentId });
+  if (article) {
+    emitEvent("post", article._id, "commentLiked", {
+      commentId,
+      userId,
+      emoticons: comment.emoticons,
+    });
+  }
+
+  return {
+    success: true,
+    data: comment,
+    message: "Cập nhật like/unlike thành công",
+  };
+};
+
 export const commentService = {
   getComments,
   getCommentById,
@@ -130,4 +181,5 @@ export const commentService = {
   updateCommentById,
   updateAllComments,
   deleteCommentById,
+  likeComment
 };

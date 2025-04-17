@@ -6,6 +6,7 @@ import User from "../models/User.js";
 import { myPhotoService } from "./myPhotoService.js";
 import {addressService} from "./addressService.js";
 import mongoose from 'mongoose';
+import { emitEvent } from "../socket/socket.js";
 
 const getArticles = async () => {
   return await Article.find({ _destroy: null })
@@ -189,6 +190,13 @@ const toggleLike = async (articleId, userId) => {
   } else {
     article.emoticons.push(userId);
   }
+
+  // Phát sự kiện Socket.IO
+  emitEvent("post", articleId, "postLiked", {
+    articleId,
+    userId,
+    emoticons: article.emoticons, // Gửi danh sách emoticons mới
+  });
 
   await article.save();
 
