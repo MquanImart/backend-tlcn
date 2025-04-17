@@ -89,4 +89,5 @@ export const identificationService = {
   updateIdentificationById,
   updateAllIdentifications,
   deleteIdentificationById,
+  extractCCCDData,
 };
