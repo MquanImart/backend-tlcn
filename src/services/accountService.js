@@ -72,7 +72,16 @@ const loginAccount = async (email, password) => {
   }
 
   const user = await User.findOne({ account: account._id });
-
+  const token = jwt.sign(
+    {
+      userId: user._id,
+      accountId: account._id,
+      email: account.email,
+      role: account.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' } // Token hết hạn sau 1 giờ
+  );
   return {
     success: true,
     data: {
@@ -85,6 +94,7 @@ const loginAccount = async (email, password) => {
         setting: user.setting,
       },
       account: account,
+      token: token, 
     },
   };
 };

@@ -2,8 +2,18 @@ import reelsService from '../services/reelsService.js';
 
 const getReels = async (req, res) => {
   try {
-    const reels = await reelsService.getReels();
-    res.status(200).json({ success: true, data: reels, message: 'Lấy danh sách reels thành công' });
+    const { limit, skip } = req.params; // Lấy query parameters
+    console.log('req.query:', req.params);
+    const reels = await reelsService.getReels({
+      limit: 4,
+      skip: skip, 
+    });
+    res.status(200).json({
+      success: true,
+      data: reels.data,
+      total: reels.total,
+      message: 'Lấy danh sách reels thành công',
+    });
   } catch (error) {
     res.status(500).json({ success: false, data: null, message: error.message });
   }
