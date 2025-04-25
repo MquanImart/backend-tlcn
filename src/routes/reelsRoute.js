@@ -14,8 +14,21 @@ const Router = express.Router();
  * @swagger
  * /reels:
  *   get:
- *     summary: Lấy danh sách tất cả các reels
+ *     summary: Lấy danh sách reels với phân trang
  *     tags: [Reels]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 4
+ *         description: Số lượng reels mỗi trang
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số lượng reels bỏ qua
  *     responses:
  *       200:
  *         description: Danh sách các reels
@@ -30,11 +43,13 @@ const Router = express.Router();
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Reel'
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số reels
  *                 message:
  *                   type: string
  */
 Router.get('/', reelsController.getReels);
-
 /**
  * @swagger
  * /reels/{id}:
