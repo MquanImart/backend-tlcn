@@ -45,7 +45,13 @@ const getNotificationById = async (id) => {
 };
 
 const createNotification = async (data) => {
-  return await Notification.create(data);
+  const newNotification = await Notification.create(data);
+
+  emitEvent("user", data.receiverId, "newNotification", {
+    notification: newNotification,
+  });
+
+  return newNotification;
 };
 
 const updateNotificationById = async (id, data) => {

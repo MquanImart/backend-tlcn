@@ -118,4 +118,30 @@ Router.patch('/', identificationController.updateAllIdentifications);
  */
 Router.delete('/:id', identificationController.deleteIdentificationById);
 
+/**
+ * @swagger
+ * /identifications/extract:
+ *   post:
+ *     summary: Trích xuất dữ liệu từ ảnh CCCD mà không lưu vào cơ sở dữ liệu
+ *     tags: [Identifications]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cccdImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: Ảnh chứng minh thư (CCCD) để trích xuất thông tin
+ *     responses:
+ *       200:
+ *         description: Trích xuất dữ liệu CCCD thành công
+ *       400:
+ *         description: Lỗi khi tải lên ảnh hoặc ảnh không hợp lệ
+ *       500:
+ *         description: Lỗi hệ thống hoặc lỗi không xác định
+ */
+Router.post('/extract', upload.single('cccdImage'), identificationController.extractCCCD);
 export const identificationRoute = Router;
