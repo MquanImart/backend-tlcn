@@ -2,14 +2,18 @@ import Reels from '../models/Reels.js';
 import User from "../models/User.js";
 import { myPhotoService } from "./myPhotoService.js";
 import Comment from "../models/Comment.js";
-
-
+import mongoose from 'mongoose';
+import { emitEvent } from "../socket/socket.js";
 const getAll = async () => {
     return await Reels.find();
 };
 
-const getReels = async () => {
-    return await Reels.find({ destroyAt: null }) // Lọc các reel chưa bị xóa
+const getReels = async ({ limit = 4, skip=0 } = {}) => {
+  try {
+    const query = { destroyAt: null };
+    const reels = await Reels.find(query)
+      .skip(skip)
+      .limit(limit)
       .populate({
         path: 'createdBy',
         select: '_id displayName avt',
@@ -51,8 +55,28 @@ const getReels = async () => {
           },
         },
       })
-      .sort({ createdAt: -1 }); // Sắp xếp theo thời gian tạo giảm dần
-  };
+      .sort({ createdAt: -1 });
+
+    const total = await Reels.countDocuments(query);
+
+    console.log(`API /reels: skip=${skip}, limit=${limit}, found=${reels.length}, total=${total}`);
+
+    return {
+      success: true,
+      data: reels || [], // Đảm bảo data luôn là mảng
+      total: total || 0, // Đảm bảo total luôn có giá trị
+      message: 'Lấy danh sách reels thành công',
+    };
+  } catch (error) {
+    console.error('Error fetching reels:', error);
+    return {
+      success: false,
+      data: [],
+      total: 0,
+      message: `Lỗi khi lấy danh sách reels: ${error.message}`,
+    };
+  }
+};
   const createReel = async (data, files) => {
     try {
       const { createdBy, hashTag, scope, content } = data;
@@ -156,53 +180,38 @@ const toggleLike = async (reelId, userId) => {
   };
   
   // 2. Hàm đệ quy để populate bình luận và bình luận con
-  const deepPopulateComments = async (comments) => {
-    // Nếu không có bình luận nào, trả về ngay lập tức
-    if (!comments || comments.length === 0) return comments;
-  
-    // Populate bình luận con cho từng bình luận
-    const populatedComments = await Comment.populate(comments, {
+const deepPopulateComments = async (comments) => {
+  if (!comments || comments.length === 0) return comments;
+
+  // Populate img và replyComment cho các bình luận con nếu cần
+  const populatedComments = await mongoose.model('Comment').populate(comments, [
+    { path: "img", select: "url type", match: { _destroy: null } },
+    {
       path: "replyComment",
-      match: { _destroy: null }, // Lọc các bình luận không bị xóa
+      match: { _destroy: null },
       populate: [
-        {
-          path: "_iduser",  // Populate thông tin người dùng
-          select: "displayName avt",
-          populate: { 
-            path: "avt",  // Populate URL avatar
-            select: "url" 
-          },
-        },
-        {
-          path: "replyComment",  // Đệ quy populate bình luận con
-          match: { _destroy: null },
-          populate: [
-            {
-              path: "_iduser",
-              select: "displayName avt",
-              populate: { path: "avt", select: "url" },
-            },
-          ],
-        },
+        { path: "img", select: "url type", match: { _destroy: null } },
+        { path: "_iduser", select: "displayName avt", populate: { path: "avt", select: "url" } },
       ],
-    });
-  
-    // Duyệt qua các bình luận và đệ quy populate bình luận con nếu có
-    for (let comment of populatedComments) {
-      if (comment.replyComment && comment.replyComment.length > 0) {
-        comment.replyComment = await deepPopulateComments(comment.replyComment);
-      }
+    },
+  ]);
+
+  // Đệ quy cho replyComment
+  for (let comment of populatedComments) {
+    if (comment.replyComment && comment.replyComment.length > 0) {
+      comment.replyComment = await deepPopulateComments(comment.replyComment);
     }
-  
-    return populatedComments;
-  };
+  }
+
+  return populatedComments;
+};
   
   // 3. Lấy danh sách bình luận theo reelId
   const getCommentsByReelId = async (reelId) => {
     const reel = await Reels.findById(reelId)
       .populate({
         path: "comments",
-        match: { _destroy: null }, // Chỉ lấy bình luận chưa bị xóa
+        match: { _destroy: null },
         populate: [
           {
             path: "_iduser",
@@ -212,6 +221,17 @@ const toggleLike = async (reelId, userId) => {
           {
             path: "replyComment",
             match: { _destroy: null },
+            // Populate img trong replyComment
+            populate: {
+              path: "img",
+              select: "url type",
+              match: { _destroy: null }, // Chỉ lấy media chưa bị xóa
+            },
+          },
+          {
+            path: "img", // Populate img trong comments chính
+            select: "url type",
+            match: { _destroy: null }, // Chỉ lấy media chưa bị xóa
           },
         ],
       })
