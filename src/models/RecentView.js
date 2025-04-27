@@ -73,9 +73,14 @@ const RecentViewSchema = new Schema({
         }],
         date: {
             type: Date,
-            required: true
+            required: true,
+            default: Date.now(),
         },
-        action: { type: "View" | "Like", default: "View"},
+        action: {
+          type: String,
+          enum: ['View', 'Like'], // Giới hạn giá trị hợp lệ
+          default: 'View',
+        },
     }
   ]
 });
