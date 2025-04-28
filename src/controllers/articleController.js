@@ -115,6 +115,7 @@ const getCommentsByArticleId = async (req, res) => {
   }
 };
 
+
 export const articleController = {
   getArticles,
   getArticleById,
