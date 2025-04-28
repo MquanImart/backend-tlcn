@@ -25,11 +25,26 @@ const deleteRecentViewById = async (id) => {
   return await RecentView.findByIdAndUpdate(id, { _destroy: Date.now() }, { new: true });
 };
 
+const addNewHistory = async (idUser, viewData) => {
+  try {
+    const updated = await RecentView.findOneAndUpdate(
+      { idUser },
+      { $push: { view: viewData } },
+      { new: true, upsert: true }
+    );
+    return updated;
+  } catch (error) {
+    console.error('Error adding new history:', error);
+    throw error;
+  }
+};
+
 export default {
   getRecentViews,
   getRecentViewById,
   createRecentView,
   updateRecentViewById,
   updateAllRecentViews,
-  deleteRecentViewById
+  deleteRecentViewById,
+  addNewHistory
 };

@@ -1,7 +1,5 @@
 import RecentView from "../../models/RecentView.js";
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import TouristDestination from "../../models/TouristDestination.js";
 
 async function getUserProfileWithFrequencies(userId) {
     try {
@@ -9,7 +7,6 @@ async function getUserProfileWithFrequencies(userId) {
       if (!recentViews) {
         return {};
       }
-  
       const profile = {};
       recentViews.view.forEach(item => {
         item.tags.forEach(tag => {
@@ -55,21 +52,14 @@ async function ContentBased (userId) {
         return null;
     }
     
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const filePath = path.join(__dirname, 'tourist_destinations_v1.json');
-    let allPlaces = [];
-
-    try {
-        const fileData = fs.readFileSync(filePath, 'utf8');
-        allPlaces = JSON.parse(fileData);
-    } catch (error) {
-        return null;
+    const allPlaces = await TouristDestination.find();
+    
+    if (allPlaces.length === 0) {
+      return null;
     }
 
-    
     const recommendations = allPlaces.map(place => ({
-        ...place,
+        ...place._doc,
         similarityScore: cosineSimilarity(userProfile, place.tags),
     }))
     .sort((a, b) => b.similarityScore - a.similarityScore);
