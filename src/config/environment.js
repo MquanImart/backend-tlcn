@@ -22,7 +22,8 @@ export const env = {
   API_KEY_CCCD: process.env.API_KEY_CCCD,
 
   EMAIL_USER: process.env.EMAIL_USER,
-  EMAIL_PASS: process.env.EMAIL_PASS
+  EMAIL_PASS: process.env.EMAIL_PASS,
 
-  
+  API_KEY_TOURIST: process.env.API_KEY_TOURIST,
+  API_KEY_GENIMI: process.env.API_KEY_GENIMI,
 }

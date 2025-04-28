@@ -1,11 +1,11 @@
-import mongoose, { Schema } from 'mongoose';
+import axios from 'axios';
+import { env } from '../../config/environment.js';
 
-const RecentViewSchema = new Schema({
-  idUser: { type: String, required: true },
-  view: [ {
-    tags: [{
-        type: String,
-        enum: [
+async function suggestTouristData(pageName) {
+  const prompt = `Gợi ý giúp tôi:
+- Tên tỉnh của điểm du lịch ${pageName} (trả về tên ngắn gọn, ví dụ Đồng Tháp)
+- Những tháng đẹp nhất để du lịch ${pageName} (trả về danh sách số tháng, ví dụ [1,2,3])
+- Những tags phù hợp cho ${pageName} (trả về danh sách các tag tiếng Anh từ danh sách sau: [
           'mountain',           // Núi
           'beach',             // Biển
           'forest',            // Rừng
@@ -67,21 +67,24 @@ const RecentViewSchema = new Schema({
           'lantern',             // Đèn lồng
           'photography',
           'clouds',
-        ],
-        required: true
-    }],
-    date: {
-        type: Date,
-        required: true,
-        default: Date.now(),
-    },
-    action: {
-      type: String,
-      enum: ['View', 'Like'], // Giới hạn giá trị hợp lệ
-      default: 'View',
-    },
-  }]
-});
+        ])`;
 
-const RecentView = mongoose.model('RecentView', RecentViewSchema);
-export default RecentView;
+  const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+    model: 'gpt-3.5-turbo',
+    messages: [
+      { role: 'system', content: 'Bạn là chuyên gia du lịch Việt Nam, trả lời đúng format yêu cầu.' },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.3,
+  }, {
+    headers: {
+      'Authorization': `Bearer ${env.API_KEY_TOURIST}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  const reply = response.data.choices[0].message.content;
+  return reply;
+}
+
+export default suggestTouristData;
