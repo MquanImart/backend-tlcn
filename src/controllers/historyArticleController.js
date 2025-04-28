@@ -21,6 +21,7 @@ const getHistoryArticleById = async (req, res) => {
 
 const createHistoryArticle = async (req, res) => {
   try {
+    console.log('Dữ liệu nhận được:', req.body);
     const newHistoryArticle = await historyArticleService.createHistoryArticle(req.body)
     res.status(201).json({ success: true, data: newHistoryArticle, message: 'Tạo lịch sử bài viết thành công' })
   } catch (error) {
