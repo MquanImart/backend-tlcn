@@ -22,12 +22,50 @@ const getHistoryArticleById = async (req, res) => {
 const createHistoryArticle = async (req, res) => {
   try {
     console.log('Dữ liệu nhận được:', req.body);
-    const newHistoryArticle = await historyArticleService.createHistoryArticle(req.body)
-    res.status(201).json({ success: true, data: newHistoryArticle, message: 'Tạo lịch sử bài viết thành công' })
+
+    const { idUser, idArticle, action } = req.body;
+
+    if (!idUser || !idArticle || !action) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Thiếu các trường bắt buộc: idUser, idArticle, action',
+      });
+    }
+
+    if (!['View', 'Like'].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Hành động không hợp lệ. Phải là View hoặc Like',
+      });
+    }
+
+    // Gọi service để kiểm tra và tạo bản ghi
+    const newHistoryArticle = await historyArticleService.createHistoryArticle(req.body);
+
+    if (!newHistoryArticle) {
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: 'Bản ghi đã tồn tại hoặc không cần tạo mới',
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: newHistoryArticle,
+      message: 'Tạo lịch sử bài viết thành công',
+    });
   } catch (error) {
-    res.status(500).json({ success: false, data: null, message: error.message })
+    console.error('Lỗi khi tạo bản ghi lịch sử:', error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message || 'Lỗi server khi tạo bản ghi lịch sử',
+    });
   }
-}
+};
 
 const updateHistoryArticleById = async (req, res) => {
   try {

@@ -9,8 +9,36 @@ const getById = async (id) => {
 };
 
 const createHistoryArticle = async (data) => {
-    return await HistoryArticle.create(data)
-}
+    try {
+      const { idUser, idArticle, action } = data;
+
+      const existingRecord = await HistoryArticle.findOne({
+        idUser,
+        idArticle,
+        action,
+      });
+  
+      if (existingRecord) {
+        return null; 
+      }
+  
+      const existingActions = await HistoryArticle.find({
+        idUser,
+        idArticle,
+        action: { $in: ['View', 'Like'] },
+      });
+  
+      if (existingActions.length >= 2) {
+        return null; 
+      }
+  
+      // Tạo bản ghi mới
+      return await HistoryArticle.create(data);
+    } catch (error) {
+      console.error('Lỗi trong service createHistoryArticle:', error);
+      throw new Error(error.message || 'Lỗi khi tạo bản ghi lịch sử bài viết');
+    }
+  };
 
 const updateHistoryArticleById = async (id, data) => {
     return await HistoryArticle.findByIdAndUpdate(id, data, { new: true })
