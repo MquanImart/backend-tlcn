@@ -14,10 +14,6 @@ const articleSchema = new Schema({
     ref: 'User', 
     required: true,
   },
-  sharedPostId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Article', 
-  },
   reports: [{
     type: Schema.Types.ObjectId,
     ref: 'Report',

@@ -260,7 +260,10 @@ const updateArticleStatus = async (groupId, articleId, action) => {
       };
     }
 
-    const articleIndex = group.article.findIndex((article) => article.idArticle.toString() === articleId);
+    // Kiểm tra xem bài viết có tồn tại trong nhóm không
+    const articleIndex = group.article.findIndex(
+      (article) => article.idArticle.toString() === articleId
+    );
     if (articleIndex === -1) {
       return {
         success: false,
@@ -270,14 +273,24 @@ const updateArticleStatus = async (groupId, articleId, action) => {
     }
 
     if (action === 'approve') {
+      // Cập nhật trạng thái bài viết thành approved
       group.article[articleIndex].state = 'approved';
+      await group.save();
+      return {
+        success: true,
+        message: 'Bài viết đã được duyệt thành công.',
+      };
     } else if (action === 'reject') {
-      group.article[articleIndex].state = 'rejected'; 
+      // Xóa bài viết khỏi mảng article
+      await Group.updateOne(
+        { _id: groupId, _destroy: null },
+        { $pull: { article: { idArticle: articleId } } }
+      );
+      return {
+        success: true,
+        message: 'Bài viết đã bị từ chối và xóa khỏi nhóm.',
+      };
     }
-
-    await group.save();
-
-    return { success: true, message: `Bài viết đã được ${action === 'approve' ? 'duyệt' : 'hủy duyệt'} thành công.` };
   } catch (error) {
     console.error('Lỗi khi xử lý bài viết:', error);
     throw new Error('Lỗi server');
