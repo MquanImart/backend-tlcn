@@ -26,4 +26,6 @@ export const env = {
 
   API_KEY_TOURIST: process.env.API_KEY_TOURIST,
   API_KEY_GENIMI: process.env.API_KEY_GENIMI,
+
+  GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
 }

@@ -45,13 +45,47 @@ function cosineSimilarity(profileVector, placeTags) {
     return dotProduct / (profileNorm * placeNorm);
 }
 
-async function ContentBased (userId) {
-    const userProfile = await getUserProfileWithFrequencies(userId);
+async function getUserProfileWithTagsFrequencies(userId, tagsFrequency = new Map()) {
+  try {
+    const recentViews = await RecentView.findOne({ idUser: userId });
+    if (!recentViews) {
+      return {};
+    }
+
+    const profile = {};
+
+    // Bước 1: Tính tần suất tags từ recentViews
+    recentViews.view.forEach(item => {
+      item.tags.forEach(tag => {
+        profile[tag] = (profile[tag] || 0) + 1;
+      });
+    });
+
+    // Bước 2: Kết hợp tagsFrequency vào profile
+    for (const [tag, frequency] of tagsFrequency) {
+      if (profile[tag]) {
+        // Nếu tag đã có trong profile, cộng thêm giá trị từ tagsFrequency
+        profile[tag] += frequency;
+      } else {
+        // Nếu tag không có trong profile, thêm mới với giá trị từ tagsFrequency
+        profile[tag] = frequency;
+      }
+    }
+
+    return profile;
+  } catch (error) {
+    console.error("Lỗi khi lấy hồ sơ người dùng:", error);
+    return {};
+  }
+}
+
+async function ContentBased (userId, tagsFrequency) { //Term Frequency - Inverse Document Frequency (TF-IDF)
+    const userProfile = await getUserProfileWithTagsFrequencies(userId, tagsFrequency);
     
     if (Object.keys(userProfile).length === 0) {
         return null;
     }
-    
+    console.log(userProfile);
     const allPlaces = await TouristDestination.find();
     
     if (allPlaces.length === 0) {
@@ -68,4 +102,8 @@ async function ContentBased (userId) {
     return topRecommendations;
 }
 
-export default ContentBased;
+export default {
+  getUserProfileWithFrequencies,
+  cosineSimilarity,
+  ContentBased
+};
