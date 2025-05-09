@@ -49,58 +49,113 @@ const deleteUserById = async (id) => {
   return await User.findByIdAndUpdate(id, { deleteAt: Date.now() }, { new: true });
 };
 
-const getSavedGroups = async (userId) => {
-  const user = await User.findById(userId);
 
-  if (!user || !user.groups?.saveGroups) {
-    return [];
-  }
-
-  const savedGroupIds = user.groups.saveGroups.map((group) => group._id);
-  const savedGroups = await Promise.all(savedGroupIds.map(groupService.getGroupById)); 
-
-  return savedGroups.filter((group) => group !== null); // Lọc nhóm hợp lệ
-};
-
-const getMyGroups = async (userId) => {
-  const user = await User.findById(userId);
-
-  if (!user || !user.groups?.createGroups) {
-    return [];
-  }
-
-  const savedGroupIds = user.groups.createGroups.map((group) => group._id);
-  const savedGroups = await Promise.all(savedGroupIds.map(groupService.getGroupById)); 
-
-  return savedGroups.filter((group) => group !== null); 
-};
-
-const getNotJoinedGroups = async (userId) => {
+const getSavedGroups = async (userId, skip, limit) => { 
   try {
     const user = await User.findById(userId);
-    if (!user) return [];
+    if (!user || !user.groups?.saveGroups) {
+      return { groups: [], total: 0 };
+    }
 
-    const joinedGroupIds = new Set([
-      ...(user.groups?.createGroups?.map((group) => group._id.toString()) || []),
-      ...(user.groups?.saveGroups?.map((group) => group._id.toString()) || []),
-    ]);
+    const allSavedGroupEntries = user.groups.saveGroups;
 
-    const allGroups = await groupService.getGroups(); 
+    const allSavedGroupIds = allSavedGroupEntries.map(groupEntry => groupEntry._id);
 
-    const notJoinedGroupIds = allGroups
-      .map(group => group._id.toString())
-      .filter(groupId => !joinedGroupIds.has(groupId));
+    const total = allSavedGroupIds.length;
 
-    const notJoinedGroups = await Promise.all(notJoinedGroupIds.map(groupService.getGroupById));
+    const paginatedGroupIds = allSavedGroupIds.slice(skip, skip + limit);
+    const paginatedGroups = await Promise.all(paginatedGroupIds.map(groupService.getGroupById));
+    const filteredGroups = paginatedGroups.filter((group) => group !== null);
 
-    return notJoinedGroups.filter(group => group !== null);
+    return { groups: filteredGroups, total: total };
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách nhóm chưa tham gia:", error);
+    console.error("Lỗi khi lấy danh sách nhóm đã lưu tại service:", error);
+    throw new Error("Lỗi khi lấy danh sách nhóm đã lưu.");
+  }
+};
+
+
+const getMyGroups = async (userId, skip, limit) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user || !user.groups?.createGroups) {
+      return { groups: [], total: 0 };
+    }
+
+    const savedGroupIds = user.groups.createGroups.map((group) => group._id);
+
+    if (!savedGroupIds.length) {
+      return { groups: [], total: 0 };
+    }
+
+    // Apply pagination to group IDs
+    const paginatedGroupIds = savedGroupIds.slice(skip, skip + limit);
+
+    // Fetch groups using getGroupById
+    const groups = await Promise.all(
+      paginatedGroupIds.map(groupId => groupService.getGroupById(groupId))
+    );
+
+    // Filter out null groups
+    const validGroups = groups.filter((group) => group !== null);
+
+    // Total count of groups
+    const total = savedGroupIds.length;
+
+    return { groups: validGroups, total };
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách nhóm đã tạo:", error);
     throw new Error(error.message);
   }
-}
+};
 
-const getArticleAllGroups = async (userId) => {
+const getNotJoinedGroups = async (userId, skip, limit) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return { groups: [], total: 0 };
+    }
+
+    // Lấy danh sách ID nhóm đã tham gia hoặc tạo
+    const joinedGroupIds = new Set([
+      ...(user.groups?.createGroups?.map((group) => group._id?.toString()) || []),
+      ...(user.groups?.saveGroups?.map((group) => group._id?.toString()) || []),
+    ]);
+
+    // Lấy tất cả nhóm
+    const allGroups = await groupService.getGroups();
+
+    // Lọc ID nhóm chưa tham gia
+    const notJoinedGroupIds = allGroups
+      .filter(group => group._id && !joinedGroupIds.has(group._id.toString()))
+      .map(group => group._id.toString());
+
+    if (!notJoinedGroupIds.length) {
+      return { groups: [], total: 0 };
+    }
+
+    // Áp dụng phân trang
+    const paginatedGroupIds = notJoinedGroupIds.slice(skip, skip + limit);
+
+    // Lấy nhóm bằng getGroupById
+    const groups = await Promise.all(
+      paginatedGroupIds.map(groupId => groupService.getGroupById(groupId))
+    );
+
+    // Lọc nhóm hợp lệ
+    const validGroups = groups.filter(group => group !== null);
+
+    // Tổng số nhóm chưa tham gia
+    const total = notJoinedGroupIds.length;
+
+    return { groups: validGroups, total };
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách nhóm chưa tham gia:", error);
+    throw new Error(error.message || "Có lỗi xảy ra khi lấy danh sách nhóm chưa tham gia");
+  }
+};
+
+const getArticleAllGroups = async (userId, skip, limit) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
@@ -112,27 +167,36 @@ const getArticleAllGroups = async (userId) => {
     const groupIds = [...savedGroupIds, ...myGroupIds];
 
     if (!groupIds.length) {
-      return [];
+      return { articles: [], total: 0 };
     }
 
-    const groups = await Group.find({ _id: { $in: groupIds }, _destroy: null })
+    const groups = await Group.find({ _id: { $in: groupIds }, _destroy: null });
 
     const approvedArticleIds = groups.flatMap(group =>
       group.article
-        ?.filter(article => article.state === "approved") 
+        ?.filter(article => article.state === "approved")
         .map(article => article.idArticle._id) || []
     );
-  
+
     if (!approvedArticleIds.length) {
-      return [];
+      return { articles: [], total: 0 };
     }
 
-    const approvedArticles = await Promise.all(
-      approvedArticleIds.map(articleId => articleService.getArticleById(articleId))
+    // Apply pagination to approvedArticleIds
+    const paginatedArticleIds = approvedArticleIds.slice(skip, skip + limit);
+
+    // Fetch articles using getArticleById
+    const articles = await Promise.all(
+      paginatedArticleIds.map(articleId => articleService.getArticleById(articleId))
     );
 
-    return approvedArticles.filter(article => article !== null);
+    // Filter out null articles (in case getArticleById returns null)
+    const validArticles = articles.filter(article => article !== null);
 
+    // Get total count of approved articles
+    const total = approvedArticleIds.length;
+
+    return { articles: validArticles, total };
   } catch (error) {
     console.error("Lỗi khi lấy bài viết đã duyệt:", error);
     throw new Error(error.message);
