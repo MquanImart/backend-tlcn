@@ -13,7 +13,7 @@ const Router = express.Router();
  * @swagger
  * /notifications:
  *   get:
- *     summary: Lấy danh sách thông báo theo trạng thái
+ *     summary: Lấy danh sách thông báo theo trạng thái với phân trang
  *     tags: [Notifications]
  *     parameters:
  *       - in: query
@@ -29,9 +29,42 @@ const Router = express.Router();
  *           type: string
  *           enum: [read, unread]
  *         description: Trạng thái của thông báo (read, unread). Bỏ qua để lấy tất cả.
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang hiện tại
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Số lượng thông báo mỗi trang
  *     responses:
  *       200:
- *         description: Trả về danh sách thông báo
+ *         description: Trả về danh sách thông báo phân trang
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Notification'
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 message:
+ *                   type: string
  */
 Router.get('/', notificationController.getNotifications);
 

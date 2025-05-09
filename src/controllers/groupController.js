@@ -131,13 +131,20 @@ const requestJoinOrLeaveGroup = async (req, res) => {
 const getApprovedArticles = async (req, res) => {
   try {
     const groupId = req.params.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5; // Phù hợp với các API khác
+    const skip = (page - 1) * limit;
 
-    // Gọi service để lấy bài viết đã duyệt
-    const approvedArticles = await groupService.getApprovedArticles(groupId);
+    const { articles, total } = await groupService.getApprovedArticles(groupId, skip, limit);
+
+    const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
       success: true,
-      data: approvedArticles,
+      data: articles,
+      total,
+      page,
+      totalPages,
       message: "Lấy danh sách bài viết đã duyệt thành công",
     });
   } catch (error) {
@@ -145,7 +152,7 @@ const getApprovedArticles = async (req, res) => {
     res.status(500).json({
       success: false,
       data: null,
-      message: "Lỗi server",
+      message: error.message || "Lỗi server",
     });
   }
 };
@@ -153,20 +160,29 @@ const getApprovedArticles = async (req, res) => {
 const getPendingArticles = async (req, res) => {
   try {
     const groupId = req.params.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5; // Consistent with other APIs
+    const skip = (page - 1) * limit;
 
-    const approvedArticles = await groupService.getPendingArticles(groupId);
+    const { articles, total } = await groupService.getPendingArticles(groupId, skip, limit);
+
+    const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
       success: true,
-      data: approvedArticles,
-      message: "Lấy danh sách bài viết đã duyệt thành công",
+      data: articles,
+      total,
+      page,
+      totalPages,
+      message: "Lấy danh sách bài viết đang chờ duyệt thành công",
     });
   } catch (error) {
-    console.error("Lỗi khi lấy bài viết đã duyệt:", error);
-    res.status(500).json({
+    console.error("Lỗi khi lấy bài viết đang chờ duyệt:", error);
+    const statusCode = error.message === "Nhóm không tồn tại" ? 404 : 500;
+    res.status(statusCode).json({
       success: false,
-      data: null,
-      message: "Lỗi server",
+      data: [],
+      message: error.message || "Lỗi server",
     });
   }
 };
@@ -252,20 +268,29 @@ const deleteRule = async (req, res) => {
 const getPendingMembers = async (req, res) => {
   try {
     const { groupID } = req.params;
-    const pendingMembers = await groupService.getPendingMembers(groupID);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5; // Phù hợp với các API khác
+    const skip = (page - 1) * limit;
+
+    const { pendingMembers, total } = await groupService.getPendingMembers(groupID, skip, limit);
+
+    const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
       success: true,
       data: pendingMembers,
+      total,
+      page,
+      totalPages,
       message: "Lấy danh sách thành viên chờ duyệt thành công",
     });
   } catch (error) {
-    
+    const statusCode = error.message === "Nhóm không tồn tại" ? 404 : 500;
     const errorMessage = error.message === "Nhóm không tồn tại"
       ? "Nhóm không tồn tại"
       : "Lỗi khi lấy danh sách thành viên chờ duyệt";
 
-    res.status(error.message === "Nhóm không tồn tại" ? 404 : 500).json({
+    res.status(statusCode).json({
       success: false,
       data: [],
       message: errorMessage,
@@ -304,17 +329,27 @@ const updateMemberStatus = async (req, res) => {
 const getUserApprovedArticles = async (req, res) => {
   try {
     const { groupID, userID } = req.params;
-    const articles = await groupService.getUserApprovedArticles(groupID, userID);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5; // Consistent with other APIs
+    const skip = (page - 1) * limit;
+
+    const { articles, total } = await groupService.getUserApprovedArticles(groupID, userID, skip, limit);
+
+    const totalPages = Math.ceil(total / limit);
 
     return res.status(200).json({
       success: true,
       data: articles,
+      total,
+      page,
+      totalPages,
       message: "Lấy danh sách bài viết đã được duyệt thành công.",
     });
   } catch (error) {
     console.error("❌ Lỗi khi lấy bài viết đã duyệt:", error);
     return res.status(error.status || 500).json({
       success: false,
+      data: [],
       message: error.message || "Lỗi server",
     });
   }

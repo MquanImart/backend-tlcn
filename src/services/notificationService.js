@@ -5,7 +5,7 @@ const getNotifications = async () => {
   return await Notification.find({ _destroy: null })
 };
 
-const getNotificationsByStatus = async (receiverId, status) => {
+const getNotificationsByStatus = async (receiverId, status, page = 1, limit = 10) => {
   let filter = { receiverId, _destroy: null };
 
   if (status === "unread") {
@@ -15,26 +15,40 @@ const getNotificationsByStatus = async (receiverId, status) => {
   }
 
   try {
-    const notifications = await Notification.find(filter)
-      .populate({
-        path: "senderId", 
-        select: "displayName hashtag avt",
-        populate: {
-          path: "avt",
-          select: "url name",
-        },
-      })
-      .populate({
-        path: "receiverId",
-        select: "displayName hashtag avt",
-        populate: {
-          path: "avt",
-          select: "url name",
-        },
-      })
-      .sort({ createdAt: -1 });
+    const skip = (page - 1) * limit;
 
-    return { success: true, data: notifications, message: "Lấy danh sách thông báo thành công" };
+    const [notifications, total] = await Promise.all([
+      Notification.find(filter)
+        .populate({
+          path: "senderId",
+          select: "displayName hashtag avt",
+          populate: {
+            path: "avt",
+            select: "url name",
+          },
+        })
+        .populate({
+          path: "receiverId",
+          select: "displayName hashtag avt",
+          populate: {
+            path: "avt",
+            select: "url name",
+          },
+        })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Notification.countDocuments(filter),
+    ]);
+
+    return {
+      success: true,
+      data: notifications,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      message: "Lấy danh sách thông báo thành công",
+    };
   } catch (error) {
     return { success: false, data: null, message: error.message };
   }

@@ -190,7 +190,7 @@ const requestJoinOrLeaveGroup = async (groupId, userId) => {
   }
 };
 
-const getApprovedArticles = async (groupId) => {
+const getApprovedArticles = async (groupId, skip, limit) => {
   try {
     const group = await Group.findOne({ _id: groupId, _destroy: null });
 
@@ -198,24 +198,39 @@ const getApprovedArticles = async (groupId) => {
       throw new Error("Nhóm không tồn tại");
     }
 
+    // Lấy ID bài viết đã duyệt
     const approvedArticleIds = group.article
-      .filter(article => article.state === "approved")
-      .map(article => article.idArticle);
+      ?.filter(article => article && article.state === "approved" && article.idArticle)
+      .map(article => article.idArticle.toString()) || [];
 
-    const approvedArticles = await Promise.all(
-      approvedArticleIds.map(async (articleId) => {
+    if (!approvedArticleIds.length) {
+      return { articles: [], total: 0 };
+    }
+
+    // Áp dụng phân trang
+    const paginatedArticleIds = approvedArticleIds.slice(skip, skip + limit);
+
+    // Lấy bài viết bằng getArticleById
+    const articles = await Promise.all(
+      paginatedArticleIds.map(async (articleId) => {
         return await articleService.getArticleById(articleId);
       })
     );
 
-    return approvedArticles.filter(article => article !== null);
+    // Lọc bài viết hợp lệ
+    const validArticles = articles.filter(article => article !== null);
+
+    // Tổng số bài viết
+    const total = approvedArticleIds.length;
+
+    return { articles: validArticles, total };
   } catch (error) {
     console.error("Lỗi khi lấy bài viết đã duyệt:", error);
-    throw new Error(error.message);
+    throw new Error(error.message || "Có lỗi xảy ra khi lấy bài viết đã duyệt");
   }
 };
 
-const getPendingArticles = async (groupId) => {
+const getPendingArticles = async (groupId, skip, limit) => {
   try {
     const group = await Group.findOne({ _id: groupId, _destroy: null });
 
@@ -223,20 +238,35 @@ const getPendingArticles = async (groupId) => {
       throw new Error("Nhóm không tồn tại");
     }
 
+    // Filter pending articles
     const pendingArticleIds = group.article
-      .filter(article => article.state === "pending")
-      .map(article => article.idArticle);
+      ?.filter(article => article && article.state === "pending" && article.idArticle)
+      .map(article => article.idArticle.toString()) || [];
 
-    const pendingArticles = await Promise.all(
-      pendingArticleIds.map(async (articleId) => {
+    if (!pendingArticleIds.length) {
+      return { articles: [], total: 0 };
+    }
+
+    // Apply pagination
+    const paginatedArticleIds = pendingArticleIds.slice(skip, skip + limit);
+
+    // Fetch articles
+    const articles = await Promise.all(
+      paginatedArticleIds.map(async (articleId) => {
         return await articleService.getArticleById(articleId);
       })
     );
 
-    return pendingArticles.filter(article => article !== null);
+    // Filter valid articles
+    const validArticles = articles.filter(article => article !== null);
+
+    // Total number of pending articles
+    const total = pendingArticleIds.length;
+
+    return { articles: validArticles, total };
   } catch (error) {
-    console.error("Lỗi khi lấy bài viết đã duyệt:", error);
-    throw new Error(error.message);
+    console.error("Lỗi khi lấy bài viết đang chờ duyệt:", error);
+    throw new Error(error.message || "Có lỗi xảy ra khi lấy bài viết đang chờ duyệt");
   }
 };
 
@@ -340,12 +370,12 @@ const deleteRuleFromGroup = async (groupId, ruleValue) => {
   }
 };
 
-const getPendingMembers = async (groupID) => {
+const getPendingMembers = async (groupID, skip, limit) => {
   try {
     const group = await Group.findById(groupID)
       .populate({
         path: 'members.idUser',
-        select: 'displayName avt',
+        select: 'displayName avt account.email account.phone',
         populate: {
           path: 'avt',
           select: 'url',
@@ -356,20 +386,35 @@ const getPendingMembers = async (groupID) => {
       throw new Error("Nhóm không tồn tại");
     }
 
+    // Lấy danh sách thành viên chờ duyệt
     const pendingMembers = group.members
-      .filter(member => member.state === "pending")
+      .filter(member => member && member.state === "pending" && member.idUser)
       .map(member => ({
-        id: member.idUser?._id,
-        fullName: member.idUser?.displayName,
-        email: member.idUser?.account?.email,
-        phone: member.idUser?.account?.phone,
-        avatar: member.idUser?.avt[member.idUser.avt.length - 1]?.url || [],
+        id: member.idUser?._id?.toString(),
+        fullName: member.idUser?.displayName || "Unknown",
+        email: member.idUser?.account?.email || "",
+        phone: member.idUser?.account?.phone || "",
+        avatar: member.idUser?.avt?.length > 0 ? member.idUser.avt[member.idUser.avt.length - 1]?.url : "",
         joinDate: member.joinDate,
       }));
 
-    return pendingMembers;
+    if (!pendingMembers.length) {
+      return { pendingMembers: [], total: 0 };
+    }
+
+    // Áp dụng phân trang
+    const paginatedMembers = pendingMembers.slice(skip, skip + limit);
+
+    // Tổng số thành viên chờ duyệt
+    const total = pendingMembers.length;
+
+    return {
+      pendingMembers: paginatedMembers,
+      total,
+    };
   } catch (error) {
-    throw error;
+    console.error("Lỗi khi lấy danh sách thành viên chờ duyệt:", error);
+    throw new Error(error.message || "Có lỗi xảy ra khi lấy danh sách thành viên chờ duyệt");
   }
 };
 
@@ -473,50 +518,68 @@ const getGroupMembers = async (groupID) => {
   };
 };
 
-const getUserApprovedArticles = async (groupID, userID) => {
-  const group = await Group.findById(groupID);
-  if (!group) {
-    throw { status: 404, message: "Nhóm không tồn tại" };
-  }
+const getUserApprovedArticles = async (groupID, userID, skip, limit) => {
+  try {
+    const group = await Group.findById(groupID);
+    if (!group) {
+      throw { status: 404, message: "Nhóm không tồn tại" };
+    }
 
-  // Lọc danh sách bài viết đã được duyệt của user đó
-  const approvedArticles = group.article
-    .filter((a) => a.state === "approved")
-    .map((a) => a.idArticle);
+    // Filter approved articles
+    const approvedArticleIds = group.article
+      ?.filter(a => a && a.state === "approved" && a.idArticle)
+      .map(a => a.idArticle.toString()) || [];
 
-  // Truy vấn bài viết theo danh sách đã lọc với đầy đủ thông tin
-  const articles = await Article.find({
-    _id: { $in: approvedArticles },
-    createdBy: userID, // Chỉ lấy bài viết của user này
-    _destroy: null,
-  })
-    .populate({
-      path: "createdBy",
-      select: "_id displayName avt",
-      populate: {
-        path: "avt",
-        select: "_id name idAuthor type url createdAt updatedAt",
-      },
+    if (!approvedArticleIds.length) {
+      return { articles: [], total: 0 };
+    }
+
+    // Query articles with pagination
+    const articles = await Article.find({
+      _id: { $in: approvedArticleIds },
+      createdBy: userID,
+      _destroy: null,
     })
-    .populate({
-      path: "listPhoto",
-      select: "_id name idAuthor type url createdAt updatedAt",
-      populate: {
-        path: "idAuthor",
+      .populate({
+        path: "createdBy",
         select: "_id displayName avt",
-      },
-    })
-    .populate({
-      path: "groupID",
-      select: "_id groupName",
-    })
-    .populate({
-      path: "address",
-      select: "_id province district ward street placeName lat long",
-    })
-    .sort({ createdAt: -1 });
+        populate: {
+          path: "avt",
+          select: "_id name idAuthor type url createdAt updatedAt",
+        },
+      })
+      .populate({
+        path: "listPhoto",
+        select: "_id name idAuthor type url createdAt updatedAt",
+        populate: {
+          path: "idAuthor",
+          select: "_id displayName avt",
+        },
+      })
+      .populate({
+        path: "groupID",
+        select: "_id groupName",
+      })
+      .populate({
+        path: "address",
+        select: "_id province district ward street placeName lat long",
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-  return articles;
+    // Total count of approved articles
+    const total = await Article.countDocuments({
+      _id: { $in: approvedArticleIds },
+      createdBy: userID,
+      _destroy: null,
+    });
+
+    return { articles, total };
+  } catch (error) {
+    console.error("Lỗi khi lấy bài viết đã duyệt:", error);
+    throw new Error(error.message || "Có lỗi xảy ra khi lấy bài viết đã duyệt");
+  }
 };
 
 
