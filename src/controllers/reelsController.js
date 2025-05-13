@@ -2,7 +2,7 @@ import reelsService from '../services/reelsService.js';
 
 const getReels = async (req, res) => {
   try {
-    let { $limit = 2, $skip = 0 } = req.query; // Sử dụng $limit và $skip
+    let { $limit = 4, $skip = 0 } = req.query; // Sử dụng $limit và $skip
     
     $limit = parseInt($limit);
     $skip = parseInt($skip);
