@@ -2,6 +2,7 @@ import Group from "../models/Group.js";
 import User from "../models/User.js";
 import Article from "../models/Article.js";
 import MyPhoto from "../models/MyPhoto.js";
+import { cloudStorageService } from "../config/cloudStorage.js";
 import { articleService } from "../services/articleService.js";
 import { myPhotoService } from "./myPhotoService.js";
 
@@ -63,36 +64,85 @@ const createGroup = async ({ groupName, type, idCreater, introduction, rule, hob
 
 const updateGroupById = async (id, data) => {
   try {
+    console.log("Updating group ID:", id, "with data:", data);
     const group = await Group.findById(id).populate("avt");
-    if (!group) return null;
+    if (!group) {
+      console.log("Group not found:", id);
+      return null;
+    }
 
     if (data.groupName) group.groupName = data.groupName;
     if (data.type) group.type = data.type;
     if (data.introduction) group.introduction = data.introduction;
     if (data.rule) {
-      group.rule = Array.isArray(data.rule) ? data.rule : data.rule.split(",");
+      group.rule = JSON.parse(data.rule);
     }
     if (data.hobbies) {
-      group.hobbies = Array.isArray(data.hobbies) ? data.hobbies : data.hobbies.split(",");
+      group.hobbies = JSON.parse(data.hobbies);
     }
 
-    if (data.avatarFile) {
+    if (data.removeAvatar === "true" && group.avt) {
+      console.log("Removing avatar for group:", id);
       const oldFileUrl = group.avt?.url || null;
-      const uploadedFile = await myPhotoService.uploadAndSaveFile(
-        data.avatarFile,
-        group.idCreater,
-        "img",
-        "groups",
-        group._id,
-        oldFileUrl
-      );
+      if (oldFileUrl) {
+        try {
+          // Clean URL by removing query parameters
+          const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
+          const filePath = `src/images/groups/${id}/${cleanFileName}`;
+          console.log("Deleting GCS file:", filePath);
+          await cloudStorageService.deleteImageFromStorage(filePath);
+        } catch (error) {
+          if (error.code === 404) {
+             console.warn("Old avatar file not found in GCS:", oldFileUrl);
+          } else {
+            console.error("Error deleting GCS file:", error);
+          }
+        }
+        console.log("Deleting MyPhoto document:", group.avt._id);
+        await MyPhoto.findByIdAndDelete(group.avt._id);
+      }
+      group.avt = null;
+    } else if (data.avatarFile) {
+      console.log("Processing new avatar for group:", id);
+      if (group.avt) {
+        const oldFileUrl = group.avt?.url || null;
+        if (oldFileUrl) {
+          try {
+            const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
+            const filePath = `src/images/groups/${id}/${cleanFileName}`;
+            console.log("Deleting old GCS file:", filePath);
+            await cloudStorageService.deleteImageFromStorage(filePath);
+          } catch (error) {
+            if (error.code === 404) {
+              console.warn("Old avatar file not found in GCS:", oldFileUrl);
+            } else {
+              console.error("Error deleting old GCS file:", error);
+            }
+          }
+          console.log("Deleting old MyPhoto document:", group.avt._id);
+          await MyPhoto.findByIdAndDelete(group.avt._id);
+        }
 
-      group.avt = uploadedFile._id;
+        // Upload new avatar and create new MyPhoto document
+        console.log("Uploading new avatar for group:", id);
+        const uploadedFile = await myPhotoService.uploadAndSaveFile(
+          data.avatarFile,
+          group.idCreater,
+          "img",
+          "groups",
+          group._id
+        );
+
+        console.log("New MyPhoto document created:", uploadedFile._id);
+        group.avt = uploadedFile._id;
+      }
+
+      // Save the updated group
+      console.log("Saving updated group:", id);
+      await group.save();
+      console.log("Group updated successfully:", id);
+      return group;
     }
-
-    // Lưu lại nhóm sau khi cập nhật
-    await group.save();
-    return group;
   } catch (error) {
     console.error("Lỗi khi cập nhật nhóm:", error);
     throw new Error("Lỗi khi cập nhật nhóm");
