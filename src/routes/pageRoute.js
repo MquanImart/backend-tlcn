@@ -102,19 +102,32 @@ Router.post('/', uploadMiddleware, pageController.createPage);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
  *               name:
  *                 type: string
  *                 description: Tên của trang
- *               description:
+ *               address:
  *                 type: string
- *                 description: Mô tả của trang
- *               [other fields...]: 
+ *                 description: ID của địa chỉ liên kết với trang
+ *               timeOpen:
  *                 type: string
- *                 description: Các trường khác của trang
+ *                 description: Giờ mở cửa (định dạng HH:mm)
+ *               timeClose:
+ *                 type: string
+ *                 description: Giờ đóng cửa (định dạng HH:mm)
+ *               hobbies:
+ *                 type: string
+ *                 description: Danh sách ID sở thích (JSON string)
+ *               avt:
+ *                 type: string
+ *                 format: binary
+ *                 description: File ảnh đại diện của trang
+ *               removeAvatar:
+ *                 type: string
+ *                 description: Cờ để xóa ảnh đại diện (true/false)
  *     responses:
  *       200:
  *         description: Cập nhật Page thành công
@@ -132,13 +145,14 @@ Router.post('/', uploadMiddleware, pageController.createPage);
  *                 message:
  *                   type: string
  *                   example: Cập nhật Page thành công
+ *       400:
+ *         description: Yêu cầu không hợp lệ (lỗi xử lý file hoặc dữ liệu)
  *       404:
  *         description: Không tìm thấy Page với ID đã cung cấp
  *       500:
  *         description: Lỗi server khi xử lý yêu cầu
  */
-
-Router.patch('/:id', pageController.updatePageById);
+Router.patch("/:id", upload.single("avt"), pageController.updatePageById);
 
 /**
  * @swagger
