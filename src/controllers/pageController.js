@@ -29,10 +29,20 @@ const createPage = async (req, res) => {
 
 const updatePageById = async (req, res) => {
   try {
-    const updatedPage = await pageService.updatePageById(req.params.id, req.body);
-    if (!updatedPage) return res.status(404).json({ success: false, data: null, message: 'Page không tồn tại' });
-    res.status(200).json({ success: true, data: updatedPage, message: 'Cập nhật Page thành công' });
+    const data = {
+      ...req.body,
+      avatarFile: req.file || null,
+    };
+
+    console.log("Parsed page data:", data);
+
+    const updatedPage = await pageService.updatePageById(req.params.id, data);
+    if (!updatedPage) {
+      return res.status(404).json({ success: false, data: null, message: "Page không tồn tại" });
+    }
+    res.status(200).json({ success: true, data: updatedPage, message: "Cập nhật Page thành công" });
   } catch (error) {
+    console.error("Controller error:", error);
     res.status(500).json({ success: false, data: null, message: error.message });
   }
 };
