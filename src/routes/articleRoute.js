@@ -30,15 +30,60 @@ const Router = express.Router();
  *         schema:
  *           type: string
  *         description: ID nhóm (lọc theo nhóm)
+ *       - in: query
+ *         name: isDeleted
+ *         schema:
+ *           type: boolean
+ *         description: Lọc bài viết đã xóa (true) hoặc chưa xóa (false)
+ *       - in: query
+ *         name: hasReports
+ *         schema:
+ *           type: boolean
+ *         description: Lọc bài viết có báo cáo (true)
+ *       - in: query
+ *         name: $limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng bài viết mỗi trang
+ *       - in: query
+ *         name: $skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số bản ghi cần bỏ qua (dùng cho phân trang)
  *     responses:
  *       200:
- *         description: Trả về danh sách bài viết
+ *         description: Trả về danh sách bài viết với thông tin phân trang
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Article'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Article'
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số bài viết
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Lỗi server
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: null
+ *                 message:
+ *                   type: string
  */
 Router.get('/', articleController.getArticles);
 

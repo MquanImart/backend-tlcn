@@ -8,11 +8,13 @@ import {addressService} from "./addressService.js";
 import mongoose from 'mongoose';
 import { emitEvent } from "../socket/socket.js";
 
-const getArticles = async () => {
-  return await Article.find({ _destroy: null })
+const getArticles = async ({ limit = 5, skip = 0, filter = {} } = {}) => {
+  const total = await Article.countDocuments(filter);
+
+  const articles = await Article.find(filter)
     .populate({
       path: 'createdBy',
-      select: '_id displayName avt ',
+      select: '_id displayName avt',
       populate: {
         path: 'avt',
         select: '_id name idAuthor type url createdAt updatedAt',
@@ -28,13 +30,17 @@ const getArticles = async () => {
     })
     .populate({
       path: 'groupID',
-      select: '_id groupName ',
+      select: '_id groupName',
     })
     .populate({
       path: 'address',
       select: '_id province district ward street placeName lat long',
     })
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(skip);
+
+  return { articles, total };
 };
 
 
