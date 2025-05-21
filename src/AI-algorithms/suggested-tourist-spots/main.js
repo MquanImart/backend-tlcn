@@ -1,4 +1,4 @@
-import getRecommendedPlacesHybrid from "./hybridRecommendation.js";
+import { getRecommendedPagesHybrid, getRecommendedPlacesHybrid } from "./hybridRecommendation.js";
 
 const suggestedTouris = async (userId) => {
   //const pretreatment = await pretreatmentService.ConvertUserMatrix();
