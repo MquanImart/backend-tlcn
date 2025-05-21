@@ -7,11 +7,7 @@ import Collection from '../models/Collection.js';
 import { jaccardSimilarity } from '../utils/similarity.js';
 
 const fetchData = async (userId, page, limit) => {
-  // Debug logs
-  console.log(`\n--- BACKEND DEBUG START ---`);
-  console.log(`[fetchData] Requesting: page=${page}, limit=${limit}`);
   const skip = (page - 1) * limit;
-  console.log(`[fetchData] Calculated skip=${skip}`);
 
   const user = await User.findById(userId)
     .populate('hobbies friends following pages.createPages pages.followerPages groups.createGroups groups.saveGroups')
@@ -59,10 +55,7 @@ const fetchData = async (userId, page, limit) => {
   const articleIdsOnPage = articles.map(a => a._id);
   const collections = await Collection.find({ 'items._id': { $in: articleIdsOnPage } }).lean();
 
-  // Debug logs
-  console.log(`[fetchData] Articles fetched count: ${articles.length}`);
-  console.log(`[fetchData] First article ID (if any): ${articles.length > 0 ? articles[0]._id : 'N/A'}`);
-  console.log(`--- BACKEND DEBUG END ---\n`);
+
 
   return { user, articles, history, comments, collections, totalArticlesCount };
 };
@@ -158,13 +151,6 @@ const recommend = async (userId, page = 1, limit = 5) => {
   scores.sort((a, b) => b.score - a.score);
 
   const paginatedArticles = scores.map(s => s.article);
-
-  // Debug logs
-  console.log(`\n--- RECOMMEND SERVICE RETURN ---`);
-  console.log(`[recommend] Returning currentPage: ${page}`);
-  console.log(`[recommend] Returning totalPages: ${totalPages}`);
-  console.log(`[recommend] Final paginatedArticles count: ${paginatedArticles.length}`);
-  console.log(`--- RECOMMEND SERVICE END ---\n`);
 
   return {
     articles: paginatedArticles,

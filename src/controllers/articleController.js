@@ -2,8 +2,39 @@ import { articleService } from '../services/articleService.js';
 
 const getArticles = async (req, res) => {
   try {
-    const articles = await articleService.getArticles();
-    res.status(200).json({ success: true, data: articles, message: 'Lấy danh sách bài viết thành công' });
+    const { $limit = 5, $skip = 0, createdBy, groupID, isDeleted, hasReports } = req.query;
+    const filter = {};
+
+    // Lọc theo người tạo
+    if (createdBy) filter.createdBy = createdBy;
+
+    // Lọc theo nhóm
+    if (groupID) filter.groupID = groupID;
+
+    // Lọc bài viết đã xóa hoặc chưa xóa
+    if (isDeleted === 'true') {
+      filter._destroy = { $ne: null };
+    } else if (isDeleted === 'false') {
+      filter._destroy = null;
+    }
+
+    // Lọc bài viết có báo cáo
+    if (hasReports === 'true') {
+      filter['reports.0'] = { $exists: true };
+    }
+
+    const { articles, total } = await articleService.getArticles({
+      limit: parseInt($limit),
+      skip: parseInt($skip),
+      filter,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: articles,
+      total,
+      message: 'Lấy danh sách bài viết thành công',
+    });
   } catch (error) {
     res.status(500).json({ success: false, data: null, message: error.message });
   }
