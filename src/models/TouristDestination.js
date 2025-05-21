@@ -17,14 +17,12 @@ const TouristDestinationSchema = new Schema({
   tags: [{
     type: String,
     enum: [
-      'mountain', 'beach', 'forest', 'grassland', 'desert', 'river', 'lake', 'waterfall', 'cave',
-      'rice_field', 'flower_field', 'sky', 'island', 'volcano', 'national_park', 'canyon', 'snow',
-      'wildlife', 'bird', 'livestock', 'marine_life', 'festival', 'traditional_costume', 'market',
-      'cuisine', 'village', 'local_people', 'ceremony', 'street_art', 'historical_site', 'landmark',
-      'bridge', 'cityscape', 'traditional_house', 'old_town', 'castle', 'trekking', 'diving', 'camping',
-      'kayaking', 'hot_air_balloon', 'cycling', 'motorcycling', 'skiing', 'surfing', 'paragliding',
-      'street', 'transport', 'tree', 'weather', 'light', 'signpost', 'season', 'sunset', 'sunrise',
-      'aurora', 'night_sky', 'rock', 'lantern', 'photography', 'clouds'
+      "Nature",
+      "Wildlife & Creatures",
+      "Culture & People",
+      "Architecture & Heritage",
+      "Accommodation & Services",
+      "Food & Drink"
     ],
     required: true,
   }],

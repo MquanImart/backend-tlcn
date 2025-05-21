@@ -1,4 +1,4 @@
-import touristDestinationService from "../services/TouristDestinationService.js"
+import touristDestinationService from "../services/touristDestinationService.js"
 
 const getTouristDestinations = async (req, res) => {
   try {
@@ -57,6 +57,18 @@ const deleteTouristDestinationById = async (req, res) => {
   }
 }
 
+const createTouristDestinationByPageId = async (req, res) => {
+  try {
+    const { pageId } = req.body;
+    const result = await touristDestinationService.createTouristDestinationByPageId(pageId)
+    if (!result.success) 
+      return res.status(400).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: 'Tạo điểm du lịch thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const TouristDestinationController = {
   getTouristDestinations,
   getTouristDestinationById,
@@ -64,6 +76,7 @@ const TouristDestinationController = {
   updateTouristDestinationById,
   updateAllTouristDestinations,
   deleteTouristDestinationById,
+  createTouristDestinationByPageId
 }
 
 export  default TouristDestinationController;

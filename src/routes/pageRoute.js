@@ -68,6 +68,7 @@ Router.get('/:id', pageController.getPageById);
  *               address:
  *                 type: string
  *                 description: JSON string của thông tin địa chỉ
+ *                 example: {   "province": "Đồng Tháp",   "district": "Tam Nông",   "ward": "Tràm Chim",   "street": "",   "placeName": "Vườn Quốc Gia Tràm Chim",   "lat": 10.7069,   "long": 105.5222 }
  *               timeOpen:
  *                 type: string
  *               timeClose:
