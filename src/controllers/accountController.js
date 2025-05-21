@@ -119,8 +119,10 @@ const loginAccount = async (req, res) => {
   try {
     const { email, password } = req.body
     if (!email || !password) {return res.status(400).json({ success: false, message: 'Vui lòng nhập email và mật khẩu' })}
-    const loginResult = await accountService.loginAccount(email, password)  
-    if (!loginResult.success) {return res.status(401).json({ success: false, message: loginResult.message })
+    const loginResult = await accountService.loginAccount(email, password) 
+    if (!loginResult.success) 
+      {
+        return res.status(401).json({ success: false, message: loginResult.message })
     }
     res.status(200).json({success: true,data: loginResult.data,message: 'Đăng nhập thành công'
     })
