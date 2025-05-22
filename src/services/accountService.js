@@ -9,8 +9,53 @@ import crypto from 'crypto';
 import twilio from 'twilio';
 import nodemailer from 'nodemailer';
 
-const getAccounts = async () => {
-  return await Account.find();
+const getAccounts = async (options = {}) => {
+  const { filter, page = 1, limit = 10 } = options; // Default page 1, limit 10
+
+  const query = {};
+
+  // Apply filters
+  if (filter) {
+    switch (filter) {
+      case 'deleted': 
+        query._destroy = { $ne: null };
+        break;
+      case 'online': 
+        query.state = 'online';
+        query._destroy = null; 
+        break;
+      case 'offline': 
+        query.state = 'offline';
+        query._destroy = null; 
+        break;
+      case 'all_active':
+        query._destroy = null;
+        break;
+    }
+  } else {
+    query._destroy = null;
+  }
+
+
+  const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+  try {
+    const accounts = await Account.find(query)
+      .skip(skip)
+      .limit(parseInt(limit, 10))
+      .sort({ createdAt: -1 }); 
+
+    const totalAccounts = await Account.countDocuments(query);
+
+    return {
+      accounts,
+      totalPages: Math.ceil(totalAccounts / parseInt(limit, 10)),
+      currentPage: parseInt(page, 10),
+      totalAccounts,
+    };
+  } catch (error) {
+    throw error;
+  }
 };
 
 const getAccountById = async (id) => {

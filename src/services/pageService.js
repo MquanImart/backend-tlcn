@@ -3,8 +3,10 @@ import Province from "../models/Province.js";
 import User from "../models/User.js";
 import TouristDestination from "../models/TouristDestination.js";
 import { myPhotoService } from "./myPhotoService.js";
+import { cloudStorageService } from "../config/cloudStorage.js";
 import {addressService} from "./addressService.js"
 import suggestTouristDataGenimi from "../AI-algorithms/OpenAI-reply-format/suggestTouristDataGenimi.js";
+import MyPhoto from "../models/MyPhoto.js";
 
 const getPages = async () => {
   return await Page.find({ deleteAt: null })
@@ -16,7 +18,74 @@ const getPageById = async (id) => {
 
 
 const updatePageById = async (id, data) => {
-  return await Page.findByIdAndUpdate(id, data, { new: true })
+  try {
+    const page = await Page.findById(id).populate("avt");
+    if (!page) {
+      return null;
+    }
+
+    if (data.name) page.name = data.name;
+    if (data.address) page.address = data.address;
+    if (data.timeOpen) page.timeOpen = data.timeOpen;
+    if (data.timeClose) page.timeClose = data.timeClose;
+    if (data.hobbies) {
+      page.hobbies = JSON.parse(data.hobbies);
+    }
+
+    if (data.removeAvatar === "true" && page.avt) {
+      const oldFileUrl = page.avt?.url || null;
+      if (oldFileUrl) {
+        try {
+          const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
+          const filePath = `src/images/pages/${id}/${cleanFileName}`;
+          await cloudStorageService.deleteImageFromStorage(filePath);
+        } catch (error) {
+          if (error.code === 404) {
+            console.warn(`[PageService] Old avatar file not found in GCS: ${oldFileUrl}`);
+          } else {
+            console.error(`[PageService] Error deleting GCS file:`, error);
+          }
+        }
+        await MyPhoto.findByIdAndDelete(page.avt._id);
+      }
+      page.avt = null;
+    } else if (data.avatarFile) {
+      if (page.avt) {
+        const oldFileUrl = page.avt?.url || null;
+        if (oldFileUrl) {
+          try {
+            const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
+            const filePath = `src/images/pages/${id}/${cleanFileName}`;
+            await cloudStorageService.deleteImageFromStorage(filePath);
+          } catch (error) {
+            if (error.code === 404) {
+              console.warn(`[PageService] Old avatar file not found in GCS: ${oldFileUrl}`);
+            } else {
+              console.error(`[PageService] Error deleting old GCS file:`, error);
+            }
+          }
+          await MyPhoto.findByIdAndDelete(page.avt._id);
+        }
+      }
+
+      const uploadedFile = await myPhotoService.uploadAndSaveFile(
+        data.avatarFile,
+        page.idCreater,
+        "img",
+        "pages",
+        page._id
+      );
+
+      page.avt = uploadedFile._id;
+    }
+
+
+    await page.save();
+    return page;
+  } catch (error) {
+    console.error(`[PageService] Lỗi khi cập nhật page:`, error);
+    throw new Error("Lỗi khi cập nhật page");
+  }
 };
 
 const updateAllPages = async (data) => {

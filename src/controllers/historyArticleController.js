@@ -21,8 +21,6 @@ const getHistoryArticleById = async (req, res) => {
 
 const createHistoryArticle = async (req, res) => {
   try {
-    console.log('Dữ liệu nhận được:', req.body);
-
     const { idUser, idArticle, action } = req.body;
 
     if (!idUser || !idArticle || !action) {

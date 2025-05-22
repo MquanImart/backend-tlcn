@@ -72,17 +72,29 @@ const addHobbyByEmail = async (req, res) => {
 const getSavedGroups = async (req, res) => {
   try {
     const userId = req.params.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5; // Phù hợp với MyGroupTab
+    const skip = (page - 1) * limit;
+
     const user = await userService.getUserById(userId);
-    
     if (!user) {
       return res.status(404).json({ success: false, data: null, message: "Người dùng không tồn tại" });
     }
 
-    const savedGroups = await userService.getSavedGroups(userId);
+    const { groups, total } = await userService.getSavedGroups(userId, skip, limit);
 
-    res.status(200).json({ success: true, data: savedGroups, message: "Lấy danh sách nhóm đã lưu thành công" });
+    const totalPages = Math.ceil(total / limit);
 
+    res.status(200).json({
+      success: true,
+      data: groups,
+      total,
+      page,
+      totalPages,
+      message: "Lấy danh sách nhóm đã lưu thành công",
+    });
   } catch (error) {
+    console.error("Lỗi khi lấy danh sách nhóm đã lưu:", error);
     res.status(500).json({ success: false, data: null, message: error.message });
   }
 };
@@ -90,17 +102,29 @@ const getSavedGroups = async (req, res) => {
 const getMyGroups = async (req, res) => {
   try {
     const userId = req.params.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
     const user = await userService.getUserById(userId);
-    
     if (!user) {
       return res.status(404).json({ success: false, data: null, message: "Người dùng không tồn tại" });
     }
 
-    const savedGroups = await userService.getMyGroups(userId);
+    const { groups, total } = await userService.getMyGroups(userId, skip, limit);
 
-    res.status(200).json({ success: true, data: savedGroups, message: "Lấy danh sách nhóm đã lưu thành công" });
+    const totalPages = Math.ceil(total / limit);
 
+    res.status(200).json({
+      success: true,
+      data: groups,
+      total,
+      page,
+      totalPages,
+      message: "Lấy danh sách nhóm đã tạo thành công",
+    });
   } catch (error) {
+    console.error("Lỗi khi lấy danh sách nhóm đã tạo:", error);
     res.status(500).json({ success: false, data: null, message: error.message });
   }
 };
@@ -108,25 +132,39 @@ const getMyGroups = async (req, res) => {
 const getNotJoinedGroups = async (req, res) => {
   try {
     const userId = req.params.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5; // Phù hợp với các API khác
+    const skip = (page - 1) * limit;
 
     const user = await userService.getUserById(userId);
     if (!user) {
       return res.status(404).json({ success: false, data: null, message: "Người dùng không tồn tại" });
     }
 
-    const notJoinedGroups = await userService.getNotJoinedGroups(userId);
+    const { groups, total } = await userService.getNotJoinedGroups(userId, skip, limit);
 
-    res.status(200).json({ success: true, data: notJoinedGroups, message: "Lấy danh sách nhóm chưa tham gia thành công" });
+    const totalPages = Math.ceil(total / limit);
 
+    res.status(200).json({
+      success: true,
+      data: groups,
+      total,
+      page,
+      totalPages,
+      message: "Lấy danh sách nhóm chưa tham gia thành công",
+    });
   } catch (error) {
     console.error("Lỗi khi lấy danh sách nhóm chưa tham gia:", error);
-    res.status(500).json({ success: false, data: null, message: error.message });
+    res.status(500).json({ success: false, data: null, message: error.message || "Lỗi server" });
   }
 };
 
 const getArticleAllGroups = async (req, res) => {
   try {
     const userId = req.params.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
     // Kiểm tra người dùng có tồn tại hay không
     const user = await userService.getUserById(userId);
@@ -134,12 +172,19 @@ const getArticleAllGroups = async (req, res) => {
       return res.status(404).json({ success: false, data: null, message: "Người dùng không tồn tại" });
     }
 
-    // Lấy tất cả bài viết đã duyệt từ các nhóm người dùng tham gia
-    const articles = await userService.getArticleAllGroups(userId);
+    // Lấy danh sách bài viết đã duyệt với phân trang
+    const { articles, total } = await userService.getArticleAllGroups(userId, skip, limit);
 
-    // Trả về danh sách bài viết
-    res.status(200).json({ success: true, data: articles, message: "Lấy danh sách bài viết đã duyệt thành công" });
+    const totalPages = Math.ceil(total / limit);
 
+    res.status(200).json({
+      success: true,
+      data: articles,
+      total,
+      page,
+      totalPages,
+      message: "Lấy danh sách bài viết đã duyệt thành công",
+    });
   } catch (error) {
     console.error("Lỗi khi lấy bài viết đã duyệt:", error);
     res.status(500).json({ success: false, data: null, message: error.message });

@@ -264,9 +264,41 @@ Router.patch('/:id/join', groupController.requestJoinOrLeaveGroup);
  *         schema:
  *           type: string
  *         description: ID của nhóm
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng bài viết mỗi trang
  *     responses:
  *       200:
  *         description: Trả về danh sách bài viết đã duyệt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Article'
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số bài viết
+ *                 page:
+ *                   type: integer
+ *                   description: Trang hiện tại
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Tổng số trang
  *       404:
  *         description: Nhóm không tồn tại hoặc không có bài viết đã duyệt
  *       500:
@@ -287,9 +319,41 @@ Router.get("/:id/approved-articles", groupController.getApprovedArticles);
  *         schema:
  *           type: string
  *         description: ID của nhóm
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng bài viết mỗi trang
  *     responses:
  *       200:
  *         description: Trả về danh sách bài viết đang chờ duyệt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Article'
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số bài viết
+ *                 page:
+ *                   type: integer
+ *                   description: Trang hiện tại
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Tổng số trang
  *       404:
  *         description: Nhóm không tồn tại hoặc không có bài viết chờ duyệt
  *       500:
@@ -450,6 +514,18 @@ Router.patch('/:id/rules/:ruleValue', groupController.deleteRule);
  *         schema:
  *           type: string
  *         description: ID nhóm
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng yêu cầu mỗi trang
  *     responses:
  *       200:
  *         description: Danh sách thành viên chờ duyệt
@@ -460,7 +536,6 @@ Router.patch('/:id/rules/:ruleValue', groupController.deleteRule);
  *               properties:
  *                 success:
  *                   type: boolean
- *                   example: true
  *                 data:
  *                   type: array
  *                   items:
@@ -468,13 +543,25 @@ Router.patch('/:id/rules/:ruleValue', groupController.deleteRule);
  *                     properties:
  *                       id:
  *                         type: string
- *                         example: "60f7ebeb2f8fb814b56fa181"
  *                       fullName:
  *                         type: string
- *                         example: "Nguyễn Văn A"
  *                       email:
  *                         type: string
- *                         example: "nguyenvana@email.com"
+ *                       phone:
+ *                         type: string
+ *                       avatar:
+ *                         type: string
+ *                       joinDate:
+ *                         type: string
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số yêu cầu
+ *                 page:
+ *                   type: integer
+ *                   description: Trang hiện tại
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Tổng số trang
  *       404:
  *         description: Nhóm không tồn tại
  *       500:
@@ -588,6 +675,18 @@ Router.patch("/:groupID/members/:userID", groupController.updateMemberStatus);
  *         schema:
  *           type: string
  *         description: ID của thành viên
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng bài viết mỗi trang
  *     responses:
  *       200:
  *         description: Danh sách bài viết đã được duyệt
@@ -598,24 +697,19 @@ Router.patch("/:groupID/members/:userID", groupController.updateMemberStatus);
  *               properties:
  *                 success:
  *                   type: boolean
- *                   example: true
  *                 data:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: string
- *                         example: "67b5a2e2ce821229bb456527"
- *                       title:
- *                         type: string
- *                         example: "Bài viết về học tập"
- *                       content:
- *                         type: string
- *                         example: "Nội dung bài viết"
- *                       createdAt:
- *                         type: string
- *                         format: date-time
+ *                     $ref: '#/components/schemas/Article'
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số bài viết
+ *                 page:
+ *                   type: integer
+ *                   description: Trang hiện tại
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Tổng số trang
  *       404:
  *         description: Nhóm hoặc thành viên không tồn tại
  *       500:

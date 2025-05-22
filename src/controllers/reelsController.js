@@ -2,11 +2,29 @@ import reelsService from '../services/reelsService.js';
 
 const getReels = async (req, res) => {
   try {
-    const { limit, skip } = req.params; // Lấy query parameters
-    console.log('req.query:', req.params);
+    let { $limit = 4, $skip = 0 } = req.query; // Sử dụng $limit và $skip
+    
+    $limit = parseInt($limit);
+    $skip = parseInt($skip);
+    
+    if (isNaN($limit) || $limit < 1) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: '$limit phải là số nguyên dương',
+      });
+    }
+    if (isNaN($skip) || $skip < 0) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: '$skip phải là số nguyên không âm',
+      });
+    }
+
     const reels = await reelsService.getReels({
-      limit: 4,
-      skip: skip, 
+      limit: $limit, // Chuyển thành limit để khớp với reelsService
+      skip: $skip,   // Chuyển thành skip
     });
     res.status(200).json({
       success: true,

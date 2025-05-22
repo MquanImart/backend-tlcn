@@ -136,9 +136,41 @@ Router.delete('/:id', userController.deleteUserById);
  *         schema:
  *           type: string
  *         description: ID của người dùng
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng nhóm mỗi trang
  *     responses:
  *       200:
  *         description: Trả về danh sách nhóm đã lưu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Group'
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số nhóm
+ *                 page:
+ *                   type: integer
+ *                   description: Trang hiện tại
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Tổng số trang
  *       404:
  *         description: Người dùng không tồn tại hoặc chưa lưu nhóm nào
  *       500:
@@ -150,7 +182,7 @@ Router.get("/:id/saved-groups", userController.getSavedGroups);
  * @swagger
  * /users/{id}/my-groups:
  *   get:
- *     summary: Lấy danh sách nhóm mà người đó tạo
+ *     summary: Lấy danh sách nhóm mà người dùng đã tạo
  *     tags: [Users]
  *     parameters:
  *       - in: path
@@ -159,11 +191,43 @@ Router.get("/:id/saved-groups", userController.getSavedGroups);
  *         schema:
  *           type: string
  *         description: ID của người dùng
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Số lượng nhóm mỗi trang
  *     responses:
  *       200:
- *         description: Trả về danh sách nhóm đã lưu
+ *         description: Trả về danh sách nhóm đã tạo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Group'
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số nhóm
+ *                 page:
+ *                   type: integer
+ *                   description: Trang hiện tại
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Tổng số trang
  *       404:
- *         description: Người dùng không tồn tại hoặc chưa lưu nhóm nào
+ *         description: Người dùng không tồn tại hoặc chưa tạo nhóm nào
  *       500:
  *         description: Lỗi server
  */
@@ -182,9 +246,39 @@ Router.get("/:id/my-groups", userController.getMyGroups);
  *         schema:
  *           type: string
  *         description: ID của người dùng
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng nhóm mỗi trang
  *     responses:
  *       200:
  *         description: Trả về danh sách nhóm chưa tham gia
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số nhóm
+ *                 page:
+ *                   type: integer
+ *                   description: Trang hiện tại
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Tổng số trang
  *       404:
  *         description: Người dùng không tồn tại hoặc không có nhóm phù hợp
  *       500:
@@ -205,9 +299,41 @@ Router.get("/:id/not-joined-groups", userController.getNotJoinedGroups);
  *         schema:
  *           type: string
  *         description: ID của người dùng
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Số lượng bài viết mỗi trang
  *     responses:
  *       200:
- *         description: Trả về danh sách các bài viết đã duyệt trong các nhóm mà người dùng tham gia
+ *         description: Trả về danh sách các bài viết đã duyệt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Article'
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số bài viết
+ *                 page:
+ *                   type: integer
+ *                   description: Trang hiện tại
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Tổng số trang
  *       404:
  *         description: Người dùng không tồn tại hoặc không có bài viết nào
  *       500:
@@ -543,6 +669,7 @@ Router.get('/:id/suggest', userController.suggestedFriends);
  *         description: Lỗi server
  */
 Router.get('/:id/created-pages', userController.getCreatedPages);
+
 /**
  * @swagger
  * /users/account/{accountId}:
