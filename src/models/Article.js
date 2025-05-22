@@ -14,10 +14,6 @@ const articleSchema = new Schema({
     ref: 'User', 
     required: true,
   },
-  sharedPostId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Article', 
-  },
   reports: [{
     type: Schema.Types.ObjectId,
     ref: 'Report',
@@ -57,6 +53,7 @@ const articleSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User', 
   }],
+  
   comments: [{
     type: Schema.Types.ObjectId,
     ref: 'Comment',

@@ -13,30 +13,116 @@ const Router = express.Router();
  * @swagger
  * /accounts:
  *   get:
- *     summary: Lấy danh sách tài khoản
+ *     summary: Lấy danh sách tài khoản với tùy chọn lọc và phân trang
  *     tags: [Accounts]
+ *     parameters:
+ *       - in: query
+ *         name: filter
+ *         schema:
+ *           type: string
+ *           enum: [all, all_active, deleted, online, offline]
+ *           default: all_active
+ *         description: |
+ *           Tiêu chí lọc tài khoản:
+ *           - `all`: Lấy tất cả tài khoản (bao gồm cả đã xóa mềm).
+ *           - `all_active`: Lấy tất cả tài khoản chưa xóa mềm (_destroy: null, mặc định nếu không cung cấp filter).
+ *           - `deleted`: Lấy tài khoản đã xóa mềm (_destroy không null).
+ *           - `online`: Lấy tài khoản đang trực tuyến (state: 'online', _destroy: null).
+ *           - `offline`: Lấy tài khoản đang ngoại tuyến (state: 'offline', _destroy: null).
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Số trang hiện tại (mặc định là 1).
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 10
+ *         description: Số lượng tài khoản trên mỗi trang (mặc định là 10).
  *     responses:
  *       200:
- *         description: Trả về danh sách tài khoản
+ *         description: Trả về danh sách tài khoản cùng thông tin phân trang
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                     example: "60f7ebeb2f8fb814b56fa181"
- *                   email:
- *                     type: string
- *                     example: "user@example.com"
- *                   phone:
- *                     type: string
- *                     example: "0123456789"
- *                   role:
- *                     type: string
- *                     example: "user"
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "60f7ebeb2f8fb814b56fa181"
+ *                       email:
+ *                         type: string
+ *                         example: "user@example.com"
+ *                       phone:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "0123456789"
+ *                       role:
+ *                         type: string
+ *                         example: "user"
+ *                       warningLevel:
+ *                         type: number
+ *                         example: 0
+ *                       state:
+ *                         type: string
+ *                         enum: [online, offline]
+ *                         example: "online"
+ *                       _destroy:
+ *                         type: number
+ *                         nullable: true
+ *                         example: null
+ *                       createdAt:
+ *                         type: number
+ *                         example: 1626857900000
+ *                       updatedAt:
+ *                         type: number
+ *                         example: 1626857900000
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 5
+ *                     currentPage:
+ *                       type: integer
+ *                       example: 1
+ *                     totalAccounts:
+ *                       type: integer
+ *                       example: 48
+ *                     limit:
+ *                       type: integer
+ *                       example: 10
+ *                 message:
+ *                   type: string
+ *                   example: "Lấy danh sách tài khoản thành công"
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: "Lỗi khi lấy danh sách tài khoản"
  */
 Router.get('/', accountController.getAccounts);
 /**

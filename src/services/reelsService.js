@@ -59,7 +59,6 @@ const getReels = async ({ limit = 4, skip=0 } = {}) => {
 
     const total = await Reels.countDocuments(query);
 
-    console.log(`API /reels: skip=${skip}, limit=${limit}, found=${reels.length}, total=${total}`);
 
     return {
       success: true,

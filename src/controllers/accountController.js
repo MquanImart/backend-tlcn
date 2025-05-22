@@ -7,14 +7,32 @@ import nodemailer from 'nodemailer';
 import Account from "../models/Account.js";
 import User from "../models/User.js";
 dotenv.config()
+
 const getAccounts = async (req, res) => {
   try {
-    const accounts = await accountService.getAccounts()
-    res.status(200).json({ success: true, data: accounts, message: 'Lấy danh sách tài khoản thành công' })
+    const { filter, page, limit } = req.query; 
+
+    const result = await accountService.getAccounts({
+      filter,
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 10, 
+    });
+
+    res.status(200).json({
+      success: true,
+      data: result.accounts,
+      pagination: {
+        totalPages: result.totalPages,
+        currentPage: result.currentPage,
+        totalAccounts: result.totalAccounts,
+        limit: limit ? parseInt(limit, 10) : 10,
+      },
+      message: 'Lấy danh sách tài khoản thành công',
+    });
   } catch (error) {
-    res.status(500).json({ success: false, data: null, message: error.message })
+    res.status(500).json({ success: false, data: null, message: error.message });
   }
-}
+};
 
 const getAccountById = async (req, res) => {
   try {
@@ -119,8 +137,10 @@ const loginAccount = async (req, res) => {
   try {
     const { email, password } = req.body
     if (!email || !password) {return res.status(400).json({ success: false, message: 'Vui lòng nhập email và mật khẩu' })}
-    const loginResult = await accountService.loginAccount(email, password)  
-    if (!loginResult.success) {return res.status(401).json({ success: false, message: loginResult.message })
+    const loginResult = await accountService.loginAccount(email, password) 
+    if (!loginResult.success) 
+      {
+        return res.status(401).json({ success: false, message: loginResult.message })
     }
     res.status(200).json({success: true,data: loginResult.data,message: 'Đăng nhập thành công'
     })
