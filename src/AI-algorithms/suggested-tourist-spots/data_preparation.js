@@ -122,9 +122,80 @@ async function dataPreparationPages() {
     return result;
 }
 
+async function dataPreparationPagesList(pageIds) {
+  // Lọc page theo danh sách truyền vào
+  const pages = await Page.find(
+    { _id: { $in: pageIds } },
+    '_id listArticle'
+  ).lean();
+
+  const result = [];
+
+  for (const page of pages) {
+    const { _id: pageId, listArticle } = page;
+
+    const articleTags = await ArticleTags.find({
+      idArticle: { $in: listArticle }
+    }).lean();
+
+    const textTagStats = {};
+    const imageTagStats = {};
+
+    for (const tagDoc of articleTags) {
+      for (const tag of tagDoc.textTag) {
+        if (!textTagStats[tag]) textTagStats[tag] = [];
+        textTagStats[tag].push(1);
+      }
+
+      for (const imgTag of tagDoc.imagesTag) {
+        const tag = imgTag.tag;
+        const weight = imgTag.weight;
+        if (!imageTagStats[tag]) imageTagStats[tag] = 0;
+        imageTagStats[tag] += weight;
+      }
+    }
+
+    const textTags = Object.entries(textTagStats).map(([tag, values]) => ({
+      tag,
+      weight: values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0,
+    }));
+
+    const imageTags = Object.entries(imageTagStats).map(([tag, weight]) => ({
+      tag,
+      weight,
+    }));
+
+    const destination = await TouristDestination.findOne({ pageId }).lean();
+    const destinationTags = destination?.tags || [];
+
+    const mergeTagWeight = (tagsArr, newTags) => {
+      const tagMap = {};
+      for (const tagObj of tagsArr) {
+        tagMap[tagObj.tag] = tagObj.weight;
+      }
+      for (const newTag of newTags) {
+        if (tagMap[newTag]) tagMap[newTag] += 1;
+        else tagMap[newTag] = 1;
+      }
+      return Object.entries(tagMap).map(([tag, weight]) => ({ tag, weight }));
+    };
+
+    const finalTextTags = mergeTagWeight(textTags, destinationTags);
+
+    result.push({
+      pageId,
+      textTags: finalTextTags,
+      imageTags: imageTags
+    });
+  }
+
+  return result;
+}
+
 const data_preparation = {
     getAllUserProfiles,
     dataPreparationUser,
-    dataPreparationPages
+    dataPreparationPages,
+    dataPreparationPagesList
 }
 export default data_preparation;

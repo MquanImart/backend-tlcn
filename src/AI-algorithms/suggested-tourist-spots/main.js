@@ -20,8 +20,9 @@ const suggestedPageCB = async (userId) => {
 
 const suggestedPageMonth = async (userId, month) => {
   try {
-    const result = await getRecommendedWithMonth(userId);
-    return { success: true, data: result };
+    const result = await getRecommendedWithMonth(userId, month);
+    if (result.success) return { success: true, data: result };
+    return { success: false, message: result.message };
   } catch (error){
     return { success: false, message: error.message };
   }
