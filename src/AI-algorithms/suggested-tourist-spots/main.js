@@ -1,16 +1,36 @@
-import ContentBased from "./content_base.js";
+import { getRecommendedPageCF, getRecommendedPagesCB, getRecommendedWithMonth } from "./hybridRecommendation.js";
 
-const suggestedTouris = async (userId) => {
-  //const pretreatment = await pretreatmentService.ConvertUserMatrix();
-  //if (pretreatment === null)  return { success: false }
-
-  const result = await ContentBased(userId);
-
-  return { success: true, data: result };
+const suggestedPageCF = async (userId) => {
+  try {
+    const result = await getRecommendedPageCF(userId);
+    return { success: true, data: result };
+  } catch (error){
+    return { success: false, message: error.message };
+  }
 };
 
-const suggestedTourisService = {
-  suggestedTouris
+const suggestedPageCB = async (userId) => {
+  try {
+    const result = await getRecommendedPagesCB(userId);
+    return { success: true, data: result };
+  } catch (error){
+    return { success: false, message: error.message };
+  }
+};
+
+const suggestedPageMonth = async (userId, month) => {
+  try {
+    const result = await getRecommendedWithMonth(userId);
+    return { success: true, data: result };
+  } catch (error){
+    return { success: false, message: error.message };
+  }
+};
+
+const suggestedPageService = {
+  suggestedPageCF,
+  suggestedPageCB,
+  suggestedPageMonth
 }
 
-export default suggestedTourisService;
+export default suggestedPageService;
