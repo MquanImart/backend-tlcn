@@ -30,7 +30,6 @@ const deleteMyPhotoById = async (id) => {
 
 const uploadAndSaveFile = async (file, userId, type, folderType, referenceId) => {
   try {
-    console.log("Uploading file for referenceId:", referenceId, "type:", type);
     if (!file || !file.buffer) {
       console.error("Invalid file provided for upload");
       throw new Error("Không có file hợp lệ để upload!");
@@ -38,7 +37,6 @@ const uploadAndSaveFile = async (file, userId, type, folderType, referenceId) =>
 
     const fileName = `${referenceId}_${Date.now()}`;
     const destination = `src/images/${folderType}/${referenceId}/${fileName}`;
-    console.log("Uploading to GCS path:", destination);
 
     // Upload file to GCS
     const fileUrl = await cloudStorageService.uploadImageBufferToStorage(
@@ -51,7 +49,6 @@ const uploadAndSaveFile = async (file, userId, type, folderType, referenceId) =>
       console.error("Failed to get URL after upload");
       throw new Error("Không lấy được URL sau khi upload!");
     }
-    console.log("File uploaded successfully, URL:", fileUrl);
 
     // Create new MyPhoto document
     const newFile = await MyPhoto.create({
@@ -60,7 +57,6 @@ const uploadAndSaveFile = async (file, userId, type, folderType, referenceId) =>
       type: type,
       url: fileUrl,
     });
-    console.log("MyPhoto document created:", newFile._id);
 
     return newFile;
   } catch (error) {
