@@ -669,6 +669,7 @@ Router.get('/:id/suggest', userController.suggestedFriends);
  *         description: Lỗi server
  */
 Router.get('/:id/created-pages', userController.getCreatedPages);
+
 /**
  * @swagger
  * /users/account/{accountId}:
