@@ -12,9 +12,9 @@ const Router = express.Router();
 
 /**
  * @swagger
- * /ai/suggested-touris/{id}:
+ * /ai/suggested-page-CF/{id}:
  *   get:
- *     summary: Lấy danh sách địa điểm gợi ý
+ *     summary: Lấy danh sách địa điểm gợi ý CF
  *     tags: [AI]
  *     parameters:
  *       - in: path
@@ -28,7 +28,55 @@ const Router = express.Router();
  *       200:
  *         description: Trả về danh sách địa điểm gợi ý
  */
-Router.get('/suggested-touris/:id', SuggestTouristController.suggestTouristForUser);
+Router.get('/suggested-page-CF/:id', SuggestTouristController.suggestedPageCF);
+
+/**
+ * @swagger
+ * /ai/suggested-page-CB/{id}:
+ *   get:
+ *     summary: Lấy danh sách địa điểm gợi ý CB
+ *     tags: [AI]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID của người dùng
+ *         schema:
+ *           type: string
+ *           example: "67d2e85d1a29ef48e08a19ef"
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách địa điểm gợi ý
+ */
+Router.get('/suggested-page-CB/:id', SuggestTouristController.suggestedPageCB);
+
+/**
+ * @swagger
+ * /ai/suggested-page-month/{id}:
+ *   get:
+ *     summary: Lấy danh sách địa điểm gợi ý
+ *     tags: [AI]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID của người dùng
+ *         schema:
+ *           type: string
+ *           example: "67d2e85d1a29ef48e08a19ef"
+ *       - in: query
+ *         name: month
+ *         required: false
+ *         description: Tháng muốn gợi ý địa điểm (1-12)
+ *         schema:
+ *           type: integer
+ *           example: 5
+ *     query:
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách địa điểm gợi ý
+ */
+Router.get('/suggested-page-month/:id', SuggestTouristController.suggestedPageMonth);
 
 /**
  * @swagger

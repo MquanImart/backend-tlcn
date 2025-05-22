@@ -1,3 +1,4 @@
+import Page from "../../models/Page.js";
 import { buildVocabularyFromProfiles, calculateCosineSimilarity, extractTagsAndWeights } from "./utils/recommendationUtils.js";
 
 function recommendationsContentBase(userDataInput, allPagesData, weights) {
@@ -67,4 +68,25 @@ function recommendationsContentBase(userDataInput, allPagesData, weights) {
   };
 }
 
-export default recommendationsContentBase;
+async function recommendationsCB(userDataInput, allPagesData, weights) {
+  const { recommendations } = await recommendationsContentBase(userDataInput, allPagesData, weights);
+  
+  const result = await Promise.all(
+    recommendations.map(async (recommendation) => {
+      const pages = await Page.findById(recommendation.pageId)
+        .select('_id name avt')
+        .populate({
+            path: 'avt',
+            model: 'MyPhoto'
+        });
+      
+      return {
+        page: pages,
+        ...recommendation
+      }
+    })
+  )
+  return result;
+}
+
+export default recommendationsCB;
