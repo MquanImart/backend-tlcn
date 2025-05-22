@@ -64,10 +64,8 @@ const createGroup = async ({ groupName, type, idCreater, introduction, rule, hob
 
 const updateGroupById = async (id, data) => {
   try {
-    console.log("Updating group ID:", id, "with data:", data);
     const group = await Group.findById(id).populate("avt");
     if (!group) {
-      console.log("Group not found:", id);
       return null;
     }
 
@@ -82,14 +80,12 @@ const updateGroupById = async (id, data) => {
     }
 
     if (data.removeAvatar === "true" && group.avt) {
-      console.log("Removing avatar for group:", id);
       const oldFileUrl = group.avt?.url || null;
       if (oldFileUrl) {
         try {
           // Clean URL by removing query parameters
           const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
           const filePath = `src/images/groups/${id}/${cleanFileName}`;
-          console.log("Deleting GCS file:", filePath);
           await cloudStorageService.deleteImageFromStorage(filePath);
         } catch (error) {
           if (error.code === 404) {
@@ -98,19 +94,16 @@ const updateGroupById = async (id, data) => {
             console.error("Error deleting GCS file:", error);
           }
         }
-        console.log("Deleting MyPhoto document:", group.avt._id);
         await MyPhoto.findByIdAndDelete(group.avt._id);
       }
       group.avt = null;
     } else if (data.avatarFile) {
-      console.log("Processing new avatar for group:", id);
       if (group.avt) {
         const oldFileUrl = group.avt?.url || null;
         if (oldFileUrl) {
           try {
             const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
             const filePath = `src/images/groups/${id}/${cleanFileName}`;
-            console.log("Deleting old GCS file:", filePath);
             await cloudStorageService.deleteImageFromStorage(filePath);
           } catch (error) {
             if (error.code === 404) {
@@ -119,12 +112,9 @@ const updateGroupById = async (id, data) => {
               console.error("Error deleting old GCS file:", error);
             }
           }
-          console.log("Deleting old MyPhoto document:", group.avt._id);
           await MyPhoto.findByIdAndDelete(group.avt._id);
         }
 
-        // Upload new avatar and create new MyPhoto document
-        console.log("Uploading new avatar for group:", id);
         const uploadedFile = await myPhotoService.uploadAndSaveFile(
           data.avatarFile,
           group.idCreater,
@@ -133,14 +123,10 @@ const updateGroupById = async (id, data) => {
           group._id
         );
 
-        console.log("New MyPhoto document created:", uploadedFile._id);
         group.avt = uploadedFile._id;
       }
 
-      // Save the updated group
-      console.log("Saving updated group:", id);
       await group.save();
-      console.log("Group updated successfully:", id);
       return group;
     }
   } catch (error) {

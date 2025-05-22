@@ -27,7 +27,6 @@ const getNotificationById = async (req, res) => {
 
 const createNotification = async (req, res) => {
   try {
-    console.log('notify', req.body);
     const newNotification = await notificationService.createNotification(req.body);
     res.status(201).json({ success: true, data: newNotification, message: 'Tạo thông báo thành công' });
   } catch (error) {

@@ -17,13 +17,8 @@ const getPageById = async (id) => {
 
 const updatePageById = async (id, data) => {
   try {
-    console.log(`[PageService] Updating page ID: ${id} with data:`, {
-      ...data,
-      avatarFile: data.avatarFile ? "[File]" : null,
-    });
     const page = await Page.findById(id).populate("avt");
     if (!page) {
-      console.log(`[PageService] Page not found: ${id}`);
       return null;
     }
 
@@ -36,13 +31,11 @@ const updatePageById = async (id, data) => {
     }
 
     if (data.removeAvatar === "true" && page.avt) {
-      console.log(`[PageService] Removing avatar for page: ${id}`);
       const oldFileUrl = page.avt?.url || null;
       if (oldFileUrl) {
         try {
           const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
           const filePath = `src/images/pages/${id}/${cleanFileName}`;
-          console.log(`[PageService] Deleting GCS file: ${filePath}`);
           await cloudStorageService.deleteImageFromStorage(filePath);
         } catch (error) {
           if (error.code === 404) {
@@ -51,19 +44,16 @@ const updatePageById = async (id, data) => {
             console.error(`[PageService] Error deleting GCS file:`, error);
           }
         }
-        console.log(`[PageService] Deleting MyPhoto document: ${page.avt._id}`);
         await MyPhoto.findByIdAndDelete(page.avt._id);
       }
       page.avt = null;
     } else if (data.avatarFile) {
-      console.log(`[PageService] Processing new avatar for page: ${id}`);
       if (page.avt) {
         const oldFileUrl = page.avt?.url || null;
         if (oldFileUrl) {
           try {
             const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
             const filePath = `src/images/pages/${id}/${cleanFileName}`;
-            console.log(`[PageService] Deleting old GCS file: ${filePath}`);
             await cloudStorageService.deleteImageFromStorage(filePath);
           } catch (error) {
             if (error.code === 404) {
@@ -72,13 +62,10 @@ const updatePageById = async (id, data) => {
               console.error(`[PageService] Error deleting old GCS file:`, error);
             }
           }
-          console.log(`[PageService] Deleting old MyPhoto document: ${page.avt._id}`);
           await MyPhoto.findByIdAndDelete(page.avt._id);
         }
       }
 
-      // Upload new avatar and create new MyPhoto document
-      console.log(`[PageService] Uploading new avatar for page: ${id}`);
       const uploadedFile = await myPhotoService.uploadAndSaveFile(
         data.avatarFile,
         page.idCreater,
@@ -87,14 +74,11 @@ const updatePageById = async (id, data) => {
         page._id
       );
 
-      console.log(`[PageService] New MyPhoto document created: ${uploadedFile._id}`);
       page.avt = uploadedFile._id;
     }
 
-    // Save the updated page
-    console.log(`[PageService] Saving updated page: ${id}`);
+
     await page.save();
-    console.log(`[PageService] Page updated successfully: ${id}`);
     return page;
   } catch (error) {
     console.error(`[PageService] Lỗi khi cập nhật page:`, error);
