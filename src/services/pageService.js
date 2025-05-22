@@ -1,9 +1,11 @@
 import Page from "../models/Page.js";
 import Province from "../models/Province.js";
 import User from "../models/User.js";
+import TouristDestination from "../models/TouristDestination.js";
 import { myPhotoService } from "./myPhotoService.js";
 import { cloudStorageService } from "../config/cloudStorage.js";
 import {addressService} from "./addressService.js"
+import suggestTouristDataGenimi from "../AI-algorithms/OpenAI-reply-format/suggestTouristDataGenimi.js";
 import MyPhoto from "../models/MyPhoto.js";
 
 const getPages = async () => {
@@ -177,6 +179,18 @@ const createPage = async (req) => {
     { upsert: false, new: true } // Không tạo mới nếu user không tồn tại
   );
 
+  //8. Tạo thêm điểm đến cho page
+  const suggestion = await suggestTouristDataGenimi(addressData, name);
+  if (suggestion.name !== null) {
+    await TouristDestination.create({
+      name: suggestion.name,
+      pageId: newPage._id,
+      province: suggestion.province,
+      best_months: suggestion.bestMonths,
+      tags: suggestion.tags,
+      coordinates: [addressData.lat, address.long],
+    });
+  }
   return newPage;
 }
 

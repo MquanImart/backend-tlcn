@@ -7,6 +7,7 @@ import { myPhotoService } from "./myPhotoService.js";
 import {addressService} from "./addressService.js";
 import mongoose from 'mongoose';
 import { emitEvent } from "../socket/socket.js";
+import { articleTagsService } from "./articleTagsService.js";
 
 const getArticles = async ({ limit = 5, skip = 0, filter = {} } = {}) => {
   const total = await Article.countDocuments(filter);
@@ -158,7 +159,9 @@ const createArticle = async (data, files) => {
         { new: true }
       );
     }
-
+    
+    await articleTagsService.createArticleTagByArticle(newArticle, uploadedMedia);
+    
     return newArticle;
   } catch (error) {
     console.error("❌ Lỗi chi tiết khi tạo bài viết:", {

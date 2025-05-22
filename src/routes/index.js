@@ -26,6 +26,7 @@ import { recentViewRoute } from './recentViewRoute.js'
 import { AIRoute } from './AIRoute.js'
 import { touristDestinationRoute } from './touristDestinationRoute.js'
 import { recommendationRoute } from './recommendationRoutes.js'
+import { articleTagsRoute } from './articleTagsRoute.js'
 
 const Router = express.Router()
 
@@ -42,6 +43,7 @@ Router.use('/reports', reportRoute)
 Router.use('/notifications', notificationRoute)
 Router.use('/historysearches', historySearchRoute)
 Router.use('/articles', articleRoute)
+Router.use('/article-tags', articleTagsRoute)
 Router.use('/comments', commentRoute)
 Router.use('/groups', groupRoute)
 Router.use('/pages', pageRoute)
