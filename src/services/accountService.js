@@ -125,7 +125,7 @@ const loginAccount = async (email, password) => {
       role: account.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: '1h' } // Token hết hạn sau 1 giờ
+    { expiresIn: '1h' }
   );
   return {
     success: true,
