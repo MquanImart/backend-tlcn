@@ -20,14 +20,16 @@ const getRecommendations = async (req, res) => {
         message: 'Page và limit phải lớn hơn 0'
       });
     }
-    // Calling the recommendation service with page and limit
-    const { articles, totalPages, currentPage } = await recommendationService.recommend(userId, page, limit);
+    // Gọi service lấy kết quả gợi ý
+    const { articles, totalPages, currentPage, scoredArticlesDetails } = await recommendationService.recommend(userId, page, limit);
+
     res.status(200).json({
       success: true,
       data: {
         articles,
         totalPages,
-        currentPage
+        currentPage,
+        scoredArticlesDetails // Trả về chi tiết điểm số từng bài
       },
       message: 'Lấy danh sách bài viết gợi ý thành công'
     });

@@ -2,63 +2,8 @@
 import User from '../models/User.js';
 import Article from '../models/Article.js';
 import HistoryArticle from '../models/HistoryArticle.js';
+import ArticleTags from '../models/ArticleTags.js';
 import Comment from '../models/Comment.js';
-import Collection from '../models/Collection.js';
-import { jaccardSimilarity } from '../utils/similarity.js';
-
-const fetchData = async (userId, page, limit) => {
-  const skip = (page - 1) * limit;
-
-  const user = await User.findById(userId)
-    .populate('hobbies friends following pages.createPages pages.followerPages groups.createGroups groups.saveGroups')
-    .lean();
-
-  if (!user) {
-    throw new Error('Người dùng không tồn tại');
-  }
-
-  const totalArticlesCount = await Article.countDocuments({ _destroy: null });
-
-  const articles = await Article.find({ _destroy: null })
-    .populate({
-      path: 'createdBy',
-      select: '_id displayName avt',
-      populate: {
-        path: 'avt',
-        select: '_id name idAuthor type url createdAt updatedAt',
-      },
-    })
-    .populate({
-      path: 'listPhoto',
-      select: '_id name idAuthor type url createdAt updatedAt',
-      populate: {
-        path: 'idAuthor',
-        select: '_id displayName avt',
-      },
-    })
-    .populate({
-      path: 'groupID',
-      select: '_id groupName',
-    })
-    .populate({
-      path: 'address',
-      select: '_id province district ward street streetName lat long',
-    })
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
-
-  const history = await HistoryArticle.find({ idUser: userId }).lean();
-  const comments = await Comment.find({ _iduser: userId }).lean();
-
-  const articleIdsOnPage = articles.map(a => a._id);
-  const collections = await Collection.find({ 'items._id': { $in: articleIdsOnPage } }).lean();
-
-
-
-  return { user, articles, history, comments, collections, totalArticlesCount };
-};
 
 const filterArticlesByScope = async (userId, articles) => {
   const user = await User.findById(userId).populate('friends').lean();
@@ -70,92 +15,176 @@ const filterArticlesByScope = async (userId, articles) => {
       return false;
     }
 
-    if (article.scope === 'Công khai') return true;
-    if (article.scope === 'Bạn bè' && user.friends.some(friend => friend._id.toString() === article.createdBy._id.toString())) return true;
-    if (article.scope === 'Riêng tư' && article.createdBy._id.toString() === userId.toString()) return true;
+    const scope = article.scope || 'Công khai';
+    if (scope === 'Công khai') return true;
+    if (
+      scope === 'Bạn bè' &&
+      user.friends.some(friend => friend._id.toString() === article.createdBy._id.toString())
+    )
+      return true;
+    if (scope === 'Riêng tư' && article.createdBy._id.toString() === userId.toString()) return true;
     return false;
   });
 };
 
-const calculateContentBasedScore = (user, article) => {
-  const userFeatures = [
-    ...user.hobbies.map(h => `hobby:${h._id.toString()}`),
-    ...[...user.groups.createGroups, ...user.groups.saveGroups].map(g => `group:${g._id.toString()}`),
-    ...[...user.pages.createPages, ...user.pages.followerPages].map(p => `page:${p._id.toString()}`),
-    ...user.following.map(f => `following:${f._id.toString()}`)
-  ];
-  const articleFeatures = [
-    ...(article.groupID ? [`group:${article.groupID._id.toString()}`] : []),
-    `creator:${article.createdBy._id.toString()}`
-  ];
-  return jaccardSimilarity(userFeatures, articleFeatures);
-};
+// --- Content-Based Filtering (CBF) ---
+// Xây dựng profile tag weighted của user dựa trên các bài đã tương tác
+const buildUserTagProfile = async (userId) => {
+  const history = await HistoryArticle.find({ idUser: userId }).lean();
+  const interactedArticleIds = history.map(h => h.idArticle);
 
-const calculateCollaborativeScore = async (userId, articles, history, comments, collections, user) => {
-  const scores = {};
-  const friendIds = user.friends.map(f => f._id.toString());
-  const followingIds = user.following.map(f => f._id.toString());
+  const userArticleTags = await ArticleTags.find({ idArticle: { $in: interactedArticleIds } }).lean();
 
-  history.forEach(h => {
-    const articleId = h.idArticle.toString();
-    scores[articleId] = (scores[articleId] || 0) + (h.action === 'View' ? 1 : 2);
-  });
-  comments.forEach(c => {
-    scores[c._id.toString()] = (scores[c._id.toString()] || 0) + 3;
-  });
-  collections.forEach(collection => {
-    collection.items.forEach(item => {
-      if (articles.some(a => a._id.toString() === item._id.toString())) {
-        scores[item._id.toString()] = (scores[item._id.toString()] || 0) + 4;
-      }
+  const tagProfile = {};
+
+  userArticleTags.forEach(at => {
+    // Tag text weight = 1
+    at.textTag.forEach(tag => {
+      tagProfile[tag] = (tagProfile[tag] || 0) + 1;
+    });
+    // Tag hình ảnh có trọng số weight riêng
+    at.imagesTag.forEach(imgTag => {
+      tagProfile[imgTag.tag] = (tagProfile[imgTag.tag] || 0) + imgTag.weight;
     });
   });
 
-  const friendHistory = await HistoryArticle.find({
-    idUser: { $in: [...friendIds, ...followingIds] }
-  }).lean();
-  friendHistory.forEach(h => {
-    const articleId = h.idArticle.toString();
-    if (articles.some(a => a._id.toString() === articleId)) {
-      scores[articleId] = (scores[articleId] || 0) + (h.action === 'View' ? 0.5 : 1);
-    }
-  });
-
-  return scores;
+  return tagProfile; // Ví dụ: { Nature: 3, "Food & Drink": 1.5, ... }
 };
 
-const recommend = async (userId, page = 1, limit = 5) => {
-  const { user, articles, history, comments, collections, totalArticlesCount } = await fetchData(userId, page, limit);
+// Tính điểm tương đồng tag giữa bài viết và profile user
+const scoreArticleByTags = (articleTags, userTagProfile) => {
+  if (!articleTags) return 0;
+  let score = 0;
+  articleTags.textTag.forEach(tag => {
+    if (userTagProfile[tag]) score += userTagProfile[tag];
+  });
+  articleTags.imagesTag.forEach(imgTag => {
+    if (userTagProfile[imgTag.tag]) score += userTagProfile[imgTag.tag] * imgTag.weight;
+  });
+  return score;
+};
 
-  const filteredArticles = await filterArticlesByScope(userId, articles);
+// --- Collaborative Filtering (CF) ---
+// Tính điểm dựa trên lịch sử tương tác của user và mạng bạn bè/following
+const calculateCollaborativeScore = async (userId, articles, user) => {
+  const friendIds = user.friends.map(f => f._id.toString());
+  const followingIds = user.following.map(f => f._id.toString());
 
-  const totalPages = Math.ceil(totalArticlesCount / limit);
+  // Tập hợp user chính + bạn bè + following
+  const interactedUsers = [userId, ...friendIds, ...followingIds];
 
-  if (filteredArticles.length === 0 && totalArticlesCount > 0 && page <= totalPages) {
-    return { articles: [], totalPages: totalPages, currentPage: page };
-  } else if (totalArticlesCount === 0) {
-    return { articles: [], totalPages: 0, currentPage: page };
-  }
+  // Lấy lịch sử tương tác của các user này
+  const interactions = await HistoryArticle.find({
+    idUser: { $in: interactedUsers }
+  }).lean();
 
-  const collaborativeScores = await calculateCollaborativeScore(userId, filteredArticles, history, comments, collections, user);
+  const scores = {};
+  interactions.forEach(h => {
+    const articleId = h.idArticle.toString();
+    // View cho điểm thấp hơn Like (hoặc các hành động khác)
+    let baseScore = h.action === 'View' ? 1 : 2;
 
-  const scores = filteredArticles.map(article => {
-    const contentScore = calculateContentBasedScore(user, article);
-    const collabScore = collaborativeScores[article._id.toString()] || 0;
-    return {
-      article,
-      score: 0.6 * contentScore + 0.4 * collabScore
-    };
+    // Tương tác của user chính có trọng số cao hơn bạn bè/following
+    if (h.idUser.toString() === userId) baseScore *= 2;
+    else baseScore *= 0.5;
+
+    scores[articleId] = (scores[articleId] || 0) + baseScore;
   });
 
-  scores.sort((a, b) => b.score - a.score);
+  // Trả về map điểm cho bài viết trong danh sách articles
+  return articles.reduce((acc, a) => {
+    acc[a._id.toString()] = scores[a._id.toString()] || 0;
+    return acc;
+  }, {});
+};
 
-  const paginatedArticles = scores.map(s => s.article);
+const recommend = async (userId, page = 1, limit = 10) => {
+  // Lấy user và các quan hệ cần thiết
+  const user = await User.findById(userId)
+    .populate([
+      'hobbies',
+      'friends',
+      'following',
+      'groups.createGroups',
+      'groups.saveGroups',
+      'pages.createPages',
+      'pages.followerPages',
+    ])
+    .lean();
+
+  if (!user) throw new Error('Người dùng không tồn tại');
+
+  // Lấy tất cả bài viết chưa xóa (hoặc giới hạn theo thời gian nếu cần tối ưu)
+  let allArticles = await Article.find({ _destroy: null })
+    .populate({
+      path: 'createdBy',
+      select: '_id displayName friends',
+    })
+    .lean();
+
+  // Lọc bài viết theo quyền xem (scope)
+  allArticles = await filterArticlesByScope(userId, allArticles);
+
+  // Lấy tags của tất cả bài viết đã lọc
+  const articleIds = allArticles.map(a => a._id);
+  const articleTagsList = await ArticleTags.find({ idArticle: { $in: articleIds } }).lean();
+  const articleTagsMap = new Map();
+  articleTagsList.forEach(at => articleTagsMap.set(at.idArticle.toString(), at));
+
+  // Xây dựng profile tag của user dựa trên các bài đã tương tác
+  const userTagProfile = await buildUserTagProfile(userId);
+
+  // Lấy danh sách các bài user đã comment
+  const comments = await Comment.find({ _iduser: userId }).lean();
+  const commentedArticleIds = comments
+    .map(c => c.articleId)
+    .filter(id => id != null)
+    .map(id => id.toString());
+
+  const COMMENT_BOOST = 5;
+  const ALPHA = 0.6;
+
+  // Tính điểm Collaborative Filtering trên toàn bộ bài viết
+  const collaborativeScores = await calculateCollaborativeScore(userId, allArticles, user);
+
+  // Tính điểm kết hợp cho từng bài viết
+  const scoredArticles = allArticles.map(article => {
+    const idStr = article._id.toString();
+    const at = articleTagsMap.get(idStr);
+
+    // Điểm content-based dựa trên tags
+    const contentScore = scoreArticleByTags(at, userTagProfile);
+    // Điểm collaborative filtering dựa trên hành vi tương tác
+    const collabScore = collaborativeScores[idStr] || 0;
+    // Tăng điểm nếu user đã comment bài này
+    const commentScore = commentedArticleIds.includes(idStr) ? COMMENT_BOOST : 0;
+
+    // Tổng điểm cuối cùng kết hợp content, collaborative và comment boost
+    const finalScore = ALPHA * contentScore + (1 - ALPHA) * collabScore + commentScore;
+
+    return { article, score: finalScore, detail: { contentScore, collabScore, commentScore } };
+  });
+
+  // Sắp xếp toàn bộ bài viết theo điểm giảm dần
+  scoredArticles.sort((a, b) => b.score - a.score);
+
+  // Phân trang trên kết quả đã sắp xếp
+  const totalArticlesCount = scoredArticles.length;
+  const totalPages = Math.ceil(totalArticlesCount / limit);
+  const startIndex = (page - 1) * limit;
+  const pagedArticles = scoredArticles.slice(startIndex, startIndex + limit);
 
   return {
-    articles: paginatedArticles,
+    articles: pagedArticles.map(s => s.article),
     totalPages,
     currentPage: page,
+    scoredArticlesDetails: pagedArticles.map(s => ({
+      articleId: s.article._id.toString(),
+      contentScore: s.detail.contentScore,
+      collaborativeScore: s.detail.collabScore,
+      commentScore: s.detail.commentScore,
+      finalScore: s.score,
+    })),
   };
 };
 
