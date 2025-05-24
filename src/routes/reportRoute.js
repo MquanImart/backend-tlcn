@@ -1,6 +1,6 @@
 import express from 'express';
 import { reportController } from '../controllers/reportController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -19,7 +19,7 @@ const Router = express.Router();
  *       200:
  *         description: Trả về danh sách báo cáo
  */
-Router.get('/', reportController.getReports);
+Router.get('/',verifyToken, reportController.getReports);
 
 /**
  * @swagger
@@ -38,7 +38,7 @@ Router.get('/', reportController.getReports);
  *       200:
  *         description: Trả về báo cáo
  */
-Router.get('/:id', reportController.getReportById);
+Router.get('/:id',verifyToken, reportController.getReportById);
 
 /**
  * @swagger
@@ -94,7 +94,7 @@ Router.get('/:id', reportController.getReportById);
  *       500:
  *         description: Lỗi máy chủ
  */
-Router.post('/', reportController.createReport);
+Router.post('/',verifyToken, reportController.createReport);
 
 
 /**
@@ -114,7 +114,7 @@ Router.post('/', reportController.createReport);
  *       200:
  *         description: Cập nhật báo cáo thành công
  */
-Router.patch('/:id', reportController.updateReportById);
+Router.patch('/:id',verifyToken, reportController.updateReportById);
 
 /**
  * @swagger
@@ -126,7 +126,7 @@ Router.patch('/:id', reportController.updateReportById);
  *       200:
  *         description: Cập nhật tất cả báo cáo thành công
  */
-Router.patch('/', reportController.updateAllReports);
+Router.patch('/',verifyToken, reportController.updateAllReports);
 
 /**
  * @swagger
@@ -145,6 +145,6 @@ Router.patch('/', reportController.updateAllReports);
  *       200:
  *         description: Xóa báo cáo thành công
  */
-Router.delete('/:id', reportController.deleteReportById);
+Router.delete('/:id',verifyToken, reportController.deleteReportById);
 
 export const reportRoute = Router;

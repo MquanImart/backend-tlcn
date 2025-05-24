@@ -4,11 +4,10 @@ import { env } from '../config/environment.js' // Tệp chứa JWT_SECRET hoặc
 // Middleware để xác thực token
 export const verifyToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1] // Lấy token từ header 'Authorization'
-  console.log(token)
   if (!token) {
     return res
       .status(401)
-      .json({ message: 'Access denied. No token provided.' })
+      .json({ message: 'Vui lòng đăng nhập để tiếp tục.' })
   }
 
   try {
@@ -17,24 +16,23 @@ export const verifyToken = (req, res, next) => {
     req.user = decoded // Lưu thông tin giải mã của token vào req.user
     next() // Cho phép request tiếp tục
   } catch (error) {
-    // Nếu xác thực thất bại
-    return res.status(403).json({ message: 'Invalid or expired token.' })
+    return res.status(403).json({ message: 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.' })
   }
 }
 
-
+// Middleware để kiểm tra quyền admin
 export const verifyAdmin = (req, res, next) => {
   try {
     const token = req.headers.authorization.split(' ')[1]
     const decoded = jwt.verify(token, env.JWT_SECRET)
 
     if (decoded.role !== 'admin') {
-      return res.status(403).json({ message: 'Bạn không có quyền truy cập vào tài nguyên này' })
+      return res.status(403).json({ message: 'Bạn không có quyền truy cập vào tài nguyên này.' })
     }
 
     req.user = decoded
     next()
   } catch (error) {
-    res.status(401).json({ message: 'Không thể xác thực người dùng' })
+    res.status(401).json({ message: 'Không thể xác thực người dùng.' })
   }
 }

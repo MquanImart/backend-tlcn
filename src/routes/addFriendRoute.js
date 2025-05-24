@@ -1,6 +1,6 @@
 import express from 'express';
 import AddFriendController from '../controllers/addFriendController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -19,7 +19,7 @@ const Router = express.Router();
  *       200:
  *         description: Danh sách tất cả lời mời kết bạn
  */
-Router.get('/', AddFriendController.getAddFriends);
+Router.get('/',verifyToken, AddFriendController.getAddFriends);
 
 /**
  * @swagger
@@ -40,7 +40,7 @@ Router.get('/', AddFriendController.getAddFriends);
  *       404:
  *         description: Không tìm thấy
  */
-Router.get('/:id', AddFriendController.getAddFriendById);
+Router.get('/:id',verifyToken, AddFriendController.getAddFriendById);
 
 /**
  * @swagger
@@ -76,8 +76,7 @@ Router.get('/:id', AddFriendController.getAddFriendById);
  *       400:
  *         description: Dữ liệu đầu vào không hợp lệ
  */
-Router.post('/', AddFriendController.createAddFriend);
-
+Router.post('/',verifyToken, AddFriendController.createAddFriend);
 
 /**
  * @swagger
@@ -110,7 +109,7 @@ Router.post('/', AddFriendController.createAddFriend);
  *       404:
  *         description: Không tìm thấy yêu cầu
  */
-Router.patch('/:id', AddFriendController.updateAddFriendById);
+Router.patch('/:id',verifyToken, AddFriendController.updateAddFriendById);
 
 /**
  * @swagger
@@ -122,7 +121,7 @@ Router.patch('/:id', AddFriendController.updateAddFriendById);
  *       200:
  *         description: All friend requests updated
  */
-Router.patch('/', AddFriendController.updateAllAddFriends);
+Router.patch('/',verifyToken, AddFriendController.updateAllAddFriends);
 
 /**
  * @swagger
@@ -142,7 +141,7 @@ Router.patch('/', AddFriendController.updateAllAddFriends);
  *       404:
  *         description: Friend request not found
  */
-Router.delete('/:id', AddFriendController.deleteAddFriendById);
+Router.delete('/:id',verifyToken, AddFriendController.deleteAddFriendById);
 
 /**
  * @swagger
@@ -163,7 +162,7 @@ Router.delete('/:id', AddFriendController.deleteAddFriendById);
  *       404:
  *         description: Không tìm thấy
  */
-Router.get('/sender/:id', AddFriendController.getAddFriendBySenderId);
+Router.get('/sender/:id',verifyToken, AddFriendController.getAddFriendBySenderId);
 
 /**
  * @swagger
@@ -184,6 +183,6 @@ Router.get('/sender/:id', AddFriendController.getAddFriendBySenderId);
  *       404:
  *         description: Không tìm thấy
  */
-Router.get('/receive/:id', AddFriendController.getAddFriendByReceiverId);
+Router.get('/receive/:id',verifyToken, AddFriendController.getAddFriendByReceiverId);
 
 export const addFriendRoute = Router;

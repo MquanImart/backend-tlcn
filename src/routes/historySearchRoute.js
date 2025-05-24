@@ -1,6 +1,6 @@
 import express from 'express';
 import { historySearchController } from '../controllers/historySearchController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -51,7 +51,7 @@ const Router = express.Router();
  *                   type: string
  *                   example: "Error message"
  */
-Router.get('/', historySearchController.getHistorySearches);
+Router.get('/',verifyToken, historySearchController.getHistorySearches);
 
 /**
  * @swagger
@@ -115,9 +115,7 @@ Router.get('/', historySearchController.getHistorySearches);
  *                   type: string
  *                   example: "Error message"
  */
-Router.get('/:id', historySearchController.getHistorySearchById);
-
-
+Router.get('/:id',verifyToken, historySearchController.getHistorySearchById);
 
 /**
  * @swagger
@@ -196,7 +194,7 @@ Router.get('/:id', historySearchController.getHistorySearchById);
  *                   type: string
  *                   example: "Error message"
  */
-Router.patch('/:id', historySearchController.updateHistorySearchById);
+Router.patch('/:id',verifyToken, historySearchController.updateHistorySearchById);
 
 /**
  * @swagger
@@ -248,7 +246,7 @@ Router.patch('/:id', historySearchController.updateHistorySearchById);
  *                   type: string
  *                   example: "Error message"
  */
-Router.patch('/', historySearchController.updateAllHistorySearches);
+Router.patch('/',verifyToken, historySearchController.updateAllHistorySearches);
 
 /**
  * @swagger
@@ -313,7 +311,7 @@ Router.patch('/', historySearchController.updateAllHistorySearches);
  *                   type: string
  *                   example: "Error message"
  */
-Router.delete('/:id', historySearchController.deleteHistorySearchById);
+Router.delete('/:id',verifyToken, historySearchController.deleteHistorySearchById);
 
 /**
  * @swagger
@@ -389,7 +387,7 @@ Router.delete('/:id', historySearchController.deleteHistorySearchById);
  *                   type: string
  *                   example: "Error message"
  */
-Router.post('/', historySearchController.addHistorySearch);
+Router.post('/',verifyToken, historySearchController.addHistorySearch);
 /**
  * @swagger
  * /historysearches/user/{idUser}:
@@ -452,7 +450,7 @@ Router.post('/', historySearchController.addHistorySearch);
  *                   type: string
  *                   example: "Error message"
  */
-Router.get('/user/:idUser', historySearchController.getHistorySearchByIdUser);
+Router.get('/user/:idUser',verifyToken, historySearchController.getHistorySearchByIdUser);
 /**
  * @swagger
  * /historysearches/user/{idUser}:
@@ -531,5 +529,5 @@ Router.get('/user/:idUser', historySearchController.getHistorySearchByIdUser);
  *                   type: string
  *                   example: "Error message"
  */
-Router.patch('/user/:idUser', historySearchController.updateHistorySearchByIdUser);
+Router.patch('/user/:idUser',verifyToken, historySearchController.updateHistorySearchByIdUser);
 export const historySearchRoute = Router;

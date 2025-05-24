@@ -1,7 +1,7 @@
 import express from 'express';
 import upload from '../config/multerConfig.js';
 import { myPhotoController } from '../controllers/myPhotoController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 /**
  * @swagger
@@ -52,7 +52,6 @@ Router.get('/', myPhotoController.getMyPhotos);
  *         description: Trả về ảnh/video/ghi âm
  */
 Router.get('/:id', myPhotoController.getMyPhotoById);
-
 
 /**
  * @swagger

@@ -1,7 +1,7 @@
 import express from 'express';
 import { commentController } from '../controllers/commentController.js';
 import upload from '../config/multerConfig.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -20,7 +20,7 @@ const Router = express.Router();
  *       200:
  *         description: Trả về danh sách bình luận
  */
-Router.get('/', commentController.getComments);
+Router.get('/',verifyToken, commentController.getComments);
 
 /**
  * @swagger
@@ -39,7 +39,7 @@ Router.get('/', commentController.getComments);
  *       200:
  *         description: Trả về bình luận
  */
-Router.get('/:id', commentController.getCommentById);
+Router.get('/:id',verifyToken, commentController.getCommentById);
 
 /**
  * @swagger
@@ -110,7 +110,7 @@ Router.get('/:id', commentController.getCommentById);
  *         description: Lỗi máy chủ khi xử lý yêu cầu
  */
 Router.post(
-    '/',
+    '/',verifyToken,
     upload.fields([
       { name: 'media', maxCount: 1 }, // Giới hạn 1 file
       { name: 'images', maxCount: 1 }, // Giới hạn 1 file
@@ -135,7 +135,7 @@ Router.post(
  *       200:
  *         description: Cập nhật bình luận thành công
  */
-Router.patch('/:id', commentController.updateCommentById);
+Router.patch('/:id',verifyToken, commentController.updateCommentById);
 
 /**
  * @swagger
@@ -147,7 +147,7 @@ Router.patch('/:id', commentController.updateCommentById);
  *       200:
  *         description: Cập nhật tất cả bình luận thành công
  */
-Router.patch('/', commentController.updateAllComments);
+Router.patch('/',verifyToken, commentController.updateAllComments);
 
 /**
  * @swagger
@@ -166,7 +166,7 @@ Router.patch('/', commentController.updateAllComments);
  *       200:
  *         description: Xóa bình luận thành công
  */
-Router.delete('/:id', commentController.deleteCommentById);
+Router.delete('/:id',verifyToken, commentController.deleteCommentById);
 
 /**
  * @swagger
@@ -200,7 +200,7 @@ Router.delete('/:id', commentController.deleteCommentById);
  *       500:
  *         description: Lỗi máy chủ
  */
-Router.patch('/:id/like', commentController.likeComment);
+Router.patch('/:id/like',verifyToken, commentController.likeComment);
 
 
 export const commentRoute = Router;

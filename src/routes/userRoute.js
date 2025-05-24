@@ -1,6 +1,6 @@
 import express from 'express';
 import { userController } from '../controllers/userController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -19,7 +19,7 @@ const Router = express.Router();
  *       200:
  *         description: Trả về danh sách người dùng
  */
-Router.get('/', userController.getUsers);
+Router.get('/',verifyToken, userController.getUsers);
 
 /**
  * @swagger
@@ -38,7 +38,7 @@ Router.get('/', userController.getUsers);
  *       200:
  *         description: Trả về người dùng
  */
-Router.get('/:id', userController.getUserById);
+Router.get('/:id',verifyToken, userController.getUserById);
 
 /**
  * @swagger
@@ -69,7 +69,7 @@ Router.get('/:id', userController.getUserById);
  *       201:
  *         description: Tạo người dùng thành công
  */
-Router.post('/', userController.createUser);
+Router.post('/',verifyToken, userController.createUser);
 
 /**
  * @swagger
@@ -88,7 +88,7 @@ Router.post('/', userController.createUser);
  *       200:
  *         description: Cập nhật người dùng thành công
  */
-Router.patch('/:id', userController.updateUserById);
+Router.patch('/:id',verifyToken, userController.updateUserById);
 
 /**
  * @swagger
@@ -100,7 +100,7 @@ Router.patch('/:id', userController.updateUserById);
  *       200:
  *         description: Cập nhật tất cả người dùng thành công
  */
-Router.patch('/', userController.updateAllUsers);
+Router.patch('/',verifyToken, userController.updateAllUsers);
 
 /**
  * @swagger
@@ -120,8 +120,6 @@ Router.patch('/', userController.updateAllUsers);
  *         description: Xóa người dùng thành công
  */
 Router.delete('/:id', userController.deleteUserById);
-
-
 
 /**
  * @swagger
@@ -176,7 +174,7 @@ Router.delete('/:id', userController.deleteUserById);
  *       500:
  *         description: Lỗi server
  */
-Router.get("/:id/saved-groups", userController.getSavedGroups);
+Router.get("/:id/saved-groups",verifyToken, userController.getSavedGroups);
 
 /**
  * @swagger
@@ -231,7 +229,7 @@ Router.get("/:id/saved-groups", userController.getSavedGroups);
  *       500:
  *         description: Lỗi server
  */
-Router.get("/:id/my-groups", userController.getMyGroups);
+Router.get("/:id/my-groups",verifyToken, userController.getMyGroups);
 
 /**
  * @swagger
@@ -284,7 +282,7 @@ Router.get("/:id/my-groups", userController.getMyGroups);
  *       500:
  *         description: Lỗi server
  */
-Router.get("/:id/not-joined-groups", userController.getNotJoinedGroups);
+Router.get("/:id/not-joined-groups",verifyToken, userController.getNotJoinedGroups);
 
 /**
  * @swagger
@@ -339,7 +337,7 @@ Router.get("/:id/not-joined-groups", userController.getNotJoinedGroups);
  *       500:
  *         description: Lỗi server
  */
-Router.get("/:id/group-articles", userController.getArticleAllGroups);
+Router.get("/:id/group-articles",verifyToken, userController.getArticleAllGroups);
 
 /**
  * @swagger
@@ -365,7 +363,7 @@ Router.get("/:id/group-articles", userController.getArticleAllGroups);
  *       200:
  *         description: Lấy ảnh đại diện
  */
-Router.get('/:id/avt', userController.getPhotoAvt);
+Router.get('/:id/avt',verifyToken, userController.getPhotoAvt);
 
 /**
  * @swagger
@@ -428,7 +426,7 @@ Router.post("/addHobbyByEmail", userController.addHobbyByEmail);
  *       200:
  *         description: Tạo collection cho user thành công
  */
-Router.post('/collections', userController.createCollection);
+Router.post('/collections',verifyToken, userController.createCollection);
 
 /**
  * @swagger
@@ -458,7 +456,7 @@ Router.post('/collections', userController.createCollection);
  *       500:
  *         description: Lỗi server khi xóa bộ sưu tập
  */
-Router.delete('/:id/collections', userController.deleteCollection);
+Router.delete('/:id/collections',verifyToken, userController.deleteCollection);
 
 /**
  * @swagger
@@ -488,7 +486,7 @@ Router.delete('/:id/collections', userController.deleteCollection);
  *       500:
  *         description: Lỗi server khi xóa bộ sưu tập
  */
-Router.get('/:id/collections-recent', userController.getEarliestItems);
+Router.get('/:id/collections-recent',verifyToken, userController.getEarliestItems);
 
 /**
  * @swagger
@@ -512,7 +510,7 @@ Router.get('/:id/collections-recent', userController.getEarliestItems);
  *       500:
  *         description: Lỗi server khi xóa bộ sưu tập
  */
-Router.get('/:id/collections', userController.getAllCollection);
+Router.get('/:id/collections',verifyToken, userController.getAllCollection);
 
 /**
  * @swagger
@@ -536,7 +534,7 @@ Router.get('/:id/collections', userController.getAllCollection);
  *       500:
  *         description: Lỗi server khi xóa bộ sưu tập
  */
-Router.get('/:id/friends', userController.getAllFriends);
+Router.get('/:id/friends',verifyToken, userController.getAllFriends);
 
 /**
  * @swagger
@@ -575,7 +573,7 @@ Router.get('/:id/friends', userController.getAllFriends);
  *       500:
  *         description: Lỗi máy chủ
  */
-Router.patch('/:id/setting', userController.updateUserSetting);
+Router.patch('/:id/setting',verifyToken, userController.updateUserSetting);
 /**
  * @swagger
  * /users/{id}/unfriend:
@@ -608,7 +606,7 @@ Router.patch('/:id/setting', userController.updateUserSetting);
  *       500:
  *         description: Lỗi server khi xóa bộ sưu tập
  */
-Router.patch('/:id/unfriend', userController.unFriends);
+Router.patch('/:id/unfriend',verifyToken, userController.unFriends);
 
 /**
  * @swagger
@@ -632,7 +630,7 @@ Router.patch('/:id/unfriend', userController.unFriends);
  *       500:
  *         description: Lỗi server khi xóa bộ sưu tập
  */
-Router.get('/:id/suggest', userController.suggestedFriends);
+Router.get('/:id/suggest',verifyToken, userController.suggestedFriends);
 
 
 /**
@@ -668,7 +666,7 @@ Router.get('/:id/suggest', userController.suggestedFriends);
  *       500:
  *         description: Lỗi server
  */
-Router.get('/:id/created-pages', userController.getCreatedPages);
+Router.get('/:id/created-pages',verifyToken, userController.getCreatedPages);
 
 /**
  * @swagger
@@ -811,7 +809,7 @@ Router.get('/account/:accountId', userController.getUserByAccountId);
  *       500:
  *         description: Lỗi hệ thống
  */
-Router.post("/:id/add-saved-location", userController.addSavedLocation);
+Router.post("/:id/add-saved-location",verifyToken, userController.addSavedLocation);
 
 /**
  * @swagger
@@ -842,7 +840,7 @@ Router.post("/:id/add-saved-location", userController.addSavedLocation);
  *       500:
  *         description: Lỗi hệ thống
  */
-Router.delete("/:id/delete-saved-location", userController.deleteSavedLocation);
+Router.delete("/:id/delete-saved-location",verifyToken, userController.deleteSavedLocation);
 
 /**
  * @swagger
@@ -866,7 +864,7 @@ Router.delete("/:id/delete-saved-location", userController.deleteSavedLocation);
  *         description: Lỗi hệ thống
  */
 
-Router.get("/:id/saved-locations", userController.getAllSavedLocation);
+Router.get("/:id/saved-locations",verifyToken, userController.getAllSavedLocation);
 
 /**
  * @swagger
@@ -906,7 +904,7 @@ Router.get("/:id/saved-locations", userController.getAllSavedLocation);
  *         description: Lỗi hệ thống
  */
 
-Router.post("/:id/check-saved-location", userController.checkSavedLocation);
+Router.post("/:id/check-saved-location",verifyToken, userController.checkSavedLocation);
 
 /**
  * @swagger
@@ -930,7 +928,7 @@ Router.post("/:id/check-saved-location", userController.checkSavedLocation);
  *         description: Lỗi hệ thống
  */
 
-Router.get("/:id/trips", userController.getAllTrip);
+Router.get("/:id/trips",verifyToken, userController.getAllTrip);
 
 /**
  * @swagger
@@ -1002,7 +1000,7 @@ Router.get("/:id/trips", userController.getAllTrip);
  *         description: Lỗi hệ thống
  */
 
-Router.post("/:id/trips", userController.createTrip);
+Router.post("/:id/trips",verifyToken, userController.createTrip);
 /**
  * @swagger
  * /users/{id}/hobbies:
@@ -1046,7 +1044,7 @@ Router.post("/:id/trips", userController.createTrip);
  *       500:
  *         description: Lỗi server
  */
-Router.get('/:id/hobbies', userController.getHobbiesByUserId);
+Router.get('/:id/hobbies',verifyToken, userController.getHobbiesByUserId);
 
 /**
  * @swagger
@@ -1106,6 +1104,6 @@ Router.get('/:id/hobbies', userController.getHobbiesByUserId);
  *       500:
  *         description: Lỗi server
  */
-Router.patch('/:id/hobbies', userController.updateHobbiesByUserId);
+Router.patch('/:id/hobbies',verifyToken, userController.updateHobbiesByUserId);
 
 export const userRoute = Router;

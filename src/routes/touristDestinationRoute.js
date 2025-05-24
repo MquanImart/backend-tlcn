@@ -1,6 +1,6 @@
 import express from 'express';
 import touristDestinationController from '../controllers/touristDestinationController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -61,7 +61,7 @@ const Router = express.Router();
  *       200:
  *         description: Danh sách điểm du lịch
  */
-Router.get('/', touristDestinationController.getTouristDestinations);
+Router.get('/',verifyToken, touristDestinationController.getTouristDestinations);
 
 /**
  * @swagger
@@ -82,7 +82,7 @@ Router.get('/', touristDestinationController.getTouristDestinations);
  *       404:
  *         description: Không tìm thấy điểm du lịch
  */
-Router.get('/:id', touristDestinationController.getTouristDestinationById);
+Router.get('/:id',verifyToken, touristDestinationController.getTouristDestinationById);
 
 /**
  * @swagger
@@ -102,7 +102,7 @@ Router.get('/:id', touristDestinationController.getTouristDestinationById);
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.post('/', touristDestinationController.createTouristDestination);
+Router.post('/',verifyToken, touristDestinationController.createTouristDestination);
 
 /**
  * @swagger
@@ -129,7 +129,7 @@ Router.post('/', touristDestinationController.createTouristDestination);
  *       404:
  *         description: Không tìm thấy điểm du lịch
  */
-Router.patch('/:id', touristDestinationController.updateTouristDestinationById);
+Router.patch('/:id',verifyToken, touristDestinationController.updateTouristDestinationById);
 
 /**
  * @swagger
@@ -141,7 +141,7 @@ Router.patch('/:id', touristDestinationController.updateTouristDestinationById);
  *       200:
  *         description: Cập nhật thành công tất cả điểm du lịch
  */
-Router.patch('/', touristDestinationController.updateAllTouristDestinations);
+Router.patch('/',verifyToken, touristDestinationController.updateAllTouristDestinations);
 
 /**
  * @swagger
@@ -162,7 +162,7 @@ Router.patch('/', touristDestinationController.updateAllTouristDestinations);
  *       404:
  *         description: Không tìm thấy điểm du lịch
  */
-Router.delete('/:id', touristDestinationController.deleteTouristDestinationById);
+Router.delete('/:id',verifyToken, touristDestinationController.deleteTouristDestinationById);
 
 /**
  * @swagger
@@ -190,6 +190,6 @@ Router.delete('/:id', touristDestinationController.deleteTouristDestinationById)
  *         description: Lỗi server
  */
 
-Router.post('/page', touristDestinationController.createTouristDestinationByPageId);
+Router.post('/page',verifyToken, touristDestinationController.createTouristDestinationByPageId);
 
 export const touristDestinationRoute = Router;

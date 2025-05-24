@@ -1,6 +1,6 @@
 import express from 'express';
 import { hobbyController } from '../controllers/hobbyController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**

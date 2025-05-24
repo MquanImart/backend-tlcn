@@ -1,6 +1,6 @@
 import express from 'express';
 import { accountController } from '../controllers/accountController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -124,7 +124,7 @@ const Router = express.Router();
  *                   type: string
  *                   example: "Lỗi khi lấy danh sách tài khoản"
  */
-Router.get('/', accountController.getAccounts);
+Router.get('/',verifyToken, accountController.getAccounts);
 /**
  * @swagger
  * /accounts/{id}:
@@ -161,7 +161,7 @@ Router.get('/', accountController.getAccounts);
  *       404:
  *         description: Không tìm thấy tài khoản
  */
-Router.get('/:id', accountController.getAccountById);
+Router.get('/:id',verifyToken, accountController.getAccountById);
 
 /**
  * @swagger
@@ -195,7 +195,7 @@ Router.get('/:id', accountController.getAccountById);
  *       404:
  *         description: Không tìm thấy tài khoản
  */
-Router.patch('/:id', accountController.updateAccountById);
+Router.patch('/:id',verifyToken, accountController.updateAccountById);
 
 /**
  * @swagger
@@ -236,7 +236,7 @@ Router.patch('/', accountController.updateAllAccounts);
  *       404:
  *         description: Không tìm thấy tài khoản
  */
-Router.delete('/:id', accountController.deleteAccountById);
+Router.delete('/:id',verifyToken, accountController.deleteAccountById);
 /**
  * @swagger
  * /accounts/login:
@@ -287,8 +287,30 @@ Router.delete('/:id', accountController.deleteAccountById);
  *                           example: "user"
  *       400:
  *         description: Thiếu email hoặc mật khẩu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Vui lòng nhập email và mật khẩu"
  *       401:
- *         description: Email hoặc mật khẩu không đúng
+ *         description: Email hoặc mật khẩu không đúng, hoặc tài khoản bị xóa
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Tài khoản của bạn đã bị xóa do vi phạm tiêu chuẩn cộng đồng"
  */
 Router.post('/login', accountController.loginAccount);
 /**
