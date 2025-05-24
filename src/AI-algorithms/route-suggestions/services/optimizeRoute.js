@@ -3,6 +3,7 @@ import getDistanceMatrix from './googleMatrix.js';
 import dayjs from 'dayjs';
 import Trip from '../../../models/Trip.js';
 import findVisitTime from './findVisitTime.js';
+import genimiDescribeRoute from './genimiDescribeRoute.js';
 
 function generatePermutations(arr) {
   if (arr.length <= 1) return [arr];
@@ -34,7 +35,7 @@ function calculateScore(route, matrix, useDistance, useDuration) {
   if (useDistance && useDuration) score = (distanceAsDuration + totalDuration)/2;
   else if (useDistance) score = distanceAsDuration;
   else if (useDuration) score = totalDuration;
-  return score;
+  return {score: score, distandce: totalDistance, duration: totalDuration};
 }
 
 function findBestRoutes(matrix, useDistance = true, useDuration = true) {
@@ -47,8 +48,8 @@ function findBestRoutes(matrix, useDistance = true, useDuration = true) {
 
   const scoredRoutes = permutations.map(perm => {
     const fullRoute = [start, ...perm, end];
-    const score = calculateScore(fullRoute, matrix, useDistance, useDuration);
-    return { route: fullRoute, score };
+    const {score, distandce, duration} = calculateScore(fullRoute, matrix, useDistance, useDuration);
+    return { route: fullRoute, score, distandce, duration };
   });
 
   // Sắp xếp theo điểm số tăng dần (tốt nhất đầu tiên)
@@ -86,8 +87,17 @@ export default async function optimizeRoute(input) {
   // 3. Tối ưu lộ trình
   const visitOrder = findBestRoutes(matrix, input.useDistance, input.useDuration);
   const penaltyPerHour = findVisitTime.computePenaltyPerHour(visitOrder);
-  const bestSchedules = visitOrder.map(r =>
-    findVisitTime.findBestStartTimeForRoute(r.route, r.score, matrix, enrichedPoints, input.startDateTime, input.visitingTime, penaltyPerHour)
+  const bestSchedules = await Promise.all(
+    visitOrder.slice(0, 3).map(async (r) => {
+      const schedule = findVisitTime.findBestStartTimeForRoute(
+        r, matrix, enrichedPoints, input.startDateTime, input.visitingTime, penaltyPerHour
+      );
+      const description = await genimiDescribeRoute(schedule, enrichedPoints, matrix);
+      return {
+        ...schedule,
+        description,
+      };
+    })
   );
   
   // Sắp xếp theo điểm tốt nhất
