@@ -1,6 +1,6 @@
 import express from 'express';
 import HistoryArticleController from '../controllers/historyArticleController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -45,7 +45,7 @@ const Router = express.Router();
  *       200:
  *         description: Danh sách lịch sử xem bài viết
  */
-Router.get('/', HistoryArticleController.getHistoryArticles);
+Router.get('/',verifyToken, HistoryArticleController.getHistoryArticles);
 
 /**
  * @swagger
@@ -66,7 +66,7 @@ Router.get('/', HistoryArticleController.getHistoryArticles);
  *       404:
  *         description: Không tìm thấy lịch sử xem bài viết
  */
-Router.get('/:id', HistoryArticleController.getHistoryArticleById);
+Router.get('/:id',verifyToken, HistoryArticleController.getHistoryArticleById);
 
 /**
  * @swagger
@@ -86,7 +86,7 @@ Router.get('/:id', HistoryArticleController.getHistoryArticleById);
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.post('/', HistoryArticleController.createHistoryArticle);
+Router.post('/',verifyToken, HistoryArticleController.createHistoryArticle);
 
 /**
  * @swagger
@@ -112,7 +112,7 @@ Router.post('/', HistoryArticleController.createHistoryArticle);
  *       404:
  *         description: Không tìm thấy lịch sử xem bài viết
  */
-Router.patch('/:id', HistoryArticleController.updateHistoryArticleById);
+Router.patch('/:id',verifyToken, HistoryArticleController.updateHistoryArticleById);
 
 /**
  * @swagger
@@ -124,7 +124,7 @@ Router.patch('/:id', HistoryArticleController.updateHistoryArticleById);
  *       200:
  *         description: Cập nhật thành công tất cả lịch sử xem bài viết
  */
-Router.patch('/', HistoryArticleController.updateAllHistoryArticles);
+Router.patch('/',verifyToken, HistoryArticleController.updateAllHistoryArticles);
 
 /**
  * @swagger
@@ -144,6 +144,6 @@ Router.patch('/', HistoryArticleController.updateAllHistoryArticles);
  *       404:
  *         description: Không tìm thấy lịch sử xem bài viết
  */
-Router.delete('/:id', HistoryArticleController.deleteHistoryArticleById);
+Router.delete('/:id',verifyToken, HistoryArticleController.deleteHistoryArticleById);
 
 export const historyArticledRoute = Router;

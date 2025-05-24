@@ -1,6 +1,7 @@
 import express from 'express';
 import { articleController } from '../controllers/articleController.js';
 import upload from '../config/multerConfig.js';
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 
 const Router = express.Router();
 
@@ -85,7 +86,7 @@ const Router = express.Router();
  *                 message:
  *                   type: string
  */
-Router.get('/', articleController.getArticles);
+Router.get('/',verifyToken, articleController.getArticles);
 
 /**
  * @swagger
@@ -110,7 +111,7 @@ Router.get('/', articleController.getArticles);
  *       404:
  *         description: Không tìm thấy bài viết
  */
-Router.get('/:id', articleController.getArticleById);
+Router.get('/:id',verifyToken, articleController.getArticleById);
 
 /**
  * @swagger
@@ -160,7 +161,7 @@ Router.get('/:id', articleController.getArticleById);
  *       201:
  *         description: Tạo bài viết thành công
  */
-Router.post('/', upload.fields([{ name: 'media', maxCount: 5 }, { name: 'images', maxCount: 5 }]), articleController.createArticle);
+Router.post('/',verifyToken, upload.fields([{ name: 'media', maxCount: 5 }, { name: 'images', maxCount: 5 }]), articleController.createArticle);
 
 /**
  * @swagger
@@ -194,7 +195,7 @@ Router.post('/', upload.fields([{ name: 'media', maxCount: 5 }, { name: 'images'
  *       404:
  *         description: Không tìm thấy bài viết
  */
-Router.patch('/:id', articleController.updateArticleById);
+Router.patch('/:id',verifyToken, articleController.updateArticleById);
 
 /**
  * @swagger
@@ -216,7 +217,7 @@ Router.patch('/:id', articleController.updateArticleById);
  *       200:
  *         description: Cập nhật tất cả bài viết thành công
  */
-Router.patch('/', articleController.updateAllArticles);
+Router.patch('/',verifyToken, articleController.updateAllArticles);
 
 /**
  * @swagger
@@ -237,7 +238,7 @@ Router.patch('/', articleController.updateAllArticles);
  *       404:
  *         description: Không tìm thấy bài viết
  */
-Router.delete('/:id', articleController.deleteArticleById);
+Router.delete('/:id',verifyToken, articleController.deleteArticleById);
 
 /**
 * @swagger
@@ -270,7 +271,7 @@ Router.delete('/:id', articleController.deleteArticleById);
 *       404:
 *         description: Bài viết không tồn tại
  */
-Router.patch('/:articleId/like', articleController.toggleLike);
+Router.patch('/:articleId/like',verifyToken, articleController.toggleLike);
 
 /**
  * @swagger
@@ -289,7 +290,7 @@ Router.patch('/:articleId/like', articleController.toggleLike);
  *       200:
  *         description: Trả về danh sách bình luận của bài viết, bao gồm bình luận con
  */
-Router.get("/:articleId/comments", articleController.getCommentsByArticleId);
+Router.get("/:articleId/comments",verifyToken, articleController.getCommentsByArticleId);
 
 
 export const articleRoute = Router;

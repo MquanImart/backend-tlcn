@@ -1,5 +1,6 @@
 import express from 'express';
 import { addressController } from '../controllers/addressController.js';
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 
 const Router = express.Router();
 
@@ -19,7 +20,7 @@ const Router = express.Router();
  *       200:
  *         description: Trả về danh sách địa chỉ
  */
-Router.get('/', addressController.getAddresses);
+Router.get('/',verifyToken, addressController.getAddresses);
 
 /**
  * @swagger
@@ -38,7 +39,7 @@ Router.get('/', addressController.getAddresses);
  *       200:
  *         description: Trả về địa chỉ
  */
-Router.get('/:id', addressController.getAddressById);
+Router.get('/:id',verifyToken, addressController.getAddressById);
 
 /**
  * @swagger
@@ -78,7 +79,7 @@ Router.get('/:id', addressController.getAddressById);
  *       201:
  *         description: Tạo địa chỉ thành công
  */
-Router.post('/', addressController.createAddress);
+Router.post('/',verifyToken, addressController.createAddress);
 
 /**
  * @swagger
@@ -97,7 +98,7 @@ Router.post('/', addressController.createAddress);
  *       200:
  *         description: Cập nhật địa chỉ thành công
  */
-Router.patch('/:id', addressController.updateAddressById);
+Router.patch('/:id',verifyToken, addressController.updateAddressById);
 
 /**
  * @swagger
@@ -109,7 +110,7 @@ Router.patch('/:id', addressController.updateAddressById);
  *       200:
  *         description: Cập nhật tất cả địa chỉ thành công
  */
-Router.patch('/', addressController.updateAllAddresses);
+Router.patch('/',verifyToken, addressController.updateAllAddresses);
 
 /**
  * @swagger
@@ -128,6 +129,6 @@ Router.patch('/', addressController.updateAllAddresses);
  *       200:
  *         description: Xóa địa chỉ thành công
  */
-Router.delete('/:id', addressController.deleteAddressById);
+Router.delete('/:id',verifyToken, addressController.deleteAddressById);
 
 export const addressRoute = Router;

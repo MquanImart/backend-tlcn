@@ -1,7 +1,7 @@
 import express from 'express';
 import { groupController } from '../controllers/groupController.js';
 import upload from '../config/multerConfig.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -20,7 +20,7 @@ const Router = express.Router();
  *       200:
  *         description: Trả về danh sách nhóm
  */
-Router.get('/', groupController.getGroups);
+Router.get('/',verifyToken, groupController.getGroups);
 
 /**
  * @swagger
@@ -39,7 +39,7 @@ Router.get('/', groupController.getGroups);
  *       200:
  *         description: Trả về nhóm
  */
-Router.get('/:id', groupController.getGroupById);
+Router.get('/:id',verifyToken, groupController.getGroupById);
 
 /**
  * @swagger
@@ -124,7 +124,7 @@ Router.get('/:id', groupController.getGroupById);
  *                   type: string
  *                   example: "Lỗi máy chủ"
  */
-Router.post('/', upload.single('avt'), groupController.createGroup);
+Router.post('/',verifyToken, upload.single('avt'), groupController.createGroup);
 
 
 /**
@@ -180,7 +180,7 @@ Router.post('/', upload.single('avt'), groupController.createGroup);
  *       500:
  *         description: Lỗi máy chủ
  */
-Router.patch("/:id", upload.single("avt"), groupController.updateGroupById);
+Router.patch("/:id",verifyToken, upload.single("avt"), groupController.updateGroupById);
 
 /**
  * @swagger
@@ -192,7 +192,7 @@ Router.patch("/:id", upload.single("avt"), groupController.updateGroupById);
  *       200:
  *         description: Cập nhật tất cả nhóm thành công
  */
-Router.patch('/', groupController.updateAllGroups);
+Router.patch('/',verifyToken, groupController.updateAllGroups);
 
 /**
  * @swagger
@@ -211,7 +211,7 @@ Router.patch('/', groupController.updateAllGroups);
  *       200:
  *         description: Xóa nhóm thành công
  */
-Router.delete('/:id', groupController.deleteGroupById);
+Router.delete('/:id',verifyToken, groupController.deleteGroupById);
 
 /**
  * @swagger
@@ -249,7 +249,7 @@ Router.delete('/:id', groupController.deleteGroupById);
  *       500:
  *         description: Lỗi server
  */
-Router.patch('/:id/join', groupController.requestJoinOrLeaveGroup);
+Router.patch('/:id/join',verifyToken, groupController.requestJoinOrLeaveGroup);
 
 /**
  * @swagger
@@ -304,7 +304,7 @@ Router.patch('/:id/join', groupController.requestJoinOrLeaveGroup);
  *       500:
  *         description: Lỗi server
  */
-Router.get("/:id/approved-articles", groupController.getApprovedArticles);
+Router.get("/:id/approved-articles",verifyToken, groupController.getApprovedArticles);
 
 /**
  * @swagger
@@ -359,7 +359,7 @@ Router.get("/:id/approved-articles", groupController.getApprovedArticles);
  *       500:
  *         description: Lỗi server
  */
-Router.get('/:id/pending-articles', groupController.getPendingArticles);
+Router.get('/:id/pending-articles',verifyToken, groupController.getPendingArticles);
 
 /**
  * @swagger
@@ -402,7 +402,7 @@ Router.get('/:id/pending-articles', groupController.getPendingArticles);
  *       500:
  *         description: Lỗi server
  */
-Router.patch('/:id/articles/:articleId', groupController.updateArticleStatus);
+Router.patch('/:id/articles/:articleId',verifyToken, groupController.updateArticleStatus);
 
 /**
  * @swagger
@@ -421,7 +421,7 @@ Router.patch('/:id/articles/:articleId', groupController.updateArticleStatus);
  *       200:
  *         description: Trả về nhóm
  */
-Router.get('/:id/rules', groupController.getRulesById);
+Router.get('/:id/rules',verifyToken, groupController.getRulesById);
 
 /**
  * @swagger
@@ -470,7 +470,7 @@ Router.get('/:id/rules', groupController.getRulesById);
  *       500:
  *         description: Lỗi server
  */
-Router.patch('/:id/rules', groupController.addRuleToGroup);
+Router.patch('/:id/rules',verifyToken, groupController.addRuleToGroup);
 
 /**
  * @swagger
@@ -499,7 +499,7 @@ Router.patch('/:id/rules', groupController.addRuleToGroup);
  *       500:
  *         description: Lỗi server
  */
-Router.patch('/:id/rules/:ruleValue', groupController.deleteRule);
+Router.patch('/:id/rules/:ruleValue',verifyToken, groupController.deleteRule);
 
 /**
  * @swagger
@@ -567,7 +567,7 @@ Router.patch('/:id/rules/:ruleValue', groupController.deleteRule);
  *       500:
  *         description: Lỗi server
  */
-Router.get('/:groupID/pending-members', groupController.getPendingMembers);
+Router.get('/:groupID/pending-members',verifyToken, groupController.getPendingMembers);
 
 /**
  * @swagger
@@ -588,7 +588,7 @@ Router.get('/:groupID/pending-members', groupController.getPendingMembers);
  *       404:
  *         description: Nhóm không tồn tại
  */
-Router.get("/:groupID/members", groupController.getGroupMembers);
+Router.get("/:groupID/members",verifyToken, groupController.getGroupMembers);
 
  /**
  * @swagger
@@ -654,7 +654,7 @@ Router.get("/:groupID/members", groupController.getGroupMembers);
  *                   type: string
  *                   example: "Nhóm hoặc thành viên không tồn tại"
  */
-Router.patch("/:groupID/members/:userID", groupController.updateMemberStatus);
+Router.patch("/:groupID/members/:userID",verifyToken, groupController.updateMemberStatus);
 
 /**
  * @swagger
@@ -715,7 +715,7 @@ Router.patch("/:groupID/members/:userID", groupController.updateMemberStatus);
  *       500:
  *         description: Lỗi server
  */
-Router.get("/:groupID/members/:userID/articles", groupController.getUserApprovedArticles);
+Router.get("/:groupID/members/:userID/articles",verifyToken, groupController.getUserApprovedArticles);
 
 /**
  * @swagger
@@ -742,8 +742,7 @@ Router.get("/:groupID/members/:userID/articles", groupController.getUserApproved
  *       404:
  *         description: Không tìm thấy lời mời làm quản trị viên hoặc nhóm không tồn tại
  */
-Router.get("/:groupID/administrators/:administratorsID", groupController.checkAdminInvite);
-
+Router.get("/:groupID/administrators/:administratorsID",verifyToken, groupController.checkAdminInvite);
 
 /**
  * @swagger
@@ -772,7 +771,7 @@ Router.get("/:groupID/administrators/:administratorsID", groupController.checkAd
  *       500:
  *         description: Lỗi máy chủ
  */
-Router.get('/:groupId/invite-friends', groupController.getInvitableFriends);
+Router.get('/:groupId/invite-friends',verifyToken, groupController.getInvitableFriends);
 
 export default Router;
 

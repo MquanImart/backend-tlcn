@@ -1,6 +1,6 @@
 import express from 'express';
 import { notificationController } from '../controllers/notificationController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -66,7 +66,7 @@ const Router = express.Router();
  *                 message:
  *                   type: string
  */
-Router.get('/', notificationController.getNotifications);
+Router.get('/',verifyToken, notificationController.getNotifications);
 
 /**
  * @swagger
@@ -85,7 +85,7 @@ Router.get('/', notificationController.getNotifications);
  *       200:
  *         description: Trả về thông báo
  */
-Router.get('/:id', notificationController.getNotificationById);
+Router.get('/:id',verifyToken, notificationController.getNotificationById);
 
 /**
  * @swagger
@@ -117,7 +117,7 @@ Router.get('/:id', notificationController.getNotificationById);
  *       201:
  *         description: Tạo thông báo thành công
  */
-Router.post('/', notificationController.createNotification);
+Router.post('/',verifyToken, notificationController.createNotification);
 
 /**
  * @swagger
@@ -136,7 +136,7 @@ Router.post('/', notificationController.createNotification);
  *       200:
  *         description: Cập nhật thông báo thành công
  */
-Router.patch('/:id', notificationController.updateNotificationById);
+Router.patch('/:id',verifyToken, notificationController.updateNotificationById);
 
 /**
  * @swagger
@@ -148,7 +148,7 @@ Router.patch('/:id', notificationController.updateNotificationById);
  *       200:
  *         description: Cập nhật tất cả thông báo thành công
  */
-Router.patch('/', notificationController.updateAllNotifications);
+Router.patch('/',verifyToken, notificationController.updateAllNotifications);
 
 /**
  * @swagger
@@ -167,6 +167,6 @@ Router.patch('/', notificationController.updateAllNotifications);
  *       200:
  *         description: Xóa thông báo thành công
  */
-Router.delete('/:id', notificationController.deleteNotificationById);
+Router.delete('/:id',verifyToken, notificationController.deleteNotificationById);
 
 export const notificationRoute = Router;

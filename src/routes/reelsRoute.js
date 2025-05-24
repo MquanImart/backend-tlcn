@@ -1,7 +1,7 @@
 import express from 'express';
 import { reelsController } from '../controllers/reelsController.js';
 import upload from '../config/multerConfig.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 /**
  * @swagger
@@ -49,7 +49,7 @@ const Router = express.Router();
  *                 message:
  *                   type: string
  */
-Router.get('/', reelsController.getReels);
+Router.get('/',verifyToken, reelsController.getReels);
 /**
  * @swagger
  * /reels/{id}:
@@ -69,7 +69,7 @@ Router.get('/', reelsController.getReels);
  *       404:
  *         description: Reel không tồn tại
  */
-Router.get('/:id', reelsController.getReelById);
+Router.get('/:id',verifyToken, reelsController.getReelById);
 
 /**
  * @swagger
@@ -111,7 +111,7 @@ Router.get('/:id', reelsController.getReelById);
  *       400:
  *         description: Lỗi khi tạo reel
  */
-Router.post('/', upload.fields([{ name: 'media', maxCount: 1 }]), reelsController.createReel);
+Router.post('/',verifyToken, upload.fields([{ name: 'media', maxCount: 1 }]), reelsController.createReel);
 
 /**
  * @swagger
@@ -138,7 +138,7 @@ Router.post('/', upload.fields([{ name: 'media', maxCount: 1 }]), reelsControlle
  *       404:
  *         description: Reel không tồn tại
  */
-Router.put('/:id', reelsController.updateReelById);
+Router.put('/:id',verifyToken, reelsController.updateReelById);
 
 /**
  * @swagger
@@ -156,7 +156,7 @@ Router.put('/:id', reelsController.updateReelById);
  *       200:
  *         description: Tất cả reels được cập nhật thành công
  */
-Router.put('/', reelsController.updateAllReels);
+Router.put('/',verifyToken, reelsController.updateAllReels);
 
 /**
  * @swagger
@@ -177,7 +177,7 @@ Router.put('/', reelsController.updateAllReels);
  *       404:
  *         description: Reel không tồn tại
  */
-Router.delete('/:id', reelsController.deleteReelById);
+Router.delete('/:id',verifyToken, reelsController.deleteReelById);
 
 /**
  * @swagger
@@ -236,7 +236,7 @@ Router.delete('/:id', reelsController.deleteReelById);
  *       500:
  *         description: Lỗi server
  */
-Router.patch('/:reelId/toggle-like', reelsController.toggleLike);
+Router.patch('/:reelId/toggle-like',verifyToken, reelsController.toggleLike);
 
 /**
  * @swagger
@@ -255,6 +255,6 @@ Router.patch('/:reelId/toggle-like', reelsController.toggleLike);
  *       200:
  *         description: Danh sách bình luận
  */
-Router.get('/:reelId/comments', reelsController.getCommentsByReelId);
+Router.get('/:reelId/comments',verifyToken, reelsController.getCommentsByReelId);
 
 export const reelsRoute = Router;

@@ -1,6 +1,6 @@
 import express from 'express';
 import ConversationController from '../controllers/conversationController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -71,7 +71,7 @@ const Router = express.Router();
  *       200:
  *         description: Danh sách cuộc trò chuyện
  */
-Router.get('/', ConversationController.getConversations);
+Router.get('/',verifyToken, ConversationController.getConversations);
 
 /**
  * @swagger
@@ -92,7 +92,7 @@ Router.get('/', ConversationController.getConversations);
  *       404:
  *         description: Không tìm thấy cuộc trò chuyện
  */
-Router.get('/:id', ConversationController.getConversationById);
+Router.get('/:id',verifyToken, ConversationController.getConversationById);
 
 /**
  * @swagger
@@ -154,7 +154,7 @@ Router.get('/:id', ConversationController.getConversationById);
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.post('/', ConversationController.createConversation);
+Router.post('/',verifyToken, ConversationController.createConversation);
 
 
 /**
@@ -181,7 +181,7 @@ Router.post('/', ConversationController.createConversation);
  *       404:
  *         description: Không tìm thấy cuộc trò chuyện
  */
-Router.patch('/:id', ConversationController.updateConversationById);
+Router.patch('/:id', verifyToken,ConversationController.updateConversationById);
 
 /**
  * @swagger
@@ -193,7 +193,7 @@ Router.patch('/:id', ConversationController.updateConversationById);
  *       200:
  *         description: Cập nhật thành công tất cả cuộc trò chuyện
  */
-Router.patch('/', ConversationController.updateAllConversations);
+Router.patch('/',verifyToken, ConversationController.updateAllConversations);
 
 /**
  * @swagger
@@ -213,7 +213,7 @@ Router.patch('/', ConversationController.updateAllConversations);
  *       404:
  *         description: Không tìm thấy cuộc trò chuyện
  */
-Router.delete('/:id', ConversationController.deleteConversationById);
+Router.delete('/:id',verifyToken, ConversationController.deleteConversationById);
 
 /**
  * @swagger
@@ -234,7 +234,7 @@ Router.delete('/:id', ConversationController.deleteConversationById);
  *       404:
  *         description: Không tìm thấy cuộc trò chuyện
  */
-Router.get('/user/:id', ConversationController.getConversationFriends);
+Router.get('/user/:id',verifyToken, ConversationController.getConversationFriends);
 
 /**
  * @swagger
@@ -255,7 +255,7 @@ Router.get('/user/:id', ConversationController.getConversationFriends);
  *       404:
  *         description: Không tìm thấy cuộc trò chuyện
  */
-Router.get('/user/:id/without-friend', ConversationController.getConversationWithoutFriends);
+Router.get('/user/:id/without-friend',verifyToken, ConversationController.getConversationWithoutFriends);
 
 /**
  * @swagger
@@ -276,7 +276,7 @@ Router.get('/user/:id/without-friend', ConversationController.getConversationWit
  *       404:
  *         description: Không tìm thấy cuộc trò chuyện
  */
-Router.get('/user/:id/new-chat', ConversationController.getFriendsWithoutPrivateChat);
+Router.get('/user/:id/new-chat',verifyToken, ConversationController.getFriendsWithoutPrivateChat);
 
 /**
  * @swagger
@@ -320,7 +320,7 @@ Router.get('/user/:id/new-chat', ConversationController.getFriendsWithoutPrivate
  *         description: Lỗi server
  */
 
-Router.patch('/:id/setting', ConversationController.updateUserSetting);
+Router.patch('/:id/setting',verifyToken, ConversationController.updateUserSetting);
 
 /**
  * @swagger
@@ -357,7 +357,7 @@ Router.patch('/:id/setting', ConversationController.updateUserSetting);
  *       500:
  *         description: Lỗi server
  */
-Router.patch('/sos/:id', ConversationController.updateSos);
+Router.patch('/sos/:id',verifyToken, ConversationController.updateSos);
 
 /**
  * @swagger
@@ -380,6 +380,6 @@ Router.patch('/sos/:id', ConversationController.updateSos);
  *       500:
  *         description: Lỗi server
  */
-Router.get('/sos/:id', ConversationController.getSosConversations);
+Router.get('/sos/:id',verifyToken, ConversationController.getSosConversations);
 
 export const conversationdRoute = Router;

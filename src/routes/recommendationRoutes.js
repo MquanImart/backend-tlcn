@@ -1,7 +1,7 @@
 // routes/recommendationRoute.js
 import express from 'express';
 import { recommendationController } from '../controllers/recommendationController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**

@@ -1,6 +1,6 @@
 import express from 'express';
 import { ticketController } from '../controllers/ticketController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -19,7 +19,7 @@ const Router = express.Router();
  *       200:
  *         description: Trả về danh sách vé
  */
-Router.get('/', ticketController.getTickets);
+Router.get('/',verifyToken, ticketController.getTickets);
 
 /**
  * @swagger
@@ -38,7 +38,7 @@ Router.get('/', ticketController.getTickets);
  *       200:
  *         description: Trả về vé
  */
-Router.get('/:id', ticketController.getTicketById);
+Router.get('/:id',verifyToken, ticketController.getTicketById);
 
 /**
  * @swagger
@@ -155,7 +155,7 @@ Router.get('/:id', ticketController.getTicketById);
  *                   type: string
  *                   example: "Internal server error"
  */
-Router.post('/', ticketController.createTicket);
+Router.post('/',verifyToken, ticketController.createTicket);
 
 /**
  * @swagger
@@ -174,7 +174,7 @@ Router.post('/', ticketController.createTicket);
  *       200:
  *         description: Cập nhật vé thành công
  */
-Router.patch('/:id', ticketController.updateTicketById);
+Router.patch('/:id',verifyToken, ticketController.updateTicketById);
 
 /**
  * @swagger
@@ -186,7 +186,7 @@ Router.patch('/:id', ticketController.updateTicketById);
  *       200:
  *         description: Cập nhật tất cả vé thành công
  */
-Router.patch('/', ticketController.updateAllTickets);
+Router.patch('/',verifyToken, ticketController.updateAllTickets);
 
 /**
  * @swagger
@@ -205,6 +205,6 @@ Router.patch('/', ticketController.updateAllTickets);
  *       200:
  *         description: Xóa vé thành công
  */
-Router.delete('/:id', ticketController.deleteTicketById);
+Router.delete('/:id',verifyToken, ticketController.deleteTicketById);
 
 export const ticketRoute = Router;
