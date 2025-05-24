@@ -1,7 +1,7 @@
 import express from 'express';
 import upload from '../config/multerConfig.js';
 import { identificationController } from '../controllers/identificationController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**

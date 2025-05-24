@@ -1,6 +1,6 @@
 import express from 'express';
 import ProvinceController from '../controllers/provinceController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -46,7 +46,7 @@ const Router = express.Router();
  *       200:
  *         description: Danh sách các tỉnh/thành phố
  */
-Router.get('/', ProvinceController.getProvinces);
+Router.get('/',verifyToken, ProvinceController.getProvinces);
 
 /**
  * @swagger
@@ -58,7 +58,7 @@ Router.get('/', ProvinceController.getProvinces);
  *       200:
  *         description: Danh sách các tỉnh/thành phố
  */
-Router.get('/not-page', ProvinceController.getAllNotPage);
+Router.get('/not-page',verifyToken, ProvinceController.getAllNotPage);
 
 /**
  * @swagger
@@ -79,7 +79,7 @@ Router.get('/not-page', ProvinceController.getAllNotPage);
  *       404:
  *         description: Không tìm thấy tỉnh/thành phố
  */
-Router.get('/:id', ProvinceController.getProvinceById);
+Router.get('/:id',verifyToken, ProvinceController.getProvinceById);
 
 /**
  * @swagger
@@ -99,7 +99,7 @@ Router.get('/:id', ProvinceController.getProvinceById);
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.post('/', ProvinceController.createProvince);
+Router.post('/',verifyToken, ProvinceController.createProvince);
 
 /**
  * @swagger
@@ -125,7 +125,7 @@ Router.post('/', ProvinceController.createProvince);
  *       404:
  *         description: Không tìm thấy tỉnh/thành phố
  */
-Router.patch('/:id', ProvinceController.updateProvinceById);
+Router.patch('/:id',verifyToken, ProvinceController.updateProvinceById);
 
 /**
  * @swagger
@@ -137,7 +137,7 @@ Router.patch('/:id', ProvinceController.updateProvinceById);
  *       200:
  *         description: Cập nhật thành công tất cả tỉnh/thành phố
  */
-Router.patch('/', ProvinceController.updateAllProvinces);
+Router.patch('/',verifyToken, ProvinceController.updateAllProvinces);
 
 /**
  * @swagger
@@ -157,7 +157,7 @@ Router.patch('/', ProvinceController.updateAllProvinces);
  *       404:
  *         description: Không tìm thấy tỉnh/thành phố
  */
-Router.delete('/:id', ProvinceController.deleteProvinceById);
+Router.delete('/:id',verifyToken, ProvinceController.deleteProvinceById);
 
 /**
  * @swagger
@@ -187,7 +187,7 @@ Router.delete('/:id', ProvinceController.deleteProvinceById);
  *       404:
  *         description: Không tìm thấy tỉnh/thành phố
  */
-Router.patch('/:id/add-page', ProvinceController.addNewPage);
+Router.patch('/:id/add-page',verifyToken, ProvinceController.addNewPage);
 
 /**
  * @swagger
@@ -222,7 +222,7 @@ Router.patch('/:id/add-page', ProvinceController.addNewPage);
  *       500:
  *         description: Lỗi server
  */
-Router.get('/:id/articles', ProvinceController.getArticleOfPage);
+Router.get('/:id/articles',verifyToken, ProvinceController.getArticleOfPage);
 
 /**
  * @swagger
@@ -257,7 +257,7 @@ Router.get('/:id/articles', ProvinceController.getArticleOfPage);
  *       500:
  *         description: Lỗi server
  */
-Router.get('/:id/hot-page', ProvinceController.getHotPage);
+Router.get('/:id/hot-page',verifyToken, ProvinceController.getHotPage);
 
 /**
  * @swagger
@@ -292,6 +292,6 @@ Router.get('/:id/hot-page', ProvinceController.getHotPage);
  *       500:
  *         description: Lỗi server
  */
-Router.get('/:id/all-page', ProvinceController.getAllPage);
+Router.get('/:id/all-page',verifyToken, ProvinceController.getAllPage);
 
 export const provinceRoute = Router;
