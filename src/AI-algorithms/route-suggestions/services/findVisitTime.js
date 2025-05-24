@@ -44,14 +44,14 @@ function scoreRouteAtStartHour(route, matrix, enrichedPoints, baseDate, visiting
   }
   
 
-function findBestStartTimeForRoute(route, defaultScore, matrix, enrichedPoints, baseDate, visitingTime, penaltyPerHour) {
+function findBestStartTimeForRoute(bestRoutes, matrix, enrichedPoints, baseDate, visitingTime, penaltyPerHour) {
     let bestHour = 0;
     let bestMinute = 0;
     let bestScore = Infinity;
   
     for (let hour = 0; hour < 24; hour++) {
         for (let minute = 0; minute < 60; minute++) {
-            const score = scoreRouteAtStartHour(route, matrix, enrichedPoints, baseDate, visitingTime, penaltyPerHour, hour, minute) + defaultScore;
+            const score = scoreRouteAtStartHour(bestRoutes.route, matrix, enrichedPoints, baseDate, visitingTime, penaltyPerHour, hour, minute) + bestRoutes.score;
             if (score < bestScore) {
                 bestScore = score;
                 bestHour = hour;
@@ -61,9 +61,11 @@ function findBestStartTimeForRoute(route, defaultScore, matrix, enrichedPoints, 
     }
   
     return {
-      route,
+      route: bestRoutes.route,
       score: bestScore,
-      bestStartHour: bestHour
+      bestStartHour: bestHour,
+      distandce: bestRoutes.distandce,
+      duration: bestRoutes.duration
     };
 }
   
