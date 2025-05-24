@@ -1,6 +1,6 @@
 import express from 'express';
 import { tripController } from '../controllers/tripController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -19,7 +19,7 @@ const Router = express.Router();
  *       200:
  *         description: Trả về danh sách chuyến đi
  */
-Router.get('/', tripController.getTrips);
+Router.get('/',verifyToken, tripController.getTrips);
 
 /**
  * @swagger
@@ -38,7 +38,7 @@ Router.get('/', tripController.getTrips);
  *       200:
  *         description: Trả về chuyến đi
  */
-Router.get('/:id', tripController.getTripById);
+Router.get('/:id',verifyToken, tripController.getTripById);
 
 /**
  * @swagger
@@ -116,7 +116,7 @@ Router.get('/:id', tripController.getTripById);
  *       500:
  *         description: Lỗi server
  */
-Router.post('/', tripController.createTrip);
+Router.post('/',verifyToken, tripController.createTrip);
 
 
 /**
@@ -136,7 +136,7 @@ Router.post('/', tripController.createTrip);
  *       200:
  *         description: Cập nhật chuyến đi thành công
  */
-Router.patch('/:id', tripController.updateTripById);
+Router.patch('/:id',verifyToken, tripController.updateTripById);
 
 /**
  * @swagger
@@ -148,7 +148,7 @@ Router.patch('/:id', tripController.updateTripById);
  *       200:
  *         description: Cập nhật tất cả chuyến đi thành công
  */
-Router.patch('/', tripController.updateAllTrips);
+Router.patch('/',verifyToken, tripController.updateAllTrips);
 
 /**
  * @swagger
@@ -167,7 +167,7 @@ Router.patch('/', tripController.updateAllTrips);
  *       200:
  *         description: Xóa chuyến đi thành công
  */
-Router.delete('/:id', tripController.deleteTripById);
+Router.delete('/:id',verifyToken, tripController.deleteTripById);
 
 /**
  * @swagger
@@ -212,7 +212,7 @@ Router.delete('/:id', tripController.deleteTripById);
  *       500:
  *         description: Lỗi server
  */
-Router.post('/:id/locations', tripController.addNewLocation);
+Router.post('/:id/locations',verifyToken, tripController.addNewLocation);
 
 /**
  * @swagger
@@ -241,7 +241,7 @@ Router.post('/:id/locations', tripController.addNewLocation);
  *       500:
  *         description: Lỗi server
  */
-Router.delete('/:id/locations', tripController.deleteNewLocation);
+Router.delete('/:id/locations',verifyToken, tripController.deleteNewLocation);
 
 /**
  * @swagger
@@ -287,6 +287,6 @@ Router.delete('/:id/locations', tripController.deleteNewLocation);
  *       500:
  *         description: Lỗi server
  */
-Router.patch('/:id/locations', tripController.changePosition);
+Router.patch('/:id/locations',verifyToken, tripController.changePosition);
 
 export const tripRoute = Router;

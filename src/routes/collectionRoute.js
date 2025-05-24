@@ -1,6 +1,6 @@
 import express from 'express';
 import CollectionController from '../controllers/collectionController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -63,7 +63,7 @@ const Router = express.Router();
  *       200:
  *         description: Danh sách tất cả bộ sưu tập
  */
-Router.get('/', CollectionController.getCollections);
+Router.get('/',verifyToken, CollectionController.getCollections);
 
 /**
  * @swagger
@@ -84,7 +84,7 @@ Router.get('/', CollectionController.getCollections);
  *       404:
  *         description: Không tìm thấy bộ sưu tập
  */
-Router.get('/:id', CollectionController.getCollectionById);
+Router.get('/:id',verifyToken, CollectionController.getCollectionById);
 
 /**
  * @swagger
@@ -124,7 +124,7 @@ Router.get('/:id', CollectionController.getCollectionById);
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.post('/', CollectionController.createCollection);
+Router.post('/',verifyToken, CollectionController.createCollection);
 
 /**
  * @swagger
@@ -165,7 +165,7 @@ Router.post('/', CollectionController.createCollection);
  *       404:
  *         description: Không tìm thấy bộ sưu tập
  */
-Router.patch('/:id', CollectionController.updateCollectionById);
+Router.patch('/:id',verifyToken, CollectionController.updateCollectionById);
 
 /**
  * @swagger
@@ -192,7 +192,7 @@ Router.patch('/:id', CollectionController.updateCollectionById);
  *       200:
  *         description: Cập nhật thành công tất cả bộ sưu tập
  */
-Router.patch('/', CollectionController.updateAllCollections);
+Router.patch('/',verifyToken, CollectionController.updateAllCollections);
 
 /**
  * @swagger
@@ -212,7 +212,7 @@ Router.patch('/', CollectionController.updateAllCollections);
  *       404:
  *         description: Không tìm thấy bộ sưu tập
  */
-Router.delete('/:id', CollectionController.deleteCollectionById);
+Router.delete('/:id',verifyToken, CollectionController.deleteCollectionById);
 
 /**
  * @swagger
@@ -245,7 +245,7 @@ Router.delete('/:id', CollectionController.deleteCollectionById);
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.patch('/:id/item', CollectionController.deleteItemCollection);
+Router.patch('/:id/item',verifyToken, CollectionController.deleteItemCollection);
 
 /**
  * @swagger
@@ -266,7 +266,7 @@ Router.patch('/:id/item', CollectionController.deleteItemCollection);
  *       404:
  *         description: Không tìm thấy bộ sưu tập
  */
-Router.get('/:id/article', CollectionController.getAllArticlebyId);
+Router.get('/:id/article',verifyToken, CollectionController.getAllArticlebyId);
 
 /**
  * @swagger
@@ -303,9 +303,7 @@ Router.get('/:id/article', CollectionController.getAllArticlebyId);
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.patch('/item/change', CollectionController.changeCollections);
-
-
+Router.patch('/item/change',verifyToken, CollectionController.changeCollections);
 /**
  * @swagger
  * /collections/{id}/article/{idarticle}:
@@ -335,6 +333,6 @@ Router.patch('/item/change', CollectionController.changeCollections);
  *       409:
  *         description: Bài viết đã tồn tại trong bộ sưu tập
  */
-Router.post('/:id/article/:idarticle', CollectionController.addNewItemCollection);
+Router.post('/:id/article/:idarticle',verifyToken, CollectionController.addNewItemCollection);
 
 export const collectiondRoute = Router;

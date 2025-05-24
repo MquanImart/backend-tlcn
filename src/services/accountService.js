@@ -107,7 +107,12 @@ const loginAccount = async (email, password) => {
       message: 'Email hoặc mật khẩu không đúng',
     };
   }
-
+  if (account._destroy !== null) {
+    return {
+      success: false,
+      message: 'Tài khoản của bạn đã bị xóa do vi phạm tiêu chuẩn cộng đồng',
+    };
+  }
   const isPasswordValid = await comparePassword(password, account.password);
   if (!isPasswordValid) {
     return {

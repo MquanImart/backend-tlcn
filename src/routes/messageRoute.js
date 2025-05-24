@@ -1,7 +1,7 @@
 import express from 'express';
 import MessageController from '../controllers/messageController.js';
 import upload from '../config/multerConfig.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -83,7 +83,7 @@ const Router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/Message'
  */
-Router.get('/', MessageController.getMessages);
+Router.get('/',verifyToken, MessageController.getMessages);
 
 /**
  * @swagger
@@ -108,7 +108,7 @@ Router.get('/', MessageController.getMessages);
  *       404:
  *         description: Không tìm thấy tin nhắn
  */
-Router.get('/:id', MessageController.getMessageById);
+Router.get('/:id',verifyToken, MessageController.getMessageById);
 
 /**
  * @swagger
@@ -154,7 +154,7 @@ Router.get('/:id', MessageController.getMessageById);
  *       500:
  *         description: Lỗi máy chủ
  */
-Router.post('/', upload.single('file'), MessageController.createMessage);
+Router.post('/',verifyToken, upload.single('file'), MessageController.createMessage);
 
 /**
  * @swagger
@@ -181,7 +181,7 @@ Router.post('/', upload.single('file'), MessageController.createMessage);
  *       404:
  *         description: Không tìm thấy tin nhắn
  */
-Router.patch('/:id', MessageController.updateMessageById);
+Router.patch('/:id',verifyToken, MessageController.updateMessageById);
 
 /**
  * @swagger
@@ -202,7 +202,7 @@ Router.patch('/:id', MessageController.updateMessageById);
  *       404:
  *         description: Không tìm thấy tin nhắn
  */
-Router.delete('/:id', MessageController.deleteMessageById);
+Router.delete('/:id',verifyToken, MessageController.deleteMessageById);
 
 /**
  * @swagger
@@ -237,7 +237,7 @@ Router.delete('/:id', MessageController.deleteMessageById);
  *       404:
  *         description: Không tìm thấy tin nhắn
  */
-Router.get('/of-conversation/:id', MessageController.getMessagesByConversationId);
+Router.get('/of-conversation/:id',verifyToken, MessageController.getMessagesByConversationId);
 
 /**
  * @swagger
@@ -258,7 +258,7 @@ Router.get('/of-conversation/:id', MessageController.getMessagesByConversationId
  *       404:
  *         description: Không tìm thấy tin nhắn
  */
-Router.get('/:id/photo', MessageController.getPhotosByConversation);
+Router.get('/:id/photo',verifyToken, MessageController.getPhotosByConversation);
 
 /**
  * @swagger
@@ -302,8 +302,7 @@ Router.get('/:id/photo', MessageController.getPhotosByConversation);
  *       500:
  *         description: Lỗi server
  */
-
-Router.get('/of-conversation/:id/photo', MessageController.getMessagePhoto);
+Router.get('/of-conversation/:id/photo',verifyToken, MessageController.getMessagePhoto);
 
 /**
  * @swagger
@@ -334,7 +333,7 @@ Router.get('/of-conversation/:id/photo', MessageController.getMessagePhoto);
  *       404:
  *         description: Không tìm thấy tin nhắn
  */
-Router.patch('/of-conversation/:id/seen-all', MessageController.seenMessage);
+Router.patch('/of-conversation/:id/seen-all',verifyToken, MessageController.seenMessage);
 
 export const messageRoute = Router;
 

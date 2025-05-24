@@ -1,6 +1,6 @@
 import express from 'express';
 import HistoryViewPageController from '../controllers/historyViewPageController.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 /**
@@ -40,7 +40,7 @@ const Router = express.Router();
  *       200:
  *         description: Danh sách lịch sử xem bài viết
  */
-Router.get('/', HistoryViewPageController.getHistoryViewPages);
+Router.get('/',verifyToken, HistoryViewPageController.getHistoryViewPages);
 
 /**
  * @swagger
@@ -61,7 +61,7 @@ Router.get('/', HistoryViewPageController.getHistoryViewPages);
  *       404:
  *         description: Không tìm thấy lịch sử xem bài viết
  */
-Router.get('/:id', HistoryViewPageController.getHistoryViewPageById);
+Router.get('/:id',verifyToken, HistoryViewPageController.getHistoryViewPageById);
 
 /**
  * @swagger
@@ -81,7 +81,7 @@ Router.get('/:id', HistoryViewPageController.getHistoryViewPageById);
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.post('/', HistoryViewPageController.createHistoryViewPage);
+Router.post('/',verifyToken, HistoryViewPageController.createHistoryViewPage);
 
 /**
  * @swagger
@@ -107,7 +107,7 @@ Router.post('/', HistoryViewPageController.createHistoryViewPage);
  *       404:
  *         description: Không tìm thấy lịch sử xem bài viết
  */
-Router.patch('/:id', HistoryViewPageController.updateHistoryViewPageById);
+Router.patch('/:id',verifyToken, HistoryViewPageController.updateHistoryViewPageById);
 
 /**
  * @swagger
@@ -119,7 +119,7 @@ Router.patch('/:id', HistoryViewPageController.updateHistoryViewPageById);
  *       200:
  *         description: Cập nhật thành công tất cả lịch sử xem bài viết
  */
-Router.patch('/', HistoryViewPageController.updateAllHistoryViewPages);
+Router.patch('/',verifyToken, HistoryViewPageController.updateAllHistoryViewPages);
 
 /**
  * @swagger
@@ -139,7 +139,7 @@ Router.patch('/', HistoryViewPageController.updateAllHistoryViewPages);
  *       404:
  *         description: Không tìm thấy lịch sử xem bài viết
  */
-Router.delete('/:id', HistoryViewPageController.deleteHistoryViewPageById);
+Router.delete('/:id',verifyToken, HistoryViewPageController.deleteHistoryViewPageById);
 
 /**
  * @swagger
@@ -160,6 +160,6 @@ Router.delete('/:id', HistoryViewPageController.deleteHistoryViewPageById);
  *       404:
  *         description: Không tìm thấy lịch sử xem bài viết
  */
-Router.get('/user/:id', HistoryViewPageController.getViewByUserId);
+Router.get('/user/:id',verifyToken, HistoryViewPageController.getViewByUserId);
 
 export const historyViewPagedRoute = Router;

@@ -1,7 +1,7 @@
 import express from 'express';
 import { pageController } from '../controllers/pageController.js';
 import upload from '../config/multerConfig.js';
-
+import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
 const Router = express.Router();
 
 const uploadMiddleware = upload.single('avt');
@@ -22,7 +22,7 @@ const uploadMiddleware = upload.single('avt');
  *       200:
  *         description: Trả về danh sách Pages
  */
-Router.get('/', pageController.getPages);
+Router.get('/',verifyToken, pageController.getPages);
 
 /**
  * @swagger
@@ -41,7 +41,7 @@ Router.get('/', pageController.getPages);
  *       200:
  *         description: Trả về Page
  */
-Router.get('/:id', pageController.getPageById);
+Router.get('/:id',verifyToken, pageController.getPageById);
 
 /**
  * @swagger
@@ -85,7 +85,7 @@ Router.get('/:id', pageController.getPageById);
  *       500:
  *         description: Lỗi server
  */
-Router.post('/', uploadMiddleware, pageController.createPage);
+Router.post('/',verifyToken, uploadMiddleware, pageController.createPage);
 
 /**
  * @swagger
@@ -153,7 +153,7 @@ Router.post('/', uploadMiddleware, pageController.createPage);
  *       500:
  *         description: Lỗi server khi xử lý yêu cầu
  */
-Router.patch("/:id", upload.single("avt"), pageController.updatePageById);
+Router.patch("/:id",verifyToken, upload.single("avt"), pageController.updatePageById);
 
 /**
  * @swagger
@@ -165,7 +165,7 @@ Router.patch("/:id", upload.single("avt"), pageController.updatePageById);
  *       200:
  *         description: Cập nhật tất cả Pages thành công
  */
-Router.patch('/', pageController.updateAllPages);
+Router.patch('/',verifyToken, pageController.updateAllPages);
 
 /**
  * @swagger
@@ -184,6 +184,6 @@ Router.patch('/', pageController.updateAllPages);
  *       200:
  *         description: Xóa Page thành công
  */
-Router.delete('/:id', pageController.deletePageById);
+Router.delete('/:id',verifyToken, pageController.deletePageById);
 
 export const pageRoute = Router;
