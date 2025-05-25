@@ -2,8 +2,15 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 // Define the schema
 const HistoryArticleSchema = new Schema({
-  idUser: { type: String, required: true },
-  idArticle: { type: String, required: true },
+  idUser: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  idArticle: { 
+    type: Schema.Types.ObjectId,
+    ref: 'Article',
+    required: true },
   action: { 
     type: String, 
     enum: ['View', 'Like'], 

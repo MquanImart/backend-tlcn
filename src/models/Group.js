@@ -7,12 +7,6 @@ import Hobby from './Hobby.js';
 const { Schema } = mongoose;
 
 const groupSchema = new Schema({
-  warningLevel: {
-    type: Number,
-    enum: [0, 1, 2, 3],
-    default: 0,
-    required: true,
-  },
   groupName: {
     type: String,
     required: true,
