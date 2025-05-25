@@ -72,9 +72,6 @@ const Router = express.Router();
  *                       role:
  *                         type: string
  *                         example: "user"
- *                       warningLevel:
- *                         type: number
- *                         example: 0
  *                       state:
  *                         type: string
  *                         enum: [online, offline]

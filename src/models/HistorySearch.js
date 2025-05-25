@@ -13,10 +13,6 @@ const historySearchSchema = new Schema({
     type: String,
     required: true,
   }],
-  data: {
-    type: String,
-    trim: true,
-  },
   createdAt: {
     type: Number,
     default: () => Date.now(),
