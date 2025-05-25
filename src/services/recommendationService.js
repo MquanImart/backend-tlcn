@@ -4,6 +4,7 @@ import Article from '../models/Article.js';
 import HistoryArticle from '../models/HistoryArticle.js';
 import ArticleTags from '../models/ArticleTags.js';
 import Comment from '../models/Comment.js';
+import mongoose from 'mongoose';
 
 const filterArticlesByScope = async (userId, articles) => {
   const user = await User.findById(userId).populate('friends').lean();
@@ -115,12 +116,8 @@ const recommend = async (userId, page = 1, limit = 10) => {
   if (!user) throw new Error('Người dùng không tồn tại');
 
   // Lấy tất cả bài viết chưa xóa (hoặc giới hạn theo thời gian nếu cần tối ưu)
-  let allArticles = await Article.find({ _destroy: null })
-    .populate({
-      path: 'createdBy',
-      select: '_id displayName friends',
-    })
-    .lean();
+  // Lấy tất cả bài viết ban đầu mà KHÔNG populate ngay lập tức
+  let allArticles = await Article.find({ _destroy: null }).lean();
 
   // Lọc bài viết theo quyền xem (scope)
   allArticles = await filterArticlesByScope(userId, allArticles);
@@ -142,7 +139,7 @@ const recommend = async (userId, page = 1, limit = 10) => {
     .map(id => id.toString());
 
   const COMMENT_BOOST = 5;
-  const ALPHA = 0.6;
+  const ALPHA = 0.6; // Trọng số cho Content-Based Filtering
 
   // Tính điểm Collaborative Filtering trên toàn bộ bài viết
   const collaborativeScores = await calculateCollaborativeScore(userId, allArticles, user);
@@ -172,13 +169,51 @@ const recommend = async (userId, page = 1, limit = 10) => {
   const totalArticlesCount = scoredArticles.length;
   const totalPages = Math.ceil(totalArticlesCount / limit);
   const startIndex = (page - 1) * limit;
-  const pagedArticles = scoredArticles.slice(startIndex, startIndex + limit);
+  const pagedArticleScores = scoredArticles.slice(startIndex, startIndex + limit);
+
+  // Lấy _id của các bài viết đã được phân trang và sắp xếp
+  const finalArticleIds = pagedArticleScores.map(s => s.article._id);
+
+  // Cuối cùng, populate các bài viết đã chọn với tất cả các trường cần thiết
+  const populatedArticles = await Article.find({ _id: { $in: finalArticleIds } })
+    .populate({
+      path: 'createdBy',
+      select: '_id displayName avt',
+      populate: {
+        path: 'avt',
+        select: '_id name idAuthor type url createdAt updatedAt',
+      },
+    })
+    .populate({
+      path: 'listPhoto',
+      select: '_id name idAuthor type url createdAt updatedAt',
+      populate: {
+        path: 'idAuthor',
+        select: '_id displayName avt',
+      },
+    })
+    .populate({
+      path: 'groupID',
+      select: '_id groupName',
+    })
+    .populate({
+      path: 'address',
+      select: '_id province district ward street placeName lat long',
+    })
+    // Không cần .sort() ở đây vì thứ tự đã được xác định bởi finalArticleIds
+    .lean(); // Quan trọng: thêm .lean() để kết quả là plain JavaScript objects, dễ dàng sắp xếp lại
+
+  // Tạo một Map để giữ nguyên thứ tự sắp xếp theo điểm ban đầu
+  const populatedArticlesMap = new Map(populatedArticles.map(art => [art._id.toString(), art]));
+  const articlesInDesiredOrder = finalArticleIds.map(id => populatedArticlesMap.get(id.toString()));
+
 
   return {
-    articles: pagedArticles.map(s => s.article),
+    articles: articlesInDesiredOrder.filter(Boolean), // Lọc bỏ các giá trị null/undefined nếu có
+    total: totalArticlesCount, // Tổng số bài viết đủ điều kiện (trước phân trang)
     totalPages,
     currentPage: page,
-    scoredArticlesDetails: pagedArticles.map(s => ({
+    scoredArticlesDetails: pagedArticleScores.map(s => ({
       articleId: s.article._id.toString(),
       contentScore: s.detail.contentScore,
       collaborativeScore: s.detail.collabScore,
