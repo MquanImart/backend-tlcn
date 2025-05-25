@@ -47,6 +47,7 @@ const articleSchema = new Schema({
   }],
   scope: {
     type: String,
+    enum: ["Công khai", "Bạn bè", "Riêng tư"], 
     trim: true,
   },
   emoticons: [{

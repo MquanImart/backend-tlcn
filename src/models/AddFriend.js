@@ -2,8 +2,16 @@ import mongoose, { Schema } from 'mongoose';
 
 const AddFriendSchema = new Schema(
   {
-    senderId: { type: String, required: true },
-    receiverId: { type: String, required: true },
+    senderId: { 
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    receiverId: { 
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     status: {
       type: String,
       enum: ['approved', 'pending', 'rejected'],

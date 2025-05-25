@@ -22,10 +22,6 @@ const accountSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  warningLevel: {
-    type: Number,
-    default: 0,
-  },
   state: {
     type: String,
     enum: ['online', 'offline'],
