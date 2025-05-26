@@ -2,14 +2,13 @@ import User from "../models/User.js";
 import Group from "../models/Group.js";
 import Account from "../models/Account.js";
 import Hobby from "../models/Hobby.js";
+import AddFriend from '../models/AddFriend.js';
 import { groupService } from "./groupService.js";
 import { articleService } from "./articleService.js";
-import { myPhotoService } from "./myPhotoService.js";
 import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
 import Location from "../models/Location.js";
 import { tripService } from "./tripService.js";
-import { hobbyService } from "../services/hobbyService.js";
 
 const getUsers = async () => {
   // Lấy tất cả người dùng và populate trường 'friends' và 'avt'
@@ -399,7 +398,7 @@ const suggestFriends = async (id) => {
   if (!user) throw new Error("User not found");
 
   const userFriendsSet = new Set(user.friends.map((f) => f.toString()));
-  userFriendsSet.add(id); 
+  userFriendsSet.add(id); // loại bỏ chính user
 
   const friendCounts = {};
 
@@ -417,29 +416,39 @@ const suggestFriends = async (id) => {
     })
   );
 
-  // Chuyển danh sách thành mảng và sắp xếp theo số lần trùng lặp (giảm dần)
+  // Truy vấn danh sách người đã gửi lời mời PENDING
+  const pendingSentRequests = await AddFriend.find({
+    senderId: id,
+    status: 'pending'
+  }).select('receiverId');
+
+  const pendingReceiverIds = new Set(pendingSentRequests.map(r => r.receiverId.toString()));
+
+  // Lọc danh sách gợi ý
   const suggestedFriends = Object.entries(friendCounts)
     .map(([friendId, count]) => ({ friendId, count }))
+    .filter(({ friendId }) => !pendingReceiverIds.has(friendId)) // bỏ người đã gửi lời mời đang pending
     .sort((a, b) => b.count - a.count);
 
-    const result = await Promise.all(
-      suggestedFriends.map(async (item) => {
-        const friend = await User.findById(item.friendId)
-          .populate('avt')
-        if (friend) {
-          return {
-            friend: {
-              _id: friend._id,
-              displayName: friend.displayName,
-              avt: friend.avt,
-              aboutMe: friend.aboutMe
-            },
-            count: item.count
-          }
-        }
-      })
-    );
-  return result;
+  const result = await Promise.all(
+    suggestedFriends.map(async (item) => {
+      const friend = await User.findById(item.friendId)
+        .populate('avt');
+      if (friend) {
+        return {
+          friend: {
+            _id: friend._id,
+            displayName: friend.displayName,
+            avt: friend.avt,
+            aboutMe: friend.aboutMe
+          },
+          count: item.count
+        };
+      }
+    })
+  );
+
+  return result.filter(Boolean); // loại bỏ phần tử null/undefined
 };
 
 const addHobbyByEmail = async (email, hobbies) => {

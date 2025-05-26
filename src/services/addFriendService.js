@@ -16,6 +16,7 @@ const createAddFriend = async (data) => {
   const existingRequest = await AddFriend.findOne({
     senderId,
     receiverId,
+    status: 'pending'
   });
 
   if (existingRequest) {
@@ -26,8 +27,9 @@ const createAddFriend = async (data) => {
   const reversedRequest = await AddFriend.findOne({
     senderId: receiverId,
     receiverId: senderId,
+    status: 'pending'
   });
-
+  
   if (reversedRequest) {
     return updateAddFriendById(reversedRequest._id, {status: "approved"})
   }
@@ -123,7 +125,7 @@ const getAddFriendBySenderId = async (id) => {
         };
       })
     );
-  
+
     return enrichedRequests;
   };
   
