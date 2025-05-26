@@ -1,4 +1,3 @@
-// services/recommendationService.js
 import User from '../models/User.js';
 import Article from '../models/Article.js';
 import HistoryArticle from '../models/HistoryArticle.js';
@@ -10,6 +9,9 @@ const filterArticlesByScope = async (userId, articles) => {
   const user = await User.findById(userId).populate('friends').lean();
   if (!user) return [];
 
+  // Đảm bảo user.friends là mảng, nếu không thì trả về mảng rỗng
+  const friends = Array.isArray(user.friends) ? user.friends : [];
+
   return articles.filter(article => {
     if (!article.createdBy || !article.createdBy._id) {
       console.warn('Article missing createdBy or createdBy._id:', article._id);
@@ -20,7 +22,7 @@ const filterArticlesByScope = async (userId, articles) => {
     if (scope === 'Công khai') return true;
     if (
       scope === 'Bạn bè' &&
-      user.friends.some(friend => friend._id.toString() === article.createdBy._id.toString())
+      friends.some(friend => friend._id.toString() === article.createdBy._id.toString())
     )
       return true;
     if (scope === 'Riêng tư' && article.createdBy._id.toString() === userId.toString()) return true;
@@ -29,7 +31,6 @@ const filterArticlesByScope = async (userId, articles) => {
 };
 
 // --- Content-Based Filtering (CBF) ---
-// Xây dựng profile tag weighted của user dựa trên các bài đã tương tác
 const buildUserTagProfile = async (userId) => {
   const history = await HistoryArticle.find({ idUser: userId }).lean();
   const interactedArticleIds = history.map(h => h.idArticle);
@@ -49,7 +50,7 @@ const buildUserTagProfile = async (userId) => {
     });
   });
 
-  return tagProfile; // Ví dụ: { Nature: 3, "Food & Drink": 1.5, ... }
+  return tagProfile;
 };
 
 // Tính điểm tương đồng tag giữa bài viết và profile user
@@ -66,10 +67,10 @@ const scoreArticleByTags = (articleTags, userTagProfile) => {
 };
 
 // --- Collaborative Filtering (CF) ---
-// Tính điểm dựa trên lịch sử tương tác của user và mạng bạn bè/following
 const calculateCollaborativeScore = async (userId, articles, user) => {
-  const friendIds = user.friends.map(f => f._id.toString());
-  const followingIds = user.following.map(f => f._id.toString());
+  // Đảm bảo user.friends và user.following là mảng, nếu không thì trả về mảng rỗng
+  const friendIds = Array.isArray(user.friends) ? user.friends.map(f => f._id.toString()) : [];
+  const followingIds = Array.isArray(user.following) ? user.following.map(f => f._id.toString()) : [];
 
   // Tập hợp user chính + bạn bè + following
   const interactedUsers = [userId, ...friendIds, ...followingIds];
@@ -115,12 +116,32 @@ const recommend = async (userId, page = 1, limit = 10) => {
 
   if (!user) throw new Error('Người dùng không tồn tại');
 
-  // Lấy tất cả bài viết chưa xóa (hoặc giới hạn theo thời gian nếu cần tối ưu)
-  // Lấy tất cả bài viết ban đầu mà KHÔNG populate ngay lập tức
+  // Lấy tất cả bài viết chưa xóa
   let allArticles = await Article.find({ _destroy: null }).lean();
+  if (!Array.isArray(allArticles)) {
+    console.warn('No articles found or query failed');
+    return {
+      articles: [],
+      total: 0,
+      totalPages: 0,
+      currentPage: page,
+      scoredArticlesDetails: [],
+    };
+  }
 
   // Lọc bài viết theo quyền xem (scope)
   allArticles = await filterArticlesByScope(userId, allArticles);
+
+  // Nếu không còn bài viết nào sau khi lọc, trả về kết quả rỗng
+  if (!Array.isArray(allArticles) || allArticles.length === 0) {
+    return {
+      articles: [],
+      total: 0,
+      totalPages: 0,
+      currentPage: page,
+      scoredArticlesDetails: [],
+    };
+  }
 
   // Lấy tags của tất cả bài viết đã lọc
   const articleIds = allArticles.map(a => a._id);
@@ -139,7 +160,7 @@ const recommend = async (userId, page = 1, limit = 10) => {
     .map(id => id.toString());
 
   const COMMENT_BOOST = 5;
-  const ALPHA = 0.6; // Trọng số cho Content-Based Filtering
+  const ALPHA = 0.6;
 
   // Tính điểm Collaborative Filtering trên toàn bộ bài viết
   const collaborativeScores = await calculateCollaborativeScore(userId, allArticles, user);
@@ -174,7 +195,7 @@ const recommend = async (userId, page = 1, limit = 10) => {
   // Lấy _id của các bài viết đã được phân trang và sắp xếp
   const finalArticleIds = pagedArticleScores.map(s => s.article._id);
 
-  // Cuối cùng, populate các bài viết đã chọn với tất cả các trường cần thiết
+  // Populate các bài viết đã chọn với tất cả các trường cần thiết
   const populatedArticles = await Article.find({ _id: { $in: finalArticleIds } })
     .populate({
       path: 'createdBy',
@@ -200,17 +221,15 @@ const recommend = async (userId, page = 1, limit = 10) => {
       path: 'address',
       select: '_id province district ward street placeName lat long',
     })
-    // Không cần .sort() ở đây vì thứ tự đã được xác định bởi finalArticleIds
-    .lean(); // Quan trọng: thêm .lean() để kết quả là plain JavaScript objects, dễ dàng sắp xếp lại
+    .lean();
 
   // Tạo một Map để giữ nguyên thứ tự sắp xếp theo điểm ban đầu
   const populatedArticlesMap = new Map(populatedArticles.map(art => [art._id.toString(), art]));
   const articlesInDesiredOrder = finalArticleIds.map(id => populatedArticlesMap.get(id.toString()));
 
-
   return {
-    articles: articlesInDesiredOrder.filter(Boolean), // Lọc bỏ các giá trị null/undefined nếu có
-    total: totalArticlesCount, // Tổng số bài viết đủ điều kiện (trước phân trang)
+    articles: articlesInDesiredOrder.filter(Boolean),
+    total: totalArticlesCount,
     totalPages,
     currentPage: page,
     scoredArticlesDetails: pagedArticleScores.map(s => ({
