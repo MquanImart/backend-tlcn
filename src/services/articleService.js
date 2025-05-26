@@ -10,6 +10,8 @@ import { emitEvent } from "../socket/socket.js";
 import { articleTagsService } from "./articleTagsService.js";
 
 const getArticles = async ({ limit = 5, skip = 0, filter = {} } = {}) => {
+
+
   const total = await Article.countDocuments(filter);
 
   const articles = await Article.find(filter)
@@ -43,7 +45,6 @@ const getArticles = async ({ limit = 5, skip = 0, filter = {} } = {}) => {
 
   return { articles, total };
 };
-
 
 const getArticleById = async (id) => {
   return await Article.findOne({ _id: id, _destroy: null })

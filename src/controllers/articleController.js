@@ -2,8 +2,13 @@ import { articleService } from '../services/articleService.js';
 
 const getArticles = async (req, res) => {
   try {
-    const { $limit = 5, $skip = 0, createdBy, groupID, isDeleted, hasReports } = req.query;
+    const { $limit = 5, $skip = 0, createdBy, groupID, isDeleted, hasReports, hashtag } = req.query;
     const filter = {};
+
+    // Lọc theo hashtag
+    if (hashtag) {
+      filter.hashTag = { $in: [hashtag] };
+    }
 
     // Lọc theo người tạo
     if (createdBy) filter.createdBy = createdBy;
