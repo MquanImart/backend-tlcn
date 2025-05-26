@@ -22,6 +22,11 @@ const Router = express.Router();
  *     tags: [Articles]
  *     parameters:
  *       - in: query
+ *         name: hashtag
+ *         schema:
+ *           type: string
+ *         description: Hashtag để lọc bài viết
+ *       - in: query
  *         name: createdBy
  *         schema:
  *           type: string
@@ -86,7 +91,7 @@ const Router = express.Router();
  *                 message:
  *                   type: string
  */
-Router.get('/',verifyToken, articleController.getArticles);
+Router.get('/', articleController.getArticles);
 
 /**
  * @swagger
