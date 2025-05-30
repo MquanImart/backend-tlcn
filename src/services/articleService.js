@@ -9,12 +9,162 @@ import mongoose from 'mongoose';
 import { emitEvent } from "../socket/socket.js";
 import { articleTagsService } from "./articleTagsService.js";
 
-const getArticles = async ({ limit = 5, skip = 0, filter = {} } = {}) => {
+const getArticles = async ({ limit = 5, skip = 0, filter = {}, province } = {}) => {
+  let query = Article.find(filter);
 
+  // If province is provided, use aggregation to filter by province
+  if (province) {
+    query = Article.aggregate([
+      // Match articles based on the provided filter
+      { $match: filter },
+      // Lookup to join with Address collection
+      {
+        $lookup: {
+          from: 'addresses', // Collection name in MongoDB (lowercase plural of model name)
+          localField: 'address',
+          foreignField: '_id',
+          as: 'addressData',
+        },
+      },
+      // Unwind the addressData array
+      { $unwind: { path: '$addressData', preserveNullAndEmptyArrays: true } },
+      // Match articles where province matches
+      {
+        $match: {
+          'addressData.province': province,
+          'addressData._destroy': null, // Ensure address is not soft-deleted
+        },
+      },
+      // Populate other fields
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'createdBy',
+          foreignField: '_id',
+          as: 'createdBy',
+        },
+      },
+      { $unwind: '$createdBy' },
+      {
+        $lookup: {
+          from: 'myphotos',
+          localField: 'createdBy.avt',
+          foreignField: '_id',
+          as: 'createdBy.avt',
+        },
+      },
+      { $unwind: { path: '$createdBy.avt', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'myphotos',
+          localField: 'listPhoto',
+          foreignField: '_id',
+          as: 'listPhoto',
+        },
+      },
+      {
+        $lookup: {
+          from: 'groups',
+          localField: 'groupID',
+          foreignField: '_id',
+          as: 'groupID',
+        },
+      },
+      { $unwind: { path: '$groupID', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'addresses',
+          localField: 'address',
+          foreignField: '_id',
+          as: 'address',
+        },
+      },
+      { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+      // Project the required fields
+      {
+        $project: {
+          createdBy: {
+            _id: 1,
+            displayName: 1,
+            avt: { _id: 1, name: 1, idAuthor: 1, type: 1, url: 1, createdAt: 1, updatedAt: 1 },
+          },
+          listPhoto: {
+            $map: {
+              input: '$listPhoto',
+              as: 'photo',
+              in: {
+                _id: '$$photo._id',
+                name: '$$photo.name',
+                idAuthor: '$$photo.idAuthor',
+                type: '$$photo.type',
+                url: '$$photo.url',
+                createdAt: '$$photo.createdAt',
+                updatedAt: '$$photo.updatedAt',
+              },
+            },
+          },
+          groupID: { _id: 1, groupName: 1 },
+          address: {
+            _id: 1,
+            province: 1,
+            district: 1,
+            ward: 1,
+            street: 1,
+            placeName: 1,
+            lat: 1,
+            long: 1,
+          },
+          content: 1,
+          hashTag: 1,
+          scope: 1,
+          emoticons: 1,
+          comments: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          _destroy: 1,
+        },
+      },
+      // Sort by createdAt in descending order
+      { $sort: { createdAt: -1 } },
+      // Apply pagination
+      { $skip: skip },
+      { $limit: limit },
+    ]);
 
+    // Get total count for pagination
+    const totalPipeline = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'addresses',
+          localField: 'address',
+          foreignField: '_id',
+          as: 'addressData',
+        },
+      },
+      { $unwind: { path: '$addressData', preserveNullAndEmptyArrays: true } },
+      {
+        $match: {
+          'addressData.province': province,
+          'addressData._destroy': null,
+        },
+      },
+      { $count: 'total' },
+    ];
+
+    const totalResult = await Article.aggregate(totalPipeline);
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+    // Execute the main query
+    const articles = await query;
+
+    return { articles, total };
+  }
+
+  // If no province filter, use the original query
   const total = await Article.countDocuments(filter);
 
-  const articles = await Article.find(filter)
+  const articles = await query
     .populate({
       path: 'createdBy',
       select: '_id displayName avt',

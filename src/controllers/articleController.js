@@ -2,7 +2,7 @@ import { articleService } from '../services/articleService.js';
 
 const getArticles = async (req, res) => {
   try {
-    const { $limit = 5, $skip = 0, createdBy, groupID, isDeleted, hasReports, hashtag } = req.query;
+    const { $limit = 5, $skip = 0, createdBy, groupID, isDeleted, hasReports, hashtag, province } = req.query;
     const filter = {};
 
     // Lọc theo hashtag
@@ -32,6 +32,7 @@ const getArticles = async (req, res) => {
       limit: parseInt($limit),
       skip: parseInt($skip),
       filter,
+      province, // Pass province to the service
     });
 
     res.status(200).json({
