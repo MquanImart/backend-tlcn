@@ -47,6 +47,11 @@ const Router = express.Router();
  *           type: boolean
  *         description: Lọc bài viết có báo cáo (true)
  *       - in: query
+ *         name: province
+ *         schema:
+ *           type: string
+ *         description: Lọc bài viết theo tỉnh/thành phố
+ *       - in: query
  *         name: $limit
  *         schema:
  *           type: integer
