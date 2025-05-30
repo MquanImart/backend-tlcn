@@ -302,5 +302,78 @@ Router.patch('/:articleId/like',verifyToken, articleController.toggleLike);
  */
 Router.get("/:articleId/comments",verifyToken, articleController.getCommentsByArticleId);
 
+/**
+ * @swagger
+ * /articles/provinces/{provinceId}:
+ *   get:
+ *     summary: Lấy danh sách bài viết theo provinceId
+ *     tags: [Articles]
+ *     parameters:
+ *       - in: path
+ *         name: provinceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của tỉnh/thành phố để lọc bài viết
+ *       - in: query
+ *         name: $limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng bài viết mỗi trang
+ *       - in: query
+ *         name: $skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số bản ghi cần bỏ qua (dùng cho phân trang)
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách bài viết với thông tin phân trang
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Article'
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số bài viết
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Không tìm thấy tỉnh/thành phố hoặc không có bài viết
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: null
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Lỗi server
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: null
+ *                 message:
+ *                   type: string
+ */
+Router.get('/provinces/:provinceId', articleController.getArticlesByProvinceId);
+
 
 export const articleRoute = Router;
