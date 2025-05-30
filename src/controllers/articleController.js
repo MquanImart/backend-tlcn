@@ -152,6 +152,41 @@ const getCommentsByArticleId = async (req, res) => {
   }
 };
 
+const getArticlesByProvinceId = async (req, res) => {
+  try {
+    const { provinceId } = req.params;
+    const { $limit = 1, $skip = 0 } = req.query;
+
+    const { articles, total } = await articleService.getArticlesByProvinceId({
+      provinceId,
+      limit: parseInt($limit),
+      skip: parseInt($skip),
+    });
+
+    if (!articles || articles.length === 0) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Không tìm thấy bài viết cho tỉnh/thành phố này',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: articles,
+      total,
+      message: 'Lấy danh sách bài viết thành công',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+
+
 
 export const articleController = {
   getArticles,
@@ -161,5 +196,6 @@ export const articleController = {
   updateAllArticles,
   deleteArticleById,
   toggleLike,
-  getCommentsByArticleId
+  getCommentsByArticleId,
+  getArticlesByProvinceId
 };

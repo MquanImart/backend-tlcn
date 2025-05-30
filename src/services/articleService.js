@@ -429,6 +429,70 @@ const getCommentsByArticleId = async (articleId) => {
   return comments;
 };
 
+const getArticlesByProvinceId = async ({ provinceId, limit = 5, skip = 0 } = {}) => {
+  try {
+    const province = await mongoose.model('Province').findById(provinceId).select('listPage');
+    if (!province || !province.listPage || province.listPage.length === 0) {
+      return { articles: [], total: 0 };
+    }
+
+    const pages = await Page.find({
+      _id: { $in: province.listPage },
+      deleteAt: null,
+    }).select('listArticle');
+
+    const articleIds = pages.reduce((acc, page) => {
+      return acc.concat(page.listArticle);
+    }, []);
+    if (articleIds.length === 0) {
+      return { articles: [], total: 0 };
+    }
+
+    // Query articles with pagination
+    const articles = await Article.find({
+      _id: { $in: articleIds },
+      _destroy: null,
+    })
+      .populate({
+        path: 'createdBy',
+        select: '_id displayName avt',
+        populate: {
+          path: 'avt',
+          select: '_id name idAuthor type url createdAt updatedAt',
+        },
+      })
+      .populate({
+        path: 'listPhoto',
+        select: '_id name idAuthor type url createdAt updatedAt',
+        populate: {
+          path: 'idAuthor',
+          select: '_id displayName avt',
+        },
+      })
+      .populate({
+        path: 'groupID',
+        select: '_id groupName',
+      })
+      .populate({
+        path: 'address',
+        select: '_id province district ward street placeName lat long',
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(skip);
+
+    // Get total count for pagination
+    const total = await Article.countDocuments({
+      _id: { $in: articleIds },
+      _destroy: null,
+    });
+
+    return { articles, total };
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy bài viết theo provinceId: ${error.message}`);
+  }
+};
+
 
 export const articleService = {
   getArticles,
@@ -438,5 +502,6 @@ export const articleService = {
   updateAllArticles,
   deleteArticleById,
   toggleLike,
-  getCommentsByArticleId
+  getCommentsByArticleId,
+  getArticlesByProvinceId
 };
