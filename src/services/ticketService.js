@@ -50,7 +50,46 @@ const updateAllTickets = async (data) => {
 };
 
 const deleteTicketById = async (id) => {
-  return await Ticket.findByIdAndUpdate(id, { _destroy: Date.now() }, { new: true });
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid ticket ID");
+    }
+
+    const ticket = await Ticket.findById(id).session(session);
+    if (!ticket) {
+      throw new Error("Ticket not found");
+    }
+
+    // Soft-delete ticket
+    await Ticket.findByIdAndUpdate(
+      id,
+      { _destroy: Date.now() },
+      { new: true, session }
+    );
+
+    // Remove ticket ID from page's listTicket
+    const updatedPage = await Page.findByIdAndUpdate(
+      ticket.pageId,
+      { $pull: { listTicket: id } },
+      { new: true, session }
+    );
+
+    if (!updatedPage) {
+      throw new Error("Page not found");
+    }
+
+    await session.commitTransaction();
+    return { success: true };
+  } catch (error) {
+    await session.abortTransaction();
+    console.error(`[TicketService] Error deleting ticket:`, error);
+    throw new Error(error.message || "Error deleting ticket");
+  } finally {
+    session.endSession();
+  }
 };
 
 export const ticketService = {

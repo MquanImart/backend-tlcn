@@ -91,31 +91,124 @@ Router.get('/:id',verifyToken, notificationController.getNotificationById);
  * @swagger
  * /notifications:
  *   post:
- *     summary: Tạo thông báo mới
+ *     summary: Tạo một thông báo mới
  *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: [] # Yêu cầu xác thực token
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - senderId
+ *               - receiverId
+ *               - message
  *             properties:
  *               senderId:
  *                 type: string
+ *                 description: ID của người gửi thông báo
  *                 example: "60f7ebeb2f8fb814b56fa181"
  *               receiverId:
  *                 type: string
+ *                 description: ID của người nhận thông báo
  *                 example: "60f7ebeb2f8fb814b56fa182"
  *               message:
  *                 type: string
- *                 example: "Chào bạn!"
+ *                 description: Nội dung thông báo
+ *                 example: "Chào bạn! Bạn có thông báo mới."
  *               status:
  *                 type: string
  *                 enum: ['read', 'unread']
+ *                 description: Trạng thái thông báo (mặc định là 'unread')
  *                 example: "unread"
+ *               groupId:
+ *                 type: string
+ *                 description: ID của nhóm liên quan (nếu có)
+ *                 example: "60f7ebeb2f8fb814b56fa183"
+ *               articleId:
+ *                 type: string
+ *                 description: ID của bài viết liên quan (nếu có)
+ *                 example: "60f7ebeb2f8fb814b56fa184"
+ *               commentId:
+ *                 type: string
+ *                 description: ID của bình luận liên quan (nếu có)
+ *                 example: "60f7ebeb2f8fb814b56fa185"
+ *               relatedEntityType:
+ *                 type: string
+ *                 enum: ['Group', 'Article', 'Comment', 'User', null]
+ *                 description: Loại thực thể liên quan đến thông báo
+ *                 example: "User"
  *     responses:
  *       201:
- *         description: Tạo thông báo thành công
+ *         description: Thông báo được tạo thành công
+ * Derby:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "60f7ebeb2f8fb814b56fa186"
+ *                     senderId:
+ *                       type: string
+ *                       example: "60f7ebeb2f8fb814b56fa181"
+ *                     receiverId:
+ *                       type: string
+ *                       example: "60f7ebeb2f8fb814b56fa182"
+ *                     message:
+ *                       type: string
+ *                       example: "Chào bạn! Bạn có thông báo mới."
+ *                     status:
+ *                       type: string
+ *                       example: "unread"
+ *                     groupId:
+ *                       type: string
+ *                       example: "60f7ebeb2f8fb814b56fa183"
+ *                     articleId:
+ *                       type: string
+ *                       example: "60f7ebeb2f8fb814b56fa184"
+ *                     commentId:
+ *                       type: string
+ *                       example: "60f7ebeb2f8fb814b56fa185"
+ *                     relatedEntityType:
+ *                       type: string
+ *                       example: "User"
+ *                     readAt:
+ *                       type: number
+ *                       example: null
+ *                     createdAt:
+ *                       type: number
+ *                       example: 1697050500000
+ *                     _destroy:
+ *                       type: number
+ *                       example: null
+ *                 message:
+ *                   type: string
+ *                   example: "Tạo thông báo thành công"
+ *       500:
+ *         description: Lỗi server khi tạo thông báo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: "Lỗi khi tạo thông báo"
  */
 Router.post('/',verifyToken, notificationController.createNotification);
 

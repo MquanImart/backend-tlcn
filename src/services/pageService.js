@@ -3,6 +3,7 @@ import Province from "../models/Province.js";
 import User from "../models/User.js";
 import TouristDestination from "../models/TouristDestination.js";
 import { myPhotoService } from "./myPhotoService.js";
+import mongoose from "mongoose";
 import { cloudStorageService } from "../config/cloudStorage.js";
 import {addressService} from "./addressService.js"
 import suggestTouristDataGenimi from "../AI-algorithms/OpenAI-reply-format/suggestTouristDataGenimi.js";
@@ -19,11 +20,16 @@ const getPageById = async (id) => {
 
 const updatePageById = async (id, data) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid page ID");
+    }
+
     const page = await Page.findById(id).populate("avt");
     if (!page) {
       return null;
     }
 
+    // Handle standard fields
     if (data.name) page.name = data.name;
     if (data.address) page.address = data.address;
     if (data.timeOpen) page.timeOpen = data.timeOpen;
@@ -32,6 +38,76 @@ const updatePageById = async (id, data) => {
       page.hobbies = JSON.parse(data.hobbies);
     }
 
+    // Handle follower updates
+    if (data.follower && mongoose.Types.ObjectId.isValid(data.follower)) {
+      const userId = data.follower;
+      if (page.follower.includes(userId)) {
+        throw new Error("User is already a follower");
+      }
+      page.follower.push(userId);
+    }
+
+    // Handle remove follower
+    if (data.removeFollower && mongoose.Types.ObjectId.isValid(data.removeFollower)) {
+      page.follower = page.follower.filter(f => f.toString() !== data.removeFollower);
+    }
+
+    // Handle add follower (used with removeAdmin)
+    if (data.addFollower && mongoose.Types.ObjectId.isValid(data.addFollower)) {
+      const userId = data.addFollower;
+      if (!page.follower.includes(userId)) {
+        page.follower.push(userId);
+      }
+    }
+
+    // Handle admin updates
+    if (data.addAdmin && mongoose.Types.ObjectId.isValid(data.addAdmin.idUser)) {
+      const { idUser, state, joinDate } = data.addAdmin;
+      if (!['pending', 'accepted'].includes(state)) {
+        throw new Error("Invalid admin state");
+      }
+      if (page.listAdmin.some(admin => admin.idUser.toString() === idUser)) {
+        throw new Error("User is already an admin or has a pending invite");
+      }
+      // Ensure user is a follower before inviting
+      if (!page.follower.includes(idUser)) {
+        throw new Error("User must be a follower to be invited as an admin");
+      }
+      page.listAdmin.push({ idUser, state, joinDate: joinDate || Date.now() });
+      // Do NOT remove from follower
+    }
+
+    if (data.acceptAdmin && mongoose.Types.ObjectId.isValid(data.acceptAdmin)) {
+      const userId = data.acceptAdmin;
+      const admin = page.listAdmin.find(
+        admin => admin.idUser.toString() === userId && admin.state === "pending"
+      );
+      if (!admin) {
+        throw new Error("No pending admin invite found for this user");
+      }
+      page.listAdmin = page.listAdmin.map(admin =>
+        admin.idUser.toString() === userId && admin.state === "pending"
+          ? { ...admin, state: "accepted", joinDate: Date.now() }
+          : admin
+      );
+      // Remove from follower upon accepting admin role
+      page.follower = page.follower.filter(f => f.toString() !== userId);
+    }
+
+    if (data.declineAdmin && mongoose.Types.ObjectId.isValid(data.declineAdmin)) {
+      page.listAdmin = page.listAdmin.filter(
+        admin => !(admin.idUser.toString() === data.declineAdmin && admin.state === "pending")
+      );
+      // Keep user in follower
+    }
+
+    if (data.removeAdmin && mongoose.Types.ObjectId.isValid(data.removeAdmin)) {
+      page.listAdmin = page.listAdmin.filter(
+        admin => admin.idUser.toString() !== data.removeAdmin
+      );
+    }
+
+    // Handle avatar updates
     if (data.removeAvatar === "true" && page.avt) {
       const oldFileUrl = page.avt?.url || null;
       if (oldFileUrl) {
@@ -79,12 +155,12 @@ const updatePageById = async (id, data) => {
       page.avt = uploadedFile._id;
     }
 
-
+    page.updatedAt = Date.now();
     await page.save();
-    return page;
+    return await Page.findById(id).populate("avt");
   } catch (error) {
-    console.error(`[PageService] Lỗi khi cập nhật page:`, error);
-    throw new Error("Lỗi khi cập nhật page");
+    console.error(`[PageService] Error updating page:`, error);
+    throw new Error(error.message || "Error updating page");
   }
 };
 
