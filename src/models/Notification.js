@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
-import User from './User.js';
+// Assuming User, Group, Article, Comment models will be imported or defined elsewhere
+// import User from './User.js'; // Already imported
+// import Group from './Group.js';
+// import Article from './Article.js';   // <--- Ensure you have an 'Article' model
+// import Comment from './Comment.js';
+
 
 const { Schema } = mongoose;
 
@@ -24,9 +29,35 @@ const notificationSchema = new Schema({
     enum: ['read', 'unread'], 
     default: 'unread', 
   },
-  url: {
+  groupId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Group',
+    default: null,
+  },
+  articleId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Article', 
+    default: null,
+  },
+  commentId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Comment',
+    default: null,
+  },
+  pageId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Page',
+    default: null,
+  },
+  reelId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Reel',
+    default: null,
+  },
+  relatedEntityType: {
     type: String,
-    trim: true,
+    enum: ['Group', 'Article', 'Comment', 'User', 'Page', 'Reel', null], 
+    default: null,
   },
   readAt: {
     type: Number,
@@ -38,7 +69,7 @@ const notificationSchema = new Schema({
   },
   _destroy: {
     type: Number,
-    default: null, // Hỗ trợ soft delete
+    default: null,
   },
 });
 

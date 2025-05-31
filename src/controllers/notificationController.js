@@ -34,6 +34,8 @@ const createNotification = async (req, res) => {
   }
 };
 
+
+
 const updateNotificationById = async (req, res) => {
   try {
     const updatedNotification = await notificationService.updateNotificationById(req.params.id, req.body);
