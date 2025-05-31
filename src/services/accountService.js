@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 import Account from "../models/Account.js";
 import OtpModel from "../models/OtpModel.js";
 import User from "../models/User.js";
@@ -9,12 +10,13 @@ import crypto from 'crypto';
 import twilio from 'twilio';
 import nodemailer from 'nodemailer';
 
+const SALT_ROUNDS = 10;
+
 const getAccounts = async (options = {}) => {
-  const { filter, page = 1, limit = 10 } = options; // Default page 1, limit 10
+  const { filter, page = 1, limit = 10 } = options;
 
   const query = {};
 
-  // Apply filters
   if (filter) {
     switch (filter) {
       case 'deleted': 
@@ -35,7 +37,6 @@ const getAccounts = async (options = {}) => {
   } else {
     query._destroy = null;
   }
-
 
   const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
@@ -63,10 +64,16 @@ const getAccountById = async (id) => {
 };
 
 const updateAccountById = async (id, data) => {
+  if (data.password) {
+    data.password = await bcrypt.hash(data.password, SALT_ROUNDS);
+  }
   return await Account.findByIdAndUpdate(id, data, { new: true });
 };
 
 const updateAllAccounts = async (data) => {
+  if (data.password) {
+    data.password = await bcrypt.hash(data.password, SALT_ROUNDS);
+  }
   return await Account.updateMany({}, data, { new: true });
 };
 
@@ -79,7 +86,7 @@ const deleteAccountById = async (id) => {
 };
 
 const comparePassword = async (password, storedPassword) => {
-  return password === storedPassword;
+  return await bcrypt.compare(password, storedPassword);
 };
 
 const storeOtp = async (input, otp) => {
@@ -202,9 +209,10 @@ const sendOtp = async (input) => {
 };
 
 const updatePassword = async (email, newPassword) => {
+  const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
   return await Account.findOneAndUpdate(
     { email },
-    { password: newPassword },
+    { password: hashedPassword },
     { new: true }
   );
 };
@@ -234,7 +242,6 @@ const createAccount = async ({
   session.startTransaction();
 
   try {
-    // Kiểm tra dữ liệu đầu vào
     if (!email || !password || !displayName || !hashtag) {
       throw new Error("Vui lòng nhập đầy đủ email, password, displayName, hashtag.");
     }
@@ -248,13 +255,13 @@ const createAccount = async ({
       throw new Error(`Thiếu các trường bắt buộc trong dữ liệu CCCD: ${missingFields.join(", ")}`);
     }
 
-    // Kiểm tra CCCD đã tồn tại
     const existingIdentification = await Identification.findOne({ number }).session(session);
     if (existingIdentification) {
       throw new Error("Căn cước công dân đã được sử dụng!");
     }
 
-    // Tạo Identification
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
     const newIdentification = new Identification({
       number,
       fullName,
@@ -267,16 +274,14 @@ const createAccount = async ({
     });
     await newIdentification.save({ session });
 
-    // Tạo Account với mật khẩu dạng văn bản thuần
     const newAccount = new Account({
       email,
       phone: null,
-      password: password,
+      password: hashedPassword,
       role: "user",
     });
     await newAccount.save({ session });
 
-    // Tạo Address
     const newAddress = new Address({
       province: province || "",
       district: district || "",
@@ -288,7 +293,6 @@ const createAccount = async ({
     });
     await newAddress.save({ session });
 
-    // Tạo User
     const newUser = new User({
       account: newAccount._id,
       identification: newIdentification._id,
