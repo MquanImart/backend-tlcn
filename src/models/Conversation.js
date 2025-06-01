@@ -2,12 +2,14 @@ import mongoose from 'mongoose';
 
 const ConversationSchema = new mongoose.Schema(
   {
+    creatorId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }],
     settings: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
         notifications: { type: Boolean, default: true },
         muteUntil: { type: Number, default: null },
+        active: { type: Boolean, default: true, require: true },
         sos: {type: Boolean, default: false}
       },
     ],

@@ -143,8 +143,7 @@ Router.get('/:id',verifyToken, notificationController.getNotificationById);
  *     responses:
  *       201:
  *         description: Thông báo được tạo thành công
- * Derby:
- *           application/json:
+ *         application/json:
  *             schema:
  *               type: object
  *               properties:

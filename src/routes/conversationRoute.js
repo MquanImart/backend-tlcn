@@ -109,6 +109,10 @@ Router.get('/:id',verifyToken, ConversationController.getConversationById);
  *             required:
  *               - participants
  *             properties:
+ *               creatorId:
+ *                 type: string
+ *                 description: Id người tạo
+ *                 example: "67cd4b33637423adf651fc96"
  *               participants:
  *                 type: array
  *                 description: Danh sách ID người tham gia
@@ -308,6 +312,9 @@ Router.get('/user/:id/new-chat',verifyToken, ConversationController.getFriendsWi
  *                 type: number
  *                 nullable: true
  *                 description: Thời gian tắt thông báo (timestamp), null nếu không tắt
+ *               active:
+ *                 type: boolean
+ *                 description: False để kích người dùng
  *               _id:
  *                 type: string
  *                 description: ID của setting cần cập nhật
@@ -381,5 +388,7 @@ Router.patch('/sos/:id',verifyToken, ConversationController.updateSos);
  *         description: Lỗi server
  */
 Router.get('/sos/:id',verifyToken, ConversationController.getSosConversations);
+
+Router.patch('/:id/add-member',verifyToken, ConversationController.updateParticipantsAndSettings);
 
 export const conversationdRoute = Router;
