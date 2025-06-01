@@ -63,6 +63,21 @@ const createMessage = async (data, file) => {
     })
 
     await Conversation.findByIdAndUpdate(conversationId, {lastMessage: newMessage._id});
+    
+    const now = Date.now();
+    let updated = false;
+
+    conversation.settings.forEach((setting) => {
+      if (!setting.notifications && setting.muteUntil && now >= setting.muteUntil) {
+        setting.notifications = true;
+        setting.muteUntil = null;
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      await conversation.save(); // Lưu nếu có thay đổi
+    }
 
     let fullMessage = newMessage;
     if (newMessage.content.mediaUrl) {
