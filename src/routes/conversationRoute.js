@@ -158,7 +158,7 @@ Router.get('/:id',verifyToken, ConversationController.getConversationById);
  *       400:
  *         description: Dữ liệu không hợp lệ
  */
-Router.post('/',verifyToken, ConversationController.createConversation);
+Router.post('/', ConversationController.createConversation);
 
 
 /**
@@ -388,6 +388,27 @@ Router.patch('/sos/:id',verifyToken, ConversationController.updateSos);
  *         description: Lỗi server
  */
 Router.get('/sos/:id',verifyToken, ConversationController.getSosConversations);
+
+/**
+ * @swagger
+ * /conversations/user/{id}/pages:
+ *   get:
+ *     summary: Lấy tất cả cuộc trò chuyện với page của người dùng
+ *     tags: [Conversations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Trả về thông tin cuộc trò chuyện
+ *       404:
+ *         description: Không tìm thấy cuộc trò chuyện
+ */
+Router.get('/user/:id/pages', ConversationController.getConversationOfPages);
 
 Router.patch('/:id/add-member',verifyToken, ConversationController.updateParticipantsAndSettings);
 
