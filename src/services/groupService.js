@@ -66,39 +66,35 @@ const updateGroupById = async (id, data) => {
   try {
     const group = await Group.findById(id).populate("avt");
     if (!group) {
-      return null;
+      return null; // Trả về null nếu không tìm thấy nhóm
     }
 
+    // Cập nhật các trường thông thường
     if (data.groupName) group.groupName = data.groupName;
     if (data.type) group.type = data.type;
     if (data.introduction) group.introduction = data.introduction;
+
+    // Xử lý rule và hobbies (cần đảm bảo là chuỗi JSON nếu gửi từ client)
     if (data.rule) {
-      group.rule = JSON.parse(data.rule);
+      try {
+        group.rule = JSON.parse(data.rule);
+      } catch (e) {
+        console.error("Lỗi parse rule:", e);
+        throw new Error("Quy tắc không hợp lệ: phải là chuỗi JSON");
+      }
     }
     if (data.hobbies) {
-      group.hobbies = JSON.parse(data.hobbies);
+      try {
+        group.hobbies = JSON.parse(data.hobbies);
+      } catch (e) {
+        console.error("Lỗi parse hobbies:", e);
+        throw new Error("Sở thích không hợp lệ: phải là chuỗi JSON");
+      }
     }
 
-    if (data.removeAvatar === "true" && group.avt) {
-      const oldFileUrl = group.avt?.url || null;
-      if (oldFileUrl) {
-        try {
-          // Clean URL by removing query parameters
-          const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
-          const filePath = `src/images/groups/${id}/${cleanFileName}`;
-          await cloudStorageService.deleteImageFromStorage(filePath);
-        } catch (error) {
-          if (error.code === 404) {
-             console.warn("Old avatar file not found in GCS:", oldFileUrl);
-          } else {
-            console.error("Error deleting GCS file:", error);
-          }
-        }
-        await MyPhoto.findByIdAndDelete(group.avt._id);
-      }
-      group.avt = null;
-    } else if (data.avatarFile) {
-      if (group.avt) {
+    // Xử lý xóa avatar
+    if (data.removeAvatar === "true") { // Chú ý: kiểm tra string 'true'
+      if (group.avt) { // Chỉ xóa nếu có avatar hiện tại
         const oldFileUrl = group.avt?.url || null;
         if (oldFileUrl) {
           try {
@@ -107,30 +103,56 @@ const updateGroupById = async (id, data) => {
             await cloudStorageService.deleteImageFromStorage(filePath);
           } catch (error) {
             if (error.code === 404) {
-              console.warn("Old avatar file not found in GCS:", oldFileUrl);
+               // console.warn("Old avatar file not found in GCS:", oldFileUrl); // Bỏ log này nếu không cần
             } else {
-              console.error("Error deleting old GCS file:", error);
+            //   console.error("Error deleting GCS file:", error); // Bỏ log này nếu không cần
             }
           }
           await MyPhoto.findByIdAndDelete(group.avt._id);
         }
-
-        const uploadedFile = await myPhotoService.uploadAndSaveFile(
-          data.avatarFile,
-          group.idCreater,
-          "img",
-          "groups",
-          group._id
-        );
-
-        group.avt = uploadedFile._id;
+        group.avt = null; // Đặt avatar về null sau khi xóa
       }
-
-      await group.save();
-      return group;
+    } 
+    // Xử lý cập nhật avatar mới
+    else if (data.avatarFile) { // Chỉ xử lý nếu có file avatar mới
+      if (group.avt) { // Nếu đã có avatar cũ, xóa nó trước
+        const oldFileUrl = group.avt?.url || null;
+        if (oldFileUrl) {
+          try {
+            const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
+            const filePath = `src/images/groups/${id}/${cleanFileName}`;
+            await cloudStorageService.deleteImageFromStorage(filePath);
+          } catch (error) {
+            if (error.code === 404) {
+            //   console.warn("Old avatar file not found in GCS:", oldFileUrl); // Bỏ log này nếu không cần
+            } else {
+            //   console.error("Error deleting old GCS file:", error); // Bỏ log này nếu không cần
+            }
+          }
+          await MyPhoto.findByIdAndDelete(group.avt._id);
+        }
+      }
+      
+      const uploadedFile = await myPhotoService.uploadAndSaveFile(
+        data.avatarFile,
+        group.idCreater, // Đảm bảo idCreater tồn tại và hợp lệ
+        "img",
+        "groups",
+        group._id
+      );
+      group.avt = uploadedFile._id; // Gán ID của ảnh mới
     }
+    
+    // Lưu lại nhóm sau khi tất cả các thay đổi đã được thực hiện
+    await group.save(); 
+    
+    // Populate lại avatar nếu cần thiết cho response (nếu bạn muốn trả về URL mới)
+    // Hoặc bạn có thể trả về group.avt._id và để client xử lý hiển thị
+    const updatedGroup = await Group.findById(id).populate("avt");
+    return updatedGroup;
+
   } catch (error) {
-    console.error("Lỗi khi cập nhật nhóm:", error);
+    // console.error("Lỗi khi cập nhật nhóm:", error); // Bỏ log này nếu không cần
     throw new Error("Lỗi khi cập nhật nhóm");
   }
 };
