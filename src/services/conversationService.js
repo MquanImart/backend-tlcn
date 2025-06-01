@@ -2,6 +2,7 @@ import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js'
 import Page from '../models/Page.js'
+import mongoose from 'mongoose';
 
 const getAll = async () => {
     return await Conversation.find();
@@ -34,6 +35,7 @@ const createConversation = async (data) => {
       }
     }
     const conversation = await Conversation.create({
+      creatorId: data.creatorId,
       participants: data.participants,
       groupName: data.groupName,
       avtGroup: data.avtGroup,
@@ -50,7 +52,7 @@ const createConversation = async (data) => {
         message: data.lastMessage.message,
         mediaUrl: data.lastMessage.mediaUrl
       },
-      seenBy: []
+      seenBy: [data.creatorId]
     })
     
     if (!message) return {success: false, message: "Không thể tạo tin nhắn"};
@@ -80,24 +82,30 @@ const deleteConversationById = async (id) => {
 const getConversationOfUser = async (userId) => {
   try {
     const user = await User.findById(userId).select("friends").lean();
-    if (!user) return {success: false, message: 'Không tìm thấy người dùng'};
+    if (!user) return { success: false, message: 'Không tìm thấy người dùng' };
 
     const conversations = await Conversation.find({
       participants: userId,
+      settings: {
+        $elemMatch: {
+          userId: userId,
+          active: true // Chỉ lấy những cuộc trò chuyện user còn hoạt động
+        }
+      }
     })
       .populate("participants", "_id displayName avt")
       .populate({
         path: "lastMessage",
         select: "_id sender content seenBy createdAt"
       })
-      .lean();       
-    
-    return {user, conversations};
-    
+      .lean();
+
+    return { user, conversations };
   } catch (error) {
-      return { user, conversation: []};
+    return { success: false, conversations: [] };
   }
 };
+
 
 const getConversationsFiltered = async (userId, filterByFriends) => {
   try {
@@ -214,7 +222,8 @@ const updateUserSetting = async (conversationId, newSetting) => {
           { 
               $set: { 
                   "settings.$.notifications": newSetting.notifications, 
-                  "settings.$.muteUntil": newSetting.muteUntil 
+                  "settings.$.muteUntil": newSetting.muteUntil,
+                  "settings.$.active": newSetting.active 
               }
           },
           { new: true } // Trả về bản ghi sau khi cập nhật
@@ -257,7 +266,8 @@ const getSosConversations = async (userId) => {
       "settings": {
         $elemMatch: {
           userId: userId,
-          sos: true
+          sos: true,
+          active: true
         }
       }
     })
@@ -277,6 +287,41 @@ const getSosConversations = async (userId) => {
   }
 };
 
+const updateParticipantsAndSettings = async (conversationId, userIds) => {
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation) throw new Error("Cuộc trò chuyện không tồn tại");
+
+  const existingParticipantIds = conversation.participants.map((id) => id.toString());
+  const existingSettingsMap = new Map(
+    conversation.settings.map((s) => [s.userId.toString(), s])
+  );
+  for (const userId of userIds) {
+    const idStr = userId.toString();
+
+    if (existingParticipantIds.includes(idStr)) {
+      // Nếu đã tồn tại trong participants → cập nhật settings.active = true
+      const setting = existingSettingsMap.get(idStr);
+      if (setting) setting.active = true;
+    } else {
+      // Nếu chưa có → thêm vào participants và settings
+      conversation.participants.push(new mongoose.Types.ObjectId(userId));
+      conversation.settings.push({
+        userId: new mongoose.Types.ObjectId(userId),
+        notifications: true,
+        muteUntil: null,
+        active: true,
+        sos: false,
+      });
+    }
+  }
+
+  // Cập nhật updatedAt
+  conversation.updatedAt = Date.now();
+
+  await conversation.save();
+  return {success: true, data: conversation};
+};
+
 const conversationService = {
     getAll,
     getById,
@@ -289,7 +334,8 @@ const conversationService = {
     getConversationWithoutFriends,
     updateUserSetting,
     updateSos,
-    getSosConversations
+    getSosConversations,
+    updateParticipantsAndSettings
 }
 
 export default conversationService;
