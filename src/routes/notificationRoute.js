@@ -66,7 +66,7 @@ const Router = express.Router();
  *                 message:
  *                   type: string
  */
-Router.get('/',verifyToken, notificationController.getNotifications);
+Router.get('/', verifyToken, notificationController.getNotifications);
 
 /**
  * @swagger
@@ -85,7 +85,7 @@ Router.get('/',verifyToken, notificationController.getNotifications);
  *       200:
  *         description: Trả về thông báo
  */
-Router.get('/:id',verifyToken, notificationController.getNotificationById);
+Router.get('/:id', verifyToken, notificationController.getNotificationById);
 
 /**
  * @swagger
@@ -94,7 +94,7 @@ Router.get('/:id',verifyToken, notificationController.getNotificationById);
  *     summary: Tạo một thông báo mới
  *     tags: [Notifications]
  *     security:
- *       - bearerAuth: [] # Yêu cầu xác thực token
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -143,7 +143,7 @@ Router.get('/:id',verifyToken, notificationController.getNotificationById);
  *     responses:
  *       201:
  *         description: Thông báo được tạo thành công
- * Derby:
+ *         content:
  *           application/json:
  *             schema:
  *               type: object
@@ -210,7 +210,7 @@ Router.get('/:id',verifyToken, notificationController.getNotificationById);
  *                   type: string
  *                   example: "Lỗi khi tạo thông báo"
  */
-Router.post('/',verifyToken, notificationController.createNotification);
+Router.post('/', verifyToken, notificationController.createNotification);
 
 /**
  * @swagger
@@ -229,7 +229,7 @@ Router.post('/',verifyToken, notificationController.createNotification);
  *       200:
  *         description: Cập nhật thông báo thành công
  */
-Router.patch('/:id',verifyToken, notificationController.updateNotificationById);
+Router.patch('/:id', verifyToken, notificationController.updateNotificationById);
 
 /**
  * @swagger
@@ -241,7 +241,7 @@ Router.patch('/:id',verifyToken, notificationController.updateNotificationById);
  *       200:
  *         description: Cập nhật tất cả thông báo thành công
  */
-Router.patch('/',verifyToken, notificationController.updateAllNotifications);
+Router.patch('/', verifyToken, notificationController.updateAllNotifications);
 
 /**
  * @swagger
@@ -260,6 +260,6 @@ Router.patch('/',verifyToken, notificationController.updateAllNotifications);
  *       200:
  *         description: Xóa thông báo thành công
  */
-Router.delete('/:id',verifyToken, notificationController.deleteNotificationById);
+Router.delete('/:id', verifyToken, notificationController.deleteNotificationById);
 
 export const notificationRoute = Router;
