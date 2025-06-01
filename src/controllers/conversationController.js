@@ -132,6 +132,16 @@ const updateParticipantsAndSettings = async (req, res) => {
   }
 }
 
+const getConversationOfPages = async (req, res) => {
+  try {
+    const result = await conversationService.getConversationOfPages(req.params.id)
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: 'Lấy dữ liệu thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const ConversationController = {
   getConversations,
   getConversationById,
@@ -145,7 +155,8 @@ const ConversationController = {
   updateUserSetting,
   updateSos,
   getSosConversations,
-  updateParticipantsAndSettings
+  updateParticipantsAndSettings,
+  getConversationOfPages
 }
 
 export  default ConversationController;

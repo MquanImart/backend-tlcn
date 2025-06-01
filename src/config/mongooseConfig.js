@@ -1,7 +1,7 @@
 ﻿import mongoose from 'mongoose';
 import { env } from './environment.js';
 
-const uri = `${env.MONGODB_URI}/${env.DATABASE_NAME}`;
+const uri = env.MONGODB_URI;
 
 export const connectDB = async () => {
     try {
