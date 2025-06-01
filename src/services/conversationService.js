@@ -106,6 +106,33 @@ const getConversationOfUser = async (userId) => {
   }
 };
 
+const getConversationOfPages = async (userId) => {
+  try {
+    const user = await User.findById(userId).select("pages").lean();
+    if (!user) return { success: false, message: 'Không tìm thấy người dùng' };
+
+    const pagesOfUser = user.pages?.createPages || [];
+
+    // Tìm các hội thoại mà người dùng sở hữu page
+    const conversations = await Conversation.find({
+      type: "page",
+      pageId: { $in: pagesOfUser },
+    })
+      .populate("participants", "_id displayName avt")
+      .populate({
+        path: "lastMessage",
+        select: "_id sender content seenBy createdAt",
+      })
+      .populate("pageId", "_id name avt") // Nếu muốn thông tin page
+      .lean();
+
+    return { success: true, data: conversations };
+  } catch (error) {
+    console.error("Lỗi khi lấy hội thoại của các page:", error);
+    return { success: false, message: 'Lỗi server', data: [] };
+  }
+};
+
 
 const getConversationsFiltered = async (userId, filterByFriends) => {
   try {
@@ -335,7 +362,8 @@ const conversationService = {
     updateUserSetting,
     updateSos,
     getSosConversations,
-    updateParticipantsAndSettings
+    updateParticipantsAndSettings,
+    getConversationOfPages
 }
 
 export default conversationService;

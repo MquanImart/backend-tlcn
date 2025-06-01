@@ -11,7 +11,6 @@ function recommendationsContentBase(userDataInput, allPagesData, weights) {
   // 1. Trích xuất profiles cho người dùng
   const userTextProfile = extractTagsAndWeights(userDataInput.textTags);
   const userImageProfile = extractTagsAndWeights(userDataInput.imagesTags);
-  console.log(userTextProfile);
   // 2. Trích xuất profiles cho tất cả các pages và thu thập profiles để xây dựng từ vựng
   const allTextProfilesForVocab = [userTextProfile];
   const allImageProfilesForVocab = [userImageProfile];
