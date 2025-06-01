@@ -122,6 +122,16 @@ const getSosConversations = async (req, res) => {
   }
 }
 
+const updateParticipantsAndSettings = async (req, res) => {
+  try {
+    const result = await conversationService.updateParticipantsAndSettings(req.params.id, req.body.userIds);
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: result.message })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const ConversationController = {
   getConversations,
   getConversationById,
@@ -134,7 +144,8 @@ const ConversationController = {
   getConversationWithoutFriends,
   updateUserSetting,
   updateSos,
-  getSosConversations
+  getSosConversations,
+  updateParticipantsAndSettings
 }
 
 export  default ConversationController;
