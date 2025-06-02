@@ -257,7 +257,7 @@ Router.get('/:id/articles',verifyToken, ProvinceController.getArticleOfPage);
  *       500:
  *         description: Lỗi server
  */
-Router.get('/:id/hot-page',verifyToken, ProvinceController.getHotPage);
+Router.get('/:id/hot-page', ProvinceController.getHotPage);
 
 /**
  * @swagger

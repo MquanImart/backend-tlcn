@@ -513,8 +513,16 @@ const getCreatedPages =  async (userId, limit = 5, skip = 0) => {
 
   // Tìm user và populate createPages
   const user = await User.findById(userId)
-    .populate('pages.createPages') // Populate danh sách Page từ createPages
-    .lean(); // Chuyển thành plain object để xử lý dễ hơn
+    .populate({
+      path: 'pages.createPages',
+      populate: {
+        path: 'avt',
+        model: 'MyPhoto',
+        select: 'url' // chỉ lấy trường url để tiết kiệm
+      }
+    })
+    .lean(); // để kết quả là plain JS object
+
 
   if (!user) {
     return null; // Trả về null nếu không tìm thấy user
