@@ -504,10 +504,12 @@ const updateMemberStatus = async (groupID, userID, state) => {
     isMember.state = "accepted";
     if (!user.groups.saveGroups.some(groupId => groupId.toString() === groupID)) {
       user.groups.saveGroups.push(groupID);
+      await user.save(); 
     }
   } else if (state === "rejected") {
     group.members = group.members.filter((member) => member.idUser.toString() !== userID);
     user.groups.saveGroups = user.groups.saveGroups.filter(groupId => groupId.toString() !== groupID);
+    await user.save(); 
   } else {
     throw { status: 400, message: "Không thể cập nhật trạng thái" };
   }
