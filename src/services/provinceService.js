@@ -84,19 +84,36 @@ const getArticleOfPage = async (provinceId, limit = 5, skip = 0) => {
 };
 
 const getHotPage = async (provinceId, limit = 10, skip = 0) => {
-    const province = await Province.findById(provinceId)
-        .populate('listPage')
+  const province = await Province.findById(provinceId)
+    .populate({
+      path: 'listPage',
+      populate: {
+        path: 'avt',
+        model: 'MyPhoto',
+        select: 'url'
+      }
+    });
 
-    let listPage = province.listPage;
-    listPage = listPage
-        .sort((a, b) => b.follower.length - a.follower.length)
-        .slice(skip, skip + limit);
-    return listPage;
+  let listPage = province.listPage || [];
+
+  // Sắp xếp theo số lượng follower và cắt theo limit/skip
+  listPage = listPage
+    .sort((a, b) => b.follower.length - a.follower.length)
+    .slice(skip, skip + limit);
+
+  return listPage;
 }
 
 const getAllPage = async (provinceId, limit = 10, skip = 0) => {
     const province = await Province.findById(provinceId)
-        .populate('listPage')
+    .populate({
+      path: 'listPage',
+      populate: {
+        path: 'avt',
+        model: 'MyPhoto',
+        select: 'url'
+      }
+    });
 
     let listPage = province.listPage;
     listPage = listPage
