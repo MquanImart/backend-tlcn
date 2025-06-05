@@ -59,11 +59,12 @@ const getArticleById = async (req, res) => {
 const createArticle = async (req, res) => {
   try {
 
-    const newArticle = await articleService.createArticle(req.body, req.files);
+    const result = await articleService.createArticle(req.body, req.files);
 
     res.status(201).json({
       success: true,
-      data: newArticle,
+      data: result.article, // Trả về bài viết
+      backendProcessingTime: result.backendProcessingTime,
       message: "Tạo bài viết thành công",
     });
   } catch (error) {
