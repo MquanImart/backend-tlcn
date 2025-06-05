@@ -226,16 +226,20 @@ const getArticleById = async (id) => {
 };
 
 const createArticle = async (data, files) => {
+  const startTime = performance.now(); // Bắt đầu đo thời gian
   try {
     const { createdBy, content, hashTag, scope, groupID, pageId, address } = data;
 
     if (!createdBy || !content) {
-      throw new Error("❌ Thiếu thông tin bắt buộc"); 
+      throw new Error("❌ Thiếu thông tin bắt buộc");
     }
 
-    const normalizedHashtags = Array.isArray(hashTag) 
-      ? hashTag 
-      : hashTag.split(",").map(tag => tag.trim());
+    // Xử lý hashtag, mặc định là mảng rỗng nếu không có
+    const normalizedHashtags = Array.isArray(hashTag)
+      ? hashTag
+      : typeof hashTag === "string" && hashTag.trim()
+        ? hashTag.split(",").map(tag => tag.trim())
+        : [];
 
     // 🔥 1️⃣ Xử lý địa chỉ nếu có
     let addressId = null;
@@ -243,13 +247,13 @@ const createArticle = async (data, files) => {
       try {
         // Parse the address string if it's a string
         const addressData = typeof address === 'string' ? JSON.parse(address) : address;
-        
+
         const newAddress = await addressService.createAddress({
           province: addressData.province,
           district: addressData.district,
           ward: addressData.ward,
           street: addressData.street || '', // Ensure street has a default value
-          placeName: addressData.placeName || 
+          placeName: addressData.placeName ||
             `${addressData.street || ''}, ${addressData.ward}, ${addressData.district}, ${addressData.province}`.trim(),
           lat: addressData.lat,
           long: addressData.long
@@ -310,10 +314,16 @@ const createArticle = async (data, files) => {
         { new: true }
       );
     }
-    
+
     await articleTagsService.createArticleTagByArticle(newArticle, uploadedMedia);
-    
-    return newArticle;
+
+    const endTime = performance.now(); // Kết thúc đo thời gian
+    const processingTime = endTime - startTime; // Tính thời gian xử lý (ms)
+
+    return {
+      article: newArticle,
+      backendProcessingTime: processingTime.toFixed(2), // Trả về thời gian xử lý (ms)
+    };
   } catch (error) {
     console.error("❌ Lỗi chi tiết khi tạo bài viết:", {
       error: error.message,
