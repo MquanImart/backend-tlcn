@@ -688,6 +688,7 @@ Router.post("/check-email", accountController.checkEmail);
  *                   example: "Lỗi server khi kiểm tra hashtag"
  */
 Router.post("/check-hashtag", accountController.checkHashtag);
+
 /**
  * @swagger
  * /accounts/compare-password:
@@ -775,4 +776,5 @@ Router.post("/check-hashtag", accountController.checkHashtag);
  *                   example: "Lỗi hệ thống, vui lòng thử lại"
  */
 Router.post("/compare-password", verifyToken, accountController.comparePassword);
+
 export const accountRoute = Router;

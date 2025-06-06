@@ -40,7 +40,9 @@ const getReels = async (req, res) => {
 const getReelById = async (req, res) => {
   try {
     const { id } = req.params;
+
     const reel = await reelsService.getReelById(id);
+
     if (!reel) {
       return res.status(404).json({ success: false, data: null, message: 'Reel không tồn tại' });
     }

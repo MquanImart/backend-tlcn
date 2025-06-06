@@ -69,7 +69,8 @@ Router.get('/',verifyToken, reelsController.getReels);
  *       404:
  *         description: Reel không tồn tại
  */
-Router.get('/:id', reelsController.getReelById);
+
+Router.get('/:id',verifyToken, reelsController.getReelById);
 
 /**
  * @swagger
@@ -177,7 +178,9 @@ Router.put('/',verifyToken, reelsController.updateAllReels);
  *       404:
  *         description: Reel không tồn tại
  */
-Router.delete('/:id', reelsController.deleteReelById);
+
+Router.delete('/:id',verifyToken, reelsController.deleteReelById);
+
 
 /**
  * @swagger
