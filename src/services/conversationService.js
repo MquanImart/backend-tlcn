@@ -23,6 +23,7 @@ const getById = async (id) => {
 const createConversation = async (data) => {
     if (!data.lastMessage) return {success: false, message: "Phải có tin nhắn đầu tiên"};
 
+
     if (data.type === 'page'){
       const existingConversation = await Conversation.findOne({
         type: 'page',
