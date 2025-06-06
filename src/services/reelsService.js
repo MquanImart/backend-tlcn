@@ -156,7 +156,7 @@ const updateAllReels = async (data) => {
 }
 
 const deleteReelsById = async (id) => {
-    return await Reels.findByIdAndDelete(id)
+    return await Reels.findByIdAndDelete(id);
 }
 const toggleLike = async (reelId, userId) => {
     const reel = await Reels.findById(reelId);
