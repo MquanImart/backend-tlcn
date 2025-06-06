@@ -23,6 +23,16 @@ const getById = async (id) => {
 const createConversation = async (data) => {
     if (!data.lastMessage) return {success: false, message: "Phải có tin nhắn đầu tiên"};
 
+    if (data.type === 'page'){
+      const existingConversation = await Conversation.findOne({
+        type: 'page',
+        pageId: data.pageId,
+        participants: data.participants
+      })
+      if (existingConversation) {
+        return { success: true, data: existingConversation, message: "Cuộc trò chuyện đã tồn tại. Lấy dữ liệu thành công" };
+      }
+    }
     // Kiểm tra nếu là cuộc trò chuyện riêng tư (private)
     if (data.participants.length === 2) {
       const existingConversation = await Conversation.findOne({
