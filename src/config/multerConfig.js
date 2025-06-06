@@ -9,6 +9,13 @@ const upload = multer({
       return cb(new Error("Định dạng file không hợp lệ! Chỉ hỗ trợ ảnh và video."));
     }
     cb(null, true);
+
+    if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Chỉ hỗ trợ ảnh và video."));
+    }
+
   },
 });
 
