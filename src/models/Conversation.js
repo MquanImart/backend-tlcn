@@ -19,7 +19,7 @@ const ConversationSchema = new mongoose.Schema(
       default: "private"
     },
     groupName: { type: String, default: null }, 
-    avtGroup: { type: String, default: null }, 
+    avtGroup: { type: mongoose.Schema.Types.ObjectId, ref: 'MyPhoto', default: null }, 
     pageId: { type: mongoose.Schema.Types.ObjectId, ref: "Page", default: null },
     lastMessage: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
     createdAt: { type: Number, default: () => Date.now() },
