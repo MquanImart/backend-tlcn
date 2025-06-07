@@ -5,9 +5,22 @@ const getArticles = async (req, res) => {
     const { $limit = 5, $skip = 0, createdBy, groupID, isDeleted, hasReports, hashtag, province } = req.query;
     const filter = {};
 
-    // Lọc theo hashtag
+    // Lọc theo hashtag (hashtag luôn là mảng)
     if (hashtag) {
-      filter.hashTag = { $in: [hashtag] };
+      let hashtagArray;
+      if (typeof hashtag === 'string') {
+        // Xử lý hashtag dạng chuỗi: "#nhatrang,#dalat" -> ["#nhatrang", "#dalat"]
+        hashtagArray = hashtag
+          .split(',')
+          .map(tag => tag.trim())
+          .filter(tag => tag.startsWith('#') && tag.length > 1);
+      } else if (Array.isArray(hashtag) && hashtag.length > 0) {
+        // Xử lý hashtag dạng mảng: ["#nhatrang", "#dalat"]
+        hashtagArray = hashtag.filter(tag => tag.startsWith('#') && tag.length > 1);
+      }
+      if (hashtagArray && hashtagArray.length > 0) {
+        filter.hashTag = { $in: hashtagArray }; // Giữ nguyên #
+      }
     }
 
     // Lọc theo người tạo

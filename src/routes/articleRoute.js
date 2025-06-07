@@ -8,14 +8,6 @@ const Router = express.Router();
 
 /**
  * @swagger
- * tags:
- *   name: Articles
- *   description: API quản lý bài viết
- */
-
-
-/**
- * @swagger
  * /articles:
  *   get:
  *     summary: Lấy danh sách bài viết
@@ -24,8 +16,12 @@ const Router = express.Router();
  *       - in: query
  *         name: hashtag
  *         schema:
- *           type: string
- *         description: Hashtag để lọc bài viết
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: true
+ *         description: Mảng các hashtag để lọc bài viết (trả về bài viết có bất kỳ hashtag nào trong mảng)
  *       - in: query
  *         name: createdBy
  *         schema:
