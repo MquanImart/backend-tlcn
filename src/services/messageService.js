@@ -160,6 +160,7 @@ const seenMessage = async (conversationId, userId) => {
         { conversationId },
         { $addToSet: { seenBy: userId } }
     );
+    return true;
 };
 
 const messageService = {

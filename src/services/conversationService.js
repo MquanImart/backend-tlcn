@@ -10,11 +10,28 @@ const getAll = async () => {
 
 const getById = async (id) => {
     const conversation = await Conversation.findById(id)
-      .populate("participants", "_id displayName avt")
-      .populate("pageId", "_id name avt")
+      .populate({
+        path: "participants",
+        select: "_id displayName avt",
+        populate: {
+          path: "avt",
+          model: "MyPhoto",
+        },
+      })
       .populate({
         path: "lastMessage",
         select: "_id sender content seenBy createdAt"
+      })
+      .populate({
+        path: "avtGroup"
+      })
+      .populate({
+        path: "pageId",
+        select: "_id name avt",
+        populate: {
+          path: "avt",
+          model: "MyPhoto",
+        },
       })
       .lean(); 
     return conversation;
@@ -103,18 +120,38 @@ const getConversationOfUser = async (userId) => {
         }
       }
     })
-      .populate("participants", "_id displayName avt")
+      .populate({
+        path: "participants",
+        select: "_id displayName avt",
+        populate: {
+          path: "avt",
+          model: "MyPhoto",
+        },
+      })
       .populate({
         path: "lastMessage",
         select: "_id sender content seenBy createdAt"
+      })
+      .populate({
+        path: "avtGroup"
+      })
+      .populate({
+        path: "pageId",
+        select: "_id name avt",
+        populate: {
+          path: "avt",
+          model: "MyPhoto",
+        },
       })
       .lean();
 
     return { user, conversations };
   } catch (error) {
+    console.error("Lỗi khi lấy cuộc trò chuyện:", error);
     return { success: false, conversations: [] };
   }
 };
+
 
 const getConversationOfPages = async (userId) => {
   try {
@@ -128,12 +165,26 @@ const getConversationOfPages = async (userId) => {
       type: "page",
       pageId: { $in: pagesOfUser },
     })
-      .populate("participants", "_id displayName avt")
+      .populate({
+        path: "participants",
+        select: "_id displayName avt",
+        populate: {
+          path: "avt",
+          model: "MyPhoto",
+        },
+      })
       .populate({
         path: "lastMessage",
         select: "_id sender content seenBy createdAt",
       })
-      .populate("pageId", "_id name avt") // Nếu muốn thông tin page
+      .populate({
+        path: "pageId",
+        select: "_id name avt",
+        populate: {
+          path: "avt",
+          model: "MyPhoto",
+        },
+      })
       .lean();
 
     return { success: true, data: conversations };
@@ -171,25 +222,8 @@ const getConversationsFiltered = async (userId, filterByFriends) => {
           new Date(b.lastMessage?.createdAt || 0).getTime() -
           new Date(a.lastMessage?.createdAt || 0).getTime()
       ); // Sắp xếp giảm dần theo thời gian
-
-    const resultConversations = await Promise.all(
-      filteredConversations.map(async (conversation) => {
-        if (conversation.type === "page" && conversation.pageId !== null) {
-          const page = await Page.findById(conversation.pageId);
-          return {
-            ...conversation,
-            pageId: {
-              _id: page._id,
-              name: page.name,
-              avt: page.avt,
-            },
-          };
-        }
-        return conversation;
-      })
-    );
     
-    return { success: true, data: resultConversations };
+    return { success: true, data: filteredConversations };
       
   } catch (error) {
     return { success: false, message: "Có lỗi xảy ra trong quá trình lấy dữ liệu" };
