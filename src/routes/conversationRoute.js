@@ -1,6 +1,7 @@
 import express from 'express';
 import ConversationController from '../controllers/conversationController.js';
 import { verifyToken, verifyAdmin } from '../middlewares/verifyToken.js';
+import upload from '../config/multerConfig.js';
 const Router = express.Router();
 
 /**
@@ -411,5 +412,37 @@ Router.get('/sos/:id',verifyToken, ConversationController.getSosConversations);
 Router.get('/user/:id/pages', ConversationController.getConversationOfPages);
 
 Router.patch('/:id/add-member',verifyToken, ConversationController.updateParticipantsAndSettings);
+
+/**
+ * @swagger
+ * /messages/avt-groups/{id}:
+ *   post:
+ *     summary: Thay đổi avt nhóm
+ *     tags: [Messages]
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: Id người dùng
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Tệp tin đính kèm (chỉ bắt buộc nếu type là 'img')
+ *     responses:
+ *       201:
+ *         description: Tạo tin nhắn thành công
+ *       400:
+ *         description: Yêu cầu không hợp lệ
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+Router.patch('/avt-groups/:id',verifyToken, upload.single('file'), ConversationController.changeAvtGroup);
 
 export const conversationdRoute = Router;
