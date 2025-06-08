@@ -1,3 +1,4 @@
+// recommendationService.js
 import User from '../models/User.js';
 import Article from '../models/Article.js';
 import HistoryArticle from '../models/HistoryArticle.js';
@@ -9,7 +10,6 @@ const filterArticlesByScope = async (userId, articles) => {
   const user = await User.findById(userId).populate('friends').lean();
   if (!user) return [];
 
-  // Đảm bảo user.friends là mảng, nếu không thì trả về mảng rỗng
   const friends = Array.isArray(user.friends) ? user.friends : [];
 
   return articles.filter(article => {
@@ -40,11 +40,9 @@ const buildUserTagProfile = async (userId) => {
   const tagProfile = {};
 
   userArticleTags.forEach(at => {
-    // Tag text weight = 1
     at.textTag.forEach(tag => {
       tagProfile[tag] = (tagProfile[tag] || 0) + 1;
     });
-    // Tag hình ảnh có trọng số weight riêng
     at.imagesTag.forEach(imgTag => {
       tagProfile[imgTag.tag] = (tagProfile[imgTag.tag] || 0) + imgTag.weight;
     });
@@ -68,14 +66,11 @@ const scoreArticleByTags = (articleTags, userTagProfile) => {
 
 // --- Collaborative Filtering (CF) ---
 const calculateCollaborativeScore = async (userId, articles, user) => {
-  // Đảm bảo user.friends và user.following là mảng, nếu không thì trả về mảng rỗng
   const friendIds = Array.isArray(user.friends) ? user.friends.map(f => f._id.toString()) : [];
   const followingIds = Array.isArray(user.following) ? user.following.map(f => f._id.toString()) : [];
 
-  // Tập hợp user chính + bạn bè + following
   const interactedUsers = [userId, ...friendIds, ...followingIds];
 
-  // Lấy lịch sử tương tác của các user này
   const interactions = await HistoryArticle.find({
     idUser: { $in: interactedUsers }
   }).lean();
@@ -83,17 +78,14 @@ const calculateCollaborativeScore = async (userId, articles, user) => {
   const scores = {};
   interactions.forEach(h => {
     const articleId = h.idArticle.toString();
-    // View cho điểm thấp hơn Like (hoặc các hành động khác)
-    let baseScore = h.action === 'View' ? 1 : 2;
+    let baseScore = h.action === 'View' ? 1 : 2; // View cho điểm thấp hơn Like
 
-    // Tương tác của user chính có trọng số cao hơn bạn bè/following
-    if (h.idUser.toString() === userId) baseScore *= 2;
-    else baseScore *= 0.5;
+    if (h.idUser.toString() === userId) baseScore *= 2; // User chính trọng số cao hơn
+    else baseScore *= 0.5; // Bạn bè/following trọng số thấp hơn
 
     scores[articleId] = (scores[articleId] || 0) + baseScore;
   });
 
-  // Trả về map điểm cho bài viết trong danh sách articles
   return articles.reduce((acc, a) => {
     acc[a._id.toString()] = scores[a._id.toString()] || 0;
     return acc;
@@ -101,7 +93,6 @@ const calculateCollaborativeScore = async (userId, articles, user) => {
 };
 
 const recommend = async (userId, page = 1, limit = 10) => {
-  // Lấy user và các quan hệ cần thiết
   const user = await User.findById(userId)
     .populate([
       'hobbies',
@@ -116,7 +107,6 @@ const recommend = async (userId, page = 1, limit = 10) => {
 
   if (!user) throw new Error('Người dùng không tồn tại');
 
-  // Lấy tất cả bài viết chưa xóa
   let allArticles = await Article.find({ _destroy: null }).lean();
   if (!Array.isArray(allArticles)) {
     console.warn('No articles found or query failed');
@@ -129,10 +119,8 @@ const recommend = async (userId, page = 1, limit = 10) => {
     };
   }
 
-  // Lọc bài viết theo quyền xem (scope)
   allArticles = await filterArticlesByScope(userId, allArticles);
 
-  // Nếu không còn bài viết nào sau khi lọc, trả về kết quả rỗng
   if (!Array.isArray(allArticles) || allArticles.length === 0) {
     return {
       articles: [],
@@ -143,44 +131,70 @@ const recommend = async (userId, page = 1, limit = 10) => {
     };
   }
 
-  // Lấy tags của tất cả bài viết đã lọc
   const articleIds = allArticles.map(a => a._id);
   const articleTagsList = await ArticleTags.find({ idArticle: { $in: articleIds } }).lean();
   const articleTagsMap = new Map();
   articleTagsList.forEach(at => articleTagsMap.set(at.idArticle.toString(), at));
 
-  // Xây dựng profile tag của user dựa trên các bài đã tương tác
   const userTagProfile = await buildUserTagProfile(userId);
 
-  // Lấy danh sách các bài user đã comment
   const comments = await Comment.find({ _iduser: userId }).lean();
   const commentedArticleIds = comments
     .map(c => c.articleId)
     .filter(id => id != null)
     .map(id => id.toString());
 
-  const COMMENT_BOOST = 5;
-  const ALPHA = 0.6;
+  const COMMENT_BOOST = 5; // Điểm tăng thêm nếu user đã comment bài này
+  const ALPHA = 0.6; // Trọng số cho Content-Based Filtering (0.6 * CBF + 0.4 * CF)
 
-  // Tính điểm Collaborative Filtering trên toàn bộ bài viết
+  // --- Các hằng số mới cho Time Decay và New Article Boost ---
+  const MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
+  const DECAY_HALF_LIFE_DAYS = 30; // Thời gian để điểm giảm một nửa (30 ngày)
+  const DECAY_RATE = Math.log(2) / DECAY_HALF_LIFE_DAYS; // Công thức tính tỷ lệ giảm
+
+  const NEW_ARTICLE_BOOST = 15; // Điểm tăng thêm cho bài viết rất mới
+  const NEW_ARTICLE_HOURS_LIMIT = 24; // Bài viết được coi là rất mới trong 24 giờ đầu tiên
+  // --- Kết thúc các hằng số mới ---
+
   const collaborativeScores = await calculateCollaborativeScore(userId, allArticles, user);
 
-  // Tính điểm kết hợp cho từng bài viết
   const scoredArticles = allArticles.map(article => {
     const idStr = article._id.toString();
     const at = articleTagsMap.get(idStr);
 
-    // Điểm content-based dựa trên tags
     const contentScore = scoreArticleByTags(at, userTagProfile);
-    // Điểm collaborative filtering dựa trên hành vi tương tác
     const collabScore = collaborativeScores[idStr] || 0;
-    // Tăng điểm nếu user đã comment bài này
     const commentScore = commentedArticleIds.includes(idStr) ? COMMENT_BOOST : 0;
 
-    // Tổng điểm cuối cùng kết hợp content, collaborative và comment boost
-    const finalScore = ALPHA * contentScore + (1 - ALPHA) * collabScore + commentScore;
+    // --- Tính toán Time Decay ---
+    const articleAgeMs = Date.now() - article.createdAt;
+    const articleAgeDays = articleAgeMs / MILLISECONDS_IN_DAY;
+    const decayFactor = Math.exp(-DECAY_RATE * articleAgeDays);
+    // Đảm bảo decayFactor không giảm quá mức (ví dụ, không giảm quá 80%)
+    const effectiveDecayFactor = Math.max(0.2, decayFactor); // Giảm tối đa 80% điểm gốc
 
-    return { article, score: finalScore, detail: { contentScore, collabScore, commentScore } };
+    // --- Tính toán New Article Boost ---
+    const articleAgeHours = articleAgeMs / (60 * 60 * 1000);
+    const newArticleBoost = (articleAgeHours <= NEW_ARTICLE_HOURS_LIMIT) ? NEW_ARTICLE_BOOST : 0;
+    // --- Kết thúc các tính toán mới ---
+
+    // Tổng điểm cơ bản
+    const baseScore = ALPHA * contentScore + (1 - ALPHA) * collabScore + commentScore;
+
+    // Áp dụng Time Decay và New Article Boost
+    const finalScore = baseScore * effectiveDecayFactor + newArticleBoost;
+
+    return { 
+      article, 
+      score: finalScore, 
+      detail: { 
+        contentScore, 
+        collabScore, 
+        commentScore, 
+        decayFactor: effectiveDecayFactor,
+        newArticleBoost 
+      } 
+    };
   });
 
   // Sắp xếp toàn bộ bài viết theo điểm giảm dần
@@ -238,6 +252,8 @@ const recommend = async (userId, page = 1, limit = 10) => {
       collaborativeScore: s.detail.collabScore,
       commentScore: s.detail.commentScore,
       finalScore: s.score,
+      decayFactor: s.detail.decayFactor, // Thêm vào để theo dõi
+      newArticleBoost: s.detail.newArticleBoost, // Thêm vào để theo dõi
     })),
   };
 };
