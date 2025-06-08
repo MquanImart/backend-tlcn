@@ -1,8 +1,9 @@
 import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js'
-import Page from '../models/Page.js'
+import MyPhoto from '../models/MyPhoto.js'
 import mongoose from 'mongoose';
+import { cloudStorageService } from "../config/cloudStorage.js";
 
 const getAll = async () => {
     return await Conversation.find();
@@ -393,6 +394,37 @@ const updateParticipantsAndSettings = async (conversationId, userIds) => {
   return {success: true, data: conversation};
 };
 
+const changeAvtGroup = async (conversationId, userId, file) => {
+  let newFile;
+  if (!file || !file.buffer) {
+      return {success: false, message: "Không có file hợp lệ để upload!"};
+  }
+  newFile = await MyPhoto.create({
+      name: file.originalname,
+      idAuthor: userId,
+      type: 'img',
+      url: "",
+  });
+  const destination = `src/images/conversations/${conversationId}/${newFile._id}/${Date.now()}`;
+  const fileUrl = await cloudStorageService.uploadImageBufferToStorage(
+    file.buffer,
+    destination,
+    file.mimetype
+  );
+  if (!fileUrl) {
+    return {success: false, message: "Không lấy được URL sau khi upload!"};
+  }
+  newFile.url = fileUrl;
+  await newFile.save();
+
+  const newConver = await Conversation.findByIdAndUpdate(conversationId, {avtGroup: newFile._id}, { new: true });
+
+  return {success: true, data: {
+    ...newConver,
+    avtGroup: newFile
+  }}
+};
+
 const conversationService = {
     getAll,
     getById,
@@ -407,7 +439,8 @@ const conversationService = {
     updateSos,
     getSosConversations,
     updateParticipantsAndSettings,
-    getConversationOfPages
+    getConversationOfPages,
+    changeAvtGroup
 }
 
 export default conversationService;

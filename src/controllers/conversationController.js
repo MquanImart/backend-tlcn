@@ -142,6 +142,17 @@ const getConversationOfPages = async (req, res) => {
   }
 }
 
+const changeAvtGroup = async (req, res) => {
+  try {
+    const result = await conversationService.changeAvtGroup(req.params.id, req.body.userId, req.file)
+    if (!result.success) return res.status(400).json({ success: false, data: null, message: result.message })
+    res.status(200).json({ success: true, data: result.data, message: 'Cập nhật thành công' })
+  } catch (error) {
+    console.log(error.message)
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const ConversationController = {
   getConversations,
   getConversationById,
@@ -156,7 +167,8 @@ const ConversationController = {
   updateSos,
   getSosConversations,
   updateParticipantsAndSettings,
-  getConversationOfPages
+  getConversationOfPages,
+  changeAvtGroup
 }
 
 export  default ConversationController;
