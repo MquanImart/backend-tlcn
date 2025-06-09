@@ -788,79 +788,64 @@ const updateHobbiesByUserId = async (userId, hobbies) => {
     throw new Error(error.message);
   }
 };
-const getSavedGroupsByGroupName = async ({ userId, groupName, skip = 0, limit = 5 }) => {
-  try {
-    if (!userId || !groupName) {
-      return { groups: [], total: 0 };
-    }
-
-    // Lấy danh sách ID nhóm đã lưu
-    const user = await User.findById(userId).select('groups.saveGroups').lean();
-    if (!user || !user.groups?.saveGroups?.length) {
-      return { groups: [], total: 0 };
-    }
-    const savedGroupIds = user.groups.saveGroups.map(group => group._id.toString());
-
-    // Chuẩn hóa chuỗi tìm kiếm
-    const normalizedSearch = removeVietnameseTones(groupName).toLowerCase();
-    const searchRegex = new RegExp(`\\b${normalizedSearch}\\w*`, 'i');
-
-    // Điều kiện truy vấn
-    const query = {
-      _id: { $in: savedGroupIds },
-      groupName: { $regex: searchRegex },
-      _destroy: null,
-    };
-
-    // Đếm tổng số nhóm khớp
-    const total = await Group.countDocuments(query);
-
-    // Truy vấn nhóm với phân trang
-    const groups = await Group.find(query)
-      .sort({ groupName: 1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('avt')
-      .select('_id groupName avt introduction type')
-      .lean();
-
-    return { groups, total };
-  } catch (error) {
-    console.error('Lỗi khi lấy danh sách nhóm đã lưu theo groupName:', error);
-    throw new Error('Không thể lấy danh sách nhóm đã lưu: ' + error.message);
-  }
-};
 
 const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = {}) => {
   try {
     // Validate inputs
-    if (!Number.isInteger(limit) || limit < 1) throw new Error('Limit must be a positive integer');
-    if (!Number.isInteger(skip) || skip < 0) throw new Error('Skip must be a non-negative integer');
-    if (groupName && typeof groupName !== 'string') throw new Error('GroupName must be a string');
-    if (!userId || typeof userId !== 'string') throw new Error('UserId must be a string');
+    if (!Number.isInteger(limit) || limit < 1) throw new Error('Limit phải là số nguyên dương');
+    if (!Number.isInteger(skip) || skip < 0) throw new Error('Skip phải là số không âm');
+    if (groupName && typeof groupName !== 'string') throw new Error('GroupName phải là chuỗi');
+    if (!userId || typeof userId !== 'string') throw new Error('UserId phải là chuỗi');
+
+    console.log('Input parameters:', { limit, skip, groupName, userId });
 
     // Fetch user to get their groups
     const user = await User.findById(userId);
+    console.log('User fetched:', user ? user._id : 'No user found');
     if (!user || !user.groups?.createGroups) {
+      console.log('No user or no createGroups, returning empty result');
       return { groups: [], total: 0 };
     }
 
     // Get IDs of created and saved groups
     const myGroupIds = new Set(user.groups.createGroups.map(group => group._id.toString()));
     const savedGroupIds = new Set(user.groups.saveGroups?.map(group => group._id.toString()) || []);
+    console.log('myGroupIds:', [...myGroupIds], 'savedGroupIds:', [...savedGroupIds]);
 
     // Normalize search term
-    const normalizedSearch = groupName ? removeVietnameseTones(groupName).toLowerCase() : '';
+    let normalizedSearch = '';
+    if (groupName) {
+      try {
+        normalizedSearch = removeVietnameseTones(groupName).toLowerCase();
+      } catch (error) {
+        console.error('Error in removeVietnameseTones:', error.message);
+        throw new Error(`Lỗi chuẩn hóa groupName: ${error.message}`);
+      }
+    }
+    console.log('Normalized search term:', normalizedSearch);
 
     // Fetch all groups
-    let allGroups = await groupService.getGroups();
+    let allGroups;
+    try {
+      allGroups = await groupService.getGroups();
+      console.log('Raw allGroups from getGroups:', allGroups);
+    } catch (getGroupsError) {
+      console.error('Error in getGroups:', getGroupsError.message);
+      throw new Error(`Lỗi khi lấy danh sách nhóm: ${getGroupsError.message}`);
+    }
+
+    // Filter out invalid groups
+    allGroups = allGroups.filter(group => group && typeof group.groupName === 'string' && group._id);
+    console.log('Filtered allGroups:', allGroups, 'Length:', allGroups.length);
 
     // Filter groups by name (if provided)
     if (normalizedSearch) {
       allGroups = allGroups.filter(group => {
-        const normalizedGroupName = removeVietnameseTones(group.name).toLowerCase();
-        return normalizedGroupName.includes(normalizedSearch);
+        const normalizedGroupName = removeVietnameseTones(group.groupName).toLowerCase();
+        return normalizedGroupName.match(new RegExp(`\\b${normalizedSearch}\\w*`, 'i'));
+        
       });
+      console.log('Filtered by groupName:', allGroups);
     }
 
     // Sort groups: myGroups first, then savedGroups, then others (alphabetically)
@@ -874,33 +859,28 @@ const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = 
       if (!aIsMyGroup && bIsMyGroup) return 1;
       if (aIsSavedGroup && !bIsSavedGroup) return -1;
       if (!aIsSavedGroup && bIsSavedGroup) return 1;
-      return a.name.localeCompare(b.name);
+      const aName = a.groupName || '';
+      const bName = b.groupName || '';
+      return aName.localeCompare(bName);
     });
+    console.log('Sorted allGroups:', allGroups);
 
     // Calculate total records
     const total = allGroups.length;
+    console.log('Total groups:', total);
 
     // Apply pagination and select relevant fields
-    const paginatedGroups = allGroups
-      .slice(skip, skip + limit)
-      .map(group => ({
-        _id: group._id,
-        name: group.name,
-        avt: group.avt,
-        about: group.about,
-        status: myGroupIds.has(group._id.toString())
-          ? 'myGroup'
-          : savedGroupIds.has(group._id.toString())
-          ? 'savedGroup'
-          : 'other',
-      }));
+    const paginatedGroupIds = allGroups.slice(skip, skip + limit)
+    const paginatedGroups = await Promise.all(paginatedGroupIds.map(groupService.getGroupById));
+    console.log('Paginated groups:', paginatedGroups);
 
     return {
       groups: paginatedGroups,
       total,
     };
   } catch (error) {
-    throw new Error(`Failed to fetch groups: ${error.message}`);
+    console.error('Error in getGroupByGroupName:', error.message);
+    throw new Error(`Không thể lấy danh sách nhóm: ${error.message}`);
   }
 };
 export const userService = {

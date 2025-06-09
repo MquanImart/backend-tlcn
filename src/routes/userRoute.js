@@ -1191,5 +1191,88 @@ Router.get('/:id/hobbies',verifyToken, userController.getHobbiesByUserId);
  *         description: Lỗi server
  */
 Router.patch('/:id/hobbies',verifyToken, userController.updateHobbiesByUserId);
-
+/**
+ * @swagger
+ * /users/groups/search:
+ *   get:
+ *     summary: Tìm kiếm nhóm theo groupName với phân trang
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: groupName
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Tên nhóm để tìm kiếm (không phân biệt dấu)
+ *         example: "Study"
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID của người dùng để lọc nhóm
+ *         example: "507f1f77bcf86cd799439011"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng nhóm mỗi trang
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số lượng bản ghi bỏ qua (dùng cho phân trang)
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách nhóm thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       avt:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           idAuthor:
+ *                             type: string
+ *                           type:
+ *                             type: string
+ *                           url:
+ *                             type: string
+ *                           createdAt:
+ *                             type: string
+ *                           updatedAt:
+ *                             type: string
+ *                       about:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: ['myGroup', 'savedGroup', 'other']
+ *                 total:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Thiếu hoặc không hợp lệ userId
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/groups/search', userController.getGroupByGroupName);
 export const userRoute = Router;
