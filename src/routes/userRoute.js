@@ -19,8 +19,94 @@ const Router = express.Router();
  *       200:
  *         description: Trả về danh sách người dùng
  */
-Router.get('/',verifyToken, userController.getUsers);
-
+Router.get('/', userController.getUsers);
+/**
+ * @swagger
+ * /users/search:
+ *   get:
+ *     summary: Tìm kiếm người dùng theo displayName với phân trang
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: displayName
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Tên hiển thị của người dùng để tìm kiếm (không phân biệt dấu)
+ *         example: "Nguyen"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng người dùng mỗi trang
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số lượng bản ghi bỏ qua (dùng cho phân trang)
+ *     responses:
+ *       200:
+ *         description: Lấy danh sách người dùng thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       displayName:
+ *                         type: string
+ *                       avt:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           idAuthor:
+ *                             type: string
+ *                           type:
+ *                             type: string
+ *                           url:
+ *                             type: string
+ *                           createdAt:
+ *                             type: string
+ *                           updatedAt:
+ *                             type: string
+ *                       aboutMe:
+ *                         type: string
+ *                       friends:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                             displayName:
+ *                               type: string
+ *                             avt:
+ *                               type: string
+ *                             aboutMe:
+ *                               type: string
+ *                 total:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Thiếu displayName trong query
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/search', userController.getUsersByDisplayName);
 /**
  * @swagger
  * /users/{id}:
