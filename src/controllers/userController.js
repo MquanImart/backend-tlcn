@@ -317,7 +317,9 @@ const unFriends = async (req, res) => {
 
 const suggestedFriends = async (req, res) => {
   try {
-    const dataAddFriend = await userService.suggestFriends(req.params.id)
+    const skip = parseInt(req.query.skip, 10) || 0;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const dataAddFriend = await userService.suggestFriends(req.params.id, skip, limit)
     if (!dataAddFriend) return res.status(404).json({ success: false, data: null, message: 'Không có thông tin' })
     res.status(200).json({ success: true, data: dataAddFriend, message: 'Lấy danh sách gợi ý thành công' })
   } catch (error) {
