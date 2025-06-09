@@ -586,32 +586,36 @@ const updateHobbiesByUserId = async (req, res) => {
     });
   }
 };
-const getGroupByName = async (req, res) => {
+const getGroupByGroupName = async (req, res) => {
   try {
-    const { limit, skip, groupName } = req.query;
-    const userId = req.user._id; // Giả định userId lấy từ middleware xác thực
+    const { groupName, userId, limit = 5, skip = 0 } = req.query;
 
-    // Chuyển đổi limit và skip thành số nguyên
-    const queryParams = {
-      limit: parseInt(limit) || 5,
-      skip: parseInt(skip) || 0,
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Vui lòng cung cấp userId',
+      });
+    }
+
+    const { groups, total } = await userService.getGroupByGroupName({
       groupName,
-      userId: userId.toString(),
-    };
+      userId,
+      limit: parseInt(limit),
+      skip: parseInt(skip),
+    });
 
-    // Gọi service để lấy danh sách nhóm
-    const result = await getGroupByGroupName(queryParams);
-
-    // Trả về kết quả thành công
     res.status(200).json({
       success: true,
-      data: result,
+      data: groups,
+      total,
+      message: 'Lấy danh sách nhóm theo groupName thành công',
     });
   } catch (error) {
-    // Trả về lỗi nếu có
     res.status(500).json({
       success: false,
-      message: `Lỗi khi lấy danh sách nhóm: ${error.message}`,
+      data: null,
+      message: error.message,
     });
   }
 };
@@ -647,5 +651,5 @@ export const userController = {
   getHobbiesByUserId,
   updateHobbiesByUserId,
   getUsersByDisplayName,
-   getGroupByName,
+  getGroupByGroupName,
 };
