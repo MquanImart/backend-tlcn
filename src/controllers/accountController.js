@@ -250,6 +250,48 @@ const checkHashtag = async (req, res) => {
     });
   }
 };
+const comparePassword = async (req, res) => {
+  try {
+    const { idAccount, password } = req.body;
+
+    // Validate input
+    if (!idAccount || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng cung cấp ID tài khoản và mật khẩu",
+      });
+    }
+
+    // Gọi service để lấy tài khoản theo ID
+    const account = await accountService.getAccountById(idAccount);
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        message: "Tài khoản không tồn tại",
+      });
+    }
+
+    // Kiểm tra mật khẩu
+    const isPasswordValid = await accountService.comparePassword(password, account.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Mật khẩu không đúng",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Mật khẩu hợp lệ",
+    });
+  } catch (error) {
+    console.error("Lỗi khi kiểm tra mật khẩu:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Lỗi hệ thống, vui lòng thử lại",
+    });
+  }
+};
 export const accountController = {
   getAccounts,
   getAccountById,
@@ -262,5 +304,6 @@ export const accountController = {
   verifyOtp,
   updatePassword,
   checkEmail,
-  checkHashtag
+  checkHashtag,
+  comparePassword
 }

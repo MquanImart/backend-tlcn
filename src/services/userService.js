@@ -27,7 +27,58 @@ const getUsers = async () => {
     aboutMe: user.aboutMe,
   }));
 };
+// Hàm chuẩn hóa chuỗi
+const removeVietnameseTones = (str) => {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D');
+};
 
+const getUsersByDisplayName = async ({ limit = 5, skip = 0, displayName } = {}) => {
+  try {
+    // Chuẩn hóa chuỗi tìm kiếm
+    const normalizedSearch = displayName ? removeVietnameseTones(displayName).toLowerCase() : '';
+
+    // Lấy tất cả người dùng bằng hàm getUsers
+    let allUsers = await getUsers();
+
+    // Lọc người dùng dựa trên displayName chuẩn hóa
+    if (normalizedSearch) {
+      allUsers = allUsers.filter(user => {
+        const normalizedDisplayName = removeVietnameseTones(user.displayName).toLowerCase();
+        // So sánh gần đúng sử dụng regex
+        return normalizedDisplayName.match(new RegExp(`\\b${normalizedSearch}\\w*`, 'i'));
+      });
+    }
+
+    // Sắp xếp danh sách người dùng theo displayName
+    allUsers.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+    // Tính tổng số bản ghi
+    const total = allUsers.length;
+
+    // Áp dụng phân trang
+    const paginatedUsers = allUsers
+      .slice(skip, skip + limit)
+      .map(user => ({
+        _id: user._id,
+        displayName: user.displayName, // Trả về displayName gốc
+        avt: user.avt,
+        aboutMe: user.aboutMe,
+        friends: user.friends, // Trường friends đã được populate từ getUsers
+      }));
+
+    return {
+      users: paginatedUsers,
+      total,
+    };
+  } catch (error) {
+    throw new Error('Không thể lấy danh sách người dùng: ' + error.message);
+  }
+};
 const getUserById = async (id) => {
   return await User.findOne({ _id: id })
 };
@@ -737,6 +788,121 @@ const updateHobbiesByUserId = async (userId, hobbies) => {
     throw new Error(error.message);
   }
 };
+const getSavedGroupsByGroupName = async ({ userId, groupName, skip = 0, limit = 5 }) => {
+  try {
+    if (!userId || !groupName) {
+      return { groups: [], total: 0 };
+    }
+
+    // Lấy danh sách ID nhóm đã lưu
+    const user = await User.findById(userId).select('groups.saveGroups').lean();
+    if (!user || !user.groups?.saveGroups?.length) {
+      return { groups: [], total: 0 };
+    }
+    const savedGroupIds = user.groups.saveGroups.map(group => group._id.toString());
+
+    // Chuẩn hóa chuỗi tìm kiếm
+    const normalizedSearch = removeVietnameseTones(groupName).toLowerCase();
+    const searchRegex = new RegExp(`\\b${normalizedSearch}\\w*`, 'i');
+
+    // Điều kiện truy vấn
+    const query = {
+      _id: { $in: savedGroupIds },
+      groupName: { $regex: searchRegex },
+      _destroy: null,
+    };
+
+    // Đếm tổng số nhóm khớp
+    const total = await Group.countDocuments(query);
+
+    // Truy vấn nhóm với phân trang
+    const groups = await Group.find(query)
+      .sort({ groupName: 1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('avt')
+      .select('_id groupName avt introduction type')
+      .lean();
+
+    return { groups, total };
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách nhóm đã lưu theo groupName:', error);
+    throw new Error('Không thể lấy danh sách nhóm đã lưu: ' + error.message);
+  }
+};
+
+const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = {}) => {
+  try {
+    // Validate inputs
+    if (!Number.isInteger(limit) || limit < 1) throw new Error('Limit must be a positive integer');
+    if (!Number.isInteger(skip) || skip < 0) throw new Error('Skip must be a non-negative integer');
+    if (groupName && typeof groupName !== 'string') throw new Error('GroupName must be a string');
+    if (!userId || typeof userId !== 'string') throw new Error('UserId must be a string');
+
+    // Fetch user to get their groups
+    const user = await User.findById(userId);
+    if (!user || !user.groups?.createGroups) {
+      return { groups: [], total: 0 };
+    }
+
+    // Get IDs of created and saved groups
+    const myGroupIds = new Set(user.groups.createGroups.map(group => group._id.toString()));
+    const savedGroupIds = new Set(user.groups.saveGroups?.map(group => group._id.toString()) || []);
+
+    // Normalize search term
+    const normalizedSearch = groupName ? removeVietnameseTones(groupName).toLowerCase() : '';
+
+    // Fetch all groups
+    let allGroups = await groupService.getGroups();
+
+    // Filter groups by name (if provided)
+    if (normalizedSearch) {
+      allGroups = allGroups.filter(group => {
+        const normalizedGroupName = removeVietnameseTones(group.name).toLowerCase();
+        return normalizedGroupName.includes(normalizedSearch);
+      });
+    }
+
+    // Sort groups: myGroups first, then savedGroups, then others (alphabetically)
+    allGroups.sort((a, b) => {
+      const aIsMyGroup = myGroupIds.has(a._id.toString());
+      const bIsMyGroup = myGroupIds.has(b._id.toString());
+      const aIsSavedGroup = savedGroupIds.has(a._id.toString());
+      const bIsSavedGroup = savedGroupIds.has(b._id.toString());
+
+      if (aIsMyGroup && !bIsMyGroup) return -1;
+      if (!aIsMyGroup && bIsMyGroup) return 1;
+      if (aIsSavedGroup && !bIsSavedGroup) return -1;
+      if (!aIsSavedGroup && bIsSavedGroup) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    // Calculate total records
+    const total = allGroups.length;
+
+    // Apply pagination and select relevant fields
+    const paginatedGroups = allGroups
+      .slice(skip, skip + limit)
+      .map(group => ({
+        _id: group._id,
+        name: group.name,
+        avt: group.avt,
+        about: group.about,
+        status: myGroupIds.has(group._id.toString())
+          ? 'myGroup'
+          : savedGroupIds.has(group._id.toString())
+          ? 'savedGroup'
+          : 'other',
+      }));
+
+    return {
+      groups: paginatedGroups,
+      total,
+    };
+  } catch (error) {
+    throw new Error(`Failed to fetch groups: ${error.message}`);
+  }
+};
 export const userService = {
   getUsers,
   getUserById,
@@ -767,5 +933,7 @@ export const userService = {
   createTrip,
   getUserByAccountId,
   getHobbiesByUserId, 
-  updateHobbiesByUserId 
+  updateHobbiesByUserId ,
+  getUsersByDisplayName,
+  getGroupByGroupName,
 };

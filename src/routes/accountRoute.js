@@ -688,4 +688,93 @@ Router.post("/check-email", accountController.checkEmail);
  *                   example: "Lỗi server khi kiểm tra hashtag"
  */
 Router.post("/check-hashtag", accountController.checkHashtag);
+/**
+ * @swagger
+ * /accounts/compare-password:
+ *   post:
+ *     summary: Kiểm tra tính hợp lệ của mật khẩu
+ *     tags: [Accounts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               idAccount:
+ *                 type: string
+ *                 description: ID của tài khoản
+ *                 example: "60f7ebeb2f8fb814b56fa181"
+ *               password:
+ *                 type: string
+ *                 description: Mật khẩu cần kiểm tra
+ *                 example: "yourpassword"
+ *     responses:
+ *       200:
+ *         description: Mật khẩu hợp lệ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Mật khẩu hợp lệ"
+ *       400:
+ *         description: Thiếu ID tài khoản hoặc mật khẩu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Vui lòng cung cấp ID tài khoản và mật khẩu"
+ *       401:
+ *         description: Mật khẩu không đúng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Mật khẩu không đúng"
+ *       404:
+ *         description: Tài khoản không tồn tại
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Tài khoản không tồn tại"
+ *       500:
+ *         description: Lỗi hệ thống
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Lỗi hệ thống, vui lòng thử lại"
+ */
+Router.post("/compare-password", accountController.comparePassword);
 export const accountRoute = Router;

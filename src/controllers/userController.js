@@ -11,7 +11,38 @@ const getUsers = async (req, res) => {
     res.status(500).json({ success: false, data: null, message: error.message });
   }
 };
+const getUsersByDisplayName = async (req, res) => {
+  try {
+    const { displayName, limit = 5, skip = 0 } = req.query;
 
+    if (!displayName) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Vui lòng cung cấp displayName',
+      });
+    }
+
+    const { users, total } = await userService.getUsersByDisplayName({
+      displayName,
+      limit: parseInt(limit),
+      skip: parseInt(skip),
+    });
+
+    res.status(200).json({
+      success: true,
+      data: users,
+      total,
+      message: 'Lấy danh sách người dùng theo displayName thành công',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
 const getUserById = async (req, res) => {
   try {
     const user = await userService.getUserById(req.params.id);
@@ -555,6 +586,35 @@ const updateHobbiesByUserId = async (req, res) => {
     });
   }
 };
+const getGroupByName = async (req, res) => {
+  try {
+    const { limit, skip, groupName } = req.query;
+    const userId = req.user._id; // Giả định userId lấy từ middleware xác thực
+
+    // Chuyển đổi limit và skip thành số nguyên
+    const queryParams = {
+      limit: parseInt(limit) || 5,
+      skip: parseInt(skip) || 0,
+      groupName,
+      userId: userId.toString(),
+    };
+
+    // Gọi service để lấy danh sách nhóm
+    const result = await getGroupByGroupName(queryParams);
+
+    // Trả về kết quả thành công
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    // Trả về lỗi nếu có
+    res.status(500).json({
+      success: false,
+      message: `Lỗi khi lấy danh sách nhóm: ${error.message}`,
+    });
+  }
+};
 export const userController = {
   getUsers,
   getUserById,
@@ -585,5 +645,7 @@ export const userController = {
   createTrip,
   getUserByAccountId,
   getHobbiesByUserId,
-  updateHobbiesByUserId 
+  updateHobbiesByUserId,
+  getUsersByDisplayName,
+   getGroupByName,
 };
