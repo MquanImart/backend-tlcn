@@ -9,6 +9,7 @@ import collectionService from "./collectionService.js"
 import Article from "../models/Article.js";
 import Location from "../models/Location.js";
 import { tripService } from "./tripService.js";
+import { cosineSimilarity, createUserHobbyVectors } from "../utils/userUtils.js";
 
 const getUsers = async () => {
   // Lấy tất cả người dùng và populate trường 'friends' và 'avt'
@@ -444,7 +445,27 @@ const unFriends = async (id, friendId) => {
   return { message: "Unfriended successfully" };
 };
 
-const suggestFriends = async (id) => {
+
+const suggestFriendsByHobby = async (targetUserId) => {
+  const { userVectors } = await createUserHobbyVectors();
+  const targetVector = userVectors.get(targetUserId);
+  
+  const similarities = [];
+  for (const [userId, vector] of userVectors.entries()) {
+    if (userId === targetUserId) {
+      continue;
+    }
+
+    const similarity = cosineSimilarity(targetVector, vector);
+    if (similarity >= 0) {
+        similarities.push({ userId, similarity });
+    }
+  }
+  similarities.sort((a, b) => b.similarity - a.similarity);
+  return similarities;
+}
+
+const suggestFriends = async (id, skip, limit) => {
   const user = await User.findById(id);
   if (!user) throw new Error("User not found");
 
@@ -478,10 +499,17 @@ const suggestFriends = async (id) => {
   // Lọc danh sách gợi ý
   const suggestedFriends = Object.entries(friendCounts)
     .map(([friendId, count]) => ({ friendId, count }))
-    .filter(({ friendId }) => !pendingReceiverIds.has(friendId)) // bỏ người đã gửi lời mời đang pending
+    .filter(({ friendId }) => !pendingReceiverIds.has(friendId))
     .sort((a, b) => b.count - a.count);
 
-  const result = await Promise.all(
+  const similarities = await suggestFriendsByHobby(id);
+
+  const suggestedFriendIds = new Set(suggestedFriends.map(({ friendId }) => friendId));
+  const filteredSimilarities = similarities.filter(
+    ({ userId }) => !suggestedFriendIds.has(userId)
+  );
+
+  const resultSameFriend = await Promise.all(
     suggestedFriends.map(async (item) => {
       const friend = await User.findById(item.friendId)
         .populate('avt');
@@ -493,13 +521,34 @@ const suggestFriends = async (id) => {
             avt: friend.avt,
             aboutMe: friend.aboutMe
           },
-          count: item.count
+          count: item.count,
+          source: 'mutualFriend'
         };
       }
     })
   );
 
-  return result.filter(Boolean); // loại bỏ phần tử null/undefined
+  const resultWithHobby = await Promise.all(
+    filteredSimilarities.map(async (item) => {
+      const friend = await User.findById(item.userId)
+        .populate('avt');
+      if (friend) {
+        return {
+          friend: {
+            _id: friend._id,
+            displayName: friend.displayName,
+            avt: friend.avt,
+            aboutMe: friend.aboutMe
+          },
+          count: 0,
+          source: 'mutualFriend'
+        };
+      }
+    })
+  );
+  const result = [...resultSameFriend, ...resultWithHobby].filter(Boolean);
+  const paginatedResult = result.slice(skip, skip + limit);
+  return paginatedResult;
 };
 
 const addHobbyByEmail = async (email, hobbies) => {

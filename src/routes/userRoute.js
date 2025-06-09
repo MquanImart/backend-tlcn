@@ -708,15 +708,29 @@ Router.patch('/:id/unfriend',verifyToken, userController.unFriends);
  *           type: string
  *           example: "60f7ebeb2f8fb814b56fa181"
  *         description: ID của người dùng
+ *       - in: query
+ *         name: skip
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Số lượng phần tử cần bỏ qua (dùng cho phân trang)
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Số lượng phần tử tối đa cần lấy
  *     responses:
  *       200:
  *         description: Lấy thành công
  *       400:
  *         description: Dữ liệu đầu vào không hợp lệ
  *       500:
- *         description: Lỗi server khi xóa bộ sưu tập
+ *         description: Lỗi server
  */
-Router.get('/:id/suggest',verifyToken, userController.suggestedFriends);
+Router.get('/:id/suggest', userController.suggestedFriends);
 
 
 /**

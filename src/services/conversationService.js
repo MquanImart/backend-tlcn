@@ -269,7 +269,7 @@ const getFriendsWithoutPrivateChat = async (userId) => {
 
     const result = await Promise.all(
       friendsWithoutPrivateChat.map(async (item) => {
-        const friend = await User.findById(item);
+        const friend = await User.findById(item).populate('avt')
         return {
           _id: friend._id,
           displayName: friend.displayName,
