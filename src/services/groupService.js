@@ -99,7 +99,7 @@ const updateGroupById = async (id, data) => {
         if (oldFileUrl) {
           try {
             const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
-            const filePath = `src/images/groups/${id}/${cleanFileName}`;
+            const filePath = `srcv2/images/groups/${id}/${cleanFileName}`;
             await cloudStorageService.deleteImageFromStorage(filePath);
           } catch (error) {
             if (error.code === 404) {
@@ -120,7 +120,7 @@ const updateGroupById = async (id, data) => {
         if (oldFileUrl) {
           try {
             const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
-            const filePath = `src/images/groups/${id}/${cleanFileName}`;
+            const filePath = `srcv2/images/groups/${id}/${cleanFileName}`;
             await cloudStorageService.deleteImageFromStorage(filePath);
           } catch (error) {
             if (error.code === 404) {

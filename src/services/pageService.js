@@ -113,7 +113,7 @@ const updatePageById = async (id, data) => {
       if (oldFileUrl) {
         try {
           const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
-          const filePath = `src/images/pages/${id}/${cleanFileName}`;
+          const filePath = `srcv2/images/pages/${id}/${cleanFileName}`;
           await cloudStorageService.deleteImageFromStorage(filePath);
         } catch (error) {
           if (error.code === 404) {
@@ -131,7 +131,7 @@ const updatePageById = async (id, data) => {
         if (oldFileUrl) {
           try {
             const cleanFileName = oldFileUrl.split("?")[0].split("/").pop();
-            const filePath = `src/images/pages/${id}/${cleanFileName}`;
+            const filePath = `srcv2/images/pages/${id}/${cleanFileName}`;
             await cloudStorageService.deleteImageFromStorage(filePath);
           } catch (error) {
             if (error.code === 404) {
