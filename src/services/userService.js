@@ -846,11 +846,9 @@ const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = 
     if (groupName && typeof groupName !== 'string') throw new Error('GroupName phải là chuỗi');
     if (!userId || typeof userId !== 'string') throw new Error('UserId phải là chuỗi');
 
-    console.log('Input parameters:', { limit, skip, groupName, userId });
-
     // Fetch user to get their groups
     const user = await User.findById(userId);
-    console.log('User fetched:', user ? user._id : 'No user found');
+
     if (!user || !user.groups?.createGroups) {
       console.log('No user or no createGroups, returning empty result');
       return { groups: [], total: 0 };
@@ -859,7 +857,6 @@ const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = 
     // Get IDs of created and saved groups
     const myGroupIds = new Set(user.groups.createGroups.map(group => group._id.toString()));
     const savedGroupIds = new Set(user.groups.saveGroups?.map(group => group._id.toString()) || []);
-    console.log('myGroupIds:', [...myGroupIds], 'savedGroupIds:', [...savedGroupIds]);
 
     // Normalize search term
     let normalizedSearch = '';
@@ -871,13 +868,11 @@ const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = 
         throw new Error(`Lỗi chuẩn hóa groupName: ${error.message}`);
       }
     }
-    console.log('Normalized search term:', normalizedSearch);
 
     // Fetch all groups
     let allGroups;
     try {
       allGroups = await groupService.getGroups();
-      console.log('Raw allGroups from getGroups:', allGroups);
     } catch (getGroupsError) {
       console.error('Error in getGroups:', getGroupsError.message);
       throw new Error(`Lỗi khi lấy danh sách nhóm: ${getGroupsError.message}`);
@@ -885,7 +880,6 @@ const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = 
 
     // Filter out invalid groups
     allGroups = allGroups.filter(group => group && typeof group.groupName === 'string' && group._id);
-    console.log('Filtered allGroups:', allGroups, 'Length:', allGroups.length);
 
     // Filter groups by name (if provided)
     if (normalizedSearch) {
@@ -894,7 +888,6 @@ const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = 
         return normalizedGroupName.match(new RegExp(`\\b${normalizedSearch}\\w*`, 'i'));
         
       });
-      console.log('Filtered by groupName:', allGroups);
     }
 
     // Sort groups: myGroups first, then savedGroups, then others (alphabetically)
@@ -912,16 +905,13 @@ const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = 
       const bName = b.groupName || '';
       return aName.localeCompare(bName);
     });
-    console.log('Sorted allGroups:', allGroups);
 
     // Calculate total records
     const total = allGroups.length;
-    console.log('Total groups:', total);
 
     // Apply pagination and select relevant fields
     const paginatedGroupIds = allGroups.slice(skip, skip + limit)
     const paginatedGroups = await Promise.all(paginatedGroupIds.map(groupService.getGroupById));
-    console.log('Paginated groups:', paginatedGroups);
 
     return {
       groups: paginatedGroups,

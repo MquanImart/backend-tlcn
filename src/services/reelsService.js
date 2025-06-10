@@ -172,10 +172,10 @@ const toggleLike = async (reelId, userId) => {
     } else {
       reel.emoticons.push(userId);
     }
-    emitEvent("post", articleId, "postLiked", {
-    articleId,
+    emitEvent("post", reelId, "postLiked", {
+    reelId,
     userId,
-    emoticons: article.emoticons, // Gửi danh sách emoticons mới
+    emoticons: reelId.emoticons, // Gửi danh sách emoticons mới
   });
     await reel.save();
   
