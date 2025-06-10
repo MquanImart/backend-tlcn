@@ -38,6 +38,39 @@ const getById = async (id) => {
     return conversation;
 };
 
+const getByUserAndFriendId = async (userId, friendId) => {
+  const conversation = await Conversation.findOne({
+    type: "private",
+    participants: { $all: [userId, friendId], $size: 2 }
+  })
+    .populate({
+      path: "participants",
+      select: "_id displayName avt",
+      populate: {
+        path: "avt",
+        model: "MyPhoto",
+      },
+    })
+    .populate({
+      path: "lastMessage",
+      select: "_id sender content seenBy createdAt"
+    })
+    .populate({
+      path: "avtGroup"
+    })
+    .populate({
+      path: "pageId",
+      select: "_id name avt",
+      populate: {
+        path: "avt",
+        model: "MyPhoto",
+      },
+    })
+    .lean();
+
+  return conversation;
+};
+
 const createConversation = async (data) => {
     if (!data.lastMessage) return {success: false, message: "Phải có tin nhắn đầu tiên"};
     if (data.type === 'page'){
@@ -440,7 +473,8 @@ const conversationService = {
     getSosConversations,
     updateParticipantsAndSettings,
     getConversationOfPages,
-    changeAvtGroup
+    changeAvtGroup,
+    getByUserAndFriendId
 }
 
 export default conversationService;

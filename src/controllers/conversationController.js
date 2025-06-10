@@ -19,6 +19,16 @@ const getConversationById = async (req, res) => {
   }
 }
 
+const getByUserAndFriendId = async (req, res) => {
+  try {
+    const Conversation = await conversationService.getByUserAndFriendId(req.params.id, req.query.friendId)
+    if (!Conversation) return res.status(404).json({ success: false, data: null, message: 'cuộc thoại không tồn tại' })
+    res.status(200).json({ success: true, data: Conversation, message: 'Lấy cuộc thoại thành công' })
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message })
+  }
+}
+
 const createConversation = async (req, res) => {
   try {
     const newConversation = await conversationService.createConversation(req.body)
@@ -168,7 +178,8 @@ const ConversationController = {
   getSosConversations,
   updateParticipantsAndSettings,
   getConversationOfPages,
-  changeAvtGroup
+  changeAvtGroup,
+  getByUserAndFriendId
 }
 
 export  default ConversationController;
