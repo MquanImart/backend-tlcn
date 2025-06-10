@@ -97,6 +97,27 @@ Router.get('/:id',verifyToken, ConversationController.getConversationById);
 
 /**
  * @swagger
+ * /conversations/with-friend/{id}:
+ *   get:
+ *     summary: Lấy thông tin một cuộc trò chuyện theo userId và friendId
+ *     tags: [Conversations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của cuộc trò chuyện cần lấy
+ *     responses:
+ *       200:
+ *         description: Trả về thông tin cuộc trò chuyện
+ *       404:
+ *         description: Không tìm thấy cuộc trò chuyện
+ */
+Router.get('/with-friend/:id',verifyToken, ConversationController.getByUserAndFriendId);
+
+/**
+ * @swagger
  * /conversations:
  *   post:
  *     summary: Tạo một cuộc trò chuyện mới
