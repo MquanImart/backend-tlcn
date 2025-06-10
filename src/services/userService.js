@@ -528,8 +528,10 @@ const suggestFriends = async (id, skip, limit) => {
     })
   );
 
+  const filteredSimilarities_new = filteredSimilarities.filter((item) => !pendingReceiverIds.has(item.userId) && !userFriendsSet.has(item.userId));
+
   const resultWithHobby = await Promise.all(
-    filteredSimilarities.map(async (item) => {
+    filteredSimilarities_new.map(async (item) => {
       const friend = await User.findById(item.userId)
         .populate('avt');
       if (friend) {
@@ -546,6 +548,7 @@ const suggestFriends = async (id, skip, limit) => {
       }
     })
   );
+
   const result = [...resultSameFriend, ...resultWithHobby].filter(Boolean);
   const paginatedResult = result.slice(skip, skip + limit);
   return paginatedResult;
