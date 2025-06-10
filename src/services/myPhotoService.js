@@ -36,7 +36,7 @@ const uploadAndSaveFile = async (file, userId, type, folderType, referenceId) =>
     }
 
     const fileName = `${referenceId}_${Date.now()}`;
-    const destination = `src/images/${folderType}/${referenceId}/${fileName}`;
+    const destination = `srcv2/images/${folderType}/${referenceId}/${fileName}`;
 
     // Upload file to GCS
     const fileUrl = await cloudStorageService.uploadImageBufferToStorage(

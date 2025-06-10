@@ -35,7 +35,7 @@ const createMessage = async (data, file) => {
             url: "",
         });
 
-        const destination = `src/images/conversations/${conversationId}/${newFile._id}/${Date.now()}`;
+        const destination = `srcv2/images/conversations/${conversationId}/${newFile._id}/${Date.now()}`;
 
         const fileUrl = await cloudStorageService.uploadImageBufferToStorage(
           file.buffer,
