@@ -153,7 +153,7 @@ const recommend = async (userId, page = 1, limit = 10) => {
   const DECAY_RATE = Math.log(2) / DECAY_HALF_LIFE_DAYS; // Công thức tính tỷ lệ giảm
 
   const NEW_ARTICLE_BOOST = 50; // Điểm tăng thêm cho bài viết rất mới
-  const NEW_ARTICLE_HOURS_LIMIT = 24; // Bài viết được coi là rất mới trong 24 giờ đầu tiên
+  const NEW_ARTICLE_HOURS_LIMIT = 1; // Bài viết được coi là rất mới trong 1 giờ đầu tiên
   // --- Kết thúc các hằng số mới ---
 
   const collaborativeScores = await calculateCollaborativeScore(userId, allArticles, user);
