@@ -10,32 +10,35 @@ import { emitEvent } from "../socket/socket.js";
 import { articleTagsService } from "./articleTagsService.js";
 
 const getArticles = async ({ limit = 5, skip = 0, filter = {}, province } = {}) => {
-  let query = Article.find(filter);
+  // Thêm _destroy: null vào filter để loại trừ các bài viết bị xóa mềm
+  const updatedFilter = { ...filter, _destroy: null };
 
-  // If province is provided, use aggregation to filter by province
+  let query = Article.find(updatedFilter);
+
+  // Nếu có province, sử dụng pipeline tổng hợp để lọc theo tỉnh
   if (province) {
     query = Article.aggregate([
-      // Match articles based on the provided filter
-      { $match: filter },
-      // Lookup to join with Address collection
+      // Lọc bài viết dựa trên filter đã cập nhật và _destroy: null
+      { $match: updatedFilter },
+      // Lookup để liên kết với collection Address
       {
         $lookup: {
-          from: 'addresses', // Collection name in MongoDB (lowercase plural of model name)
+          from: 'addresses',
           localField: 'address',
           foreignField: '_id',
           as: 'addressData',
         },
       },
-      // Unwind the addressData array
+      // Unwind mảng addressData
       { $unwind: { path: '$addressData', preserveNullAndEmptyArrays: true } },
-      // Match articles where province matches
+      // Lọc bài viết theo tỉnh
       {
         $match: {
           'addressData.province': province,
-          'addressData._destroy': null, // Ensure address is not soft-deleted
+          'addressData._destroy': null, // Đã có trong mã của bạn
         },
       },
-      // Populate other fields
+      // Populate các trường khác
       {
         $lookup: {
           from: 'users',
@@ -80,7 +83,7 @@ const getArticles = async ({ limit = 5, skip = 0, filter = {}, province } = {}) 
         },
       },
       { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
-      // Project the required fields
+      // Dự án các trường cần thiết
       {
         $project: {
           createdBy: {
@@ -124,16 +127,16 @@ const getArticles = async ({ limit = 5, skip = 0, filter = {}, province } = {}) 
           _destroy: 1,
         },
       },
-      // Sort by createdAt in descending order
+      // Sắp xếp theo createdAt giảm dần
       { $sort: { createdAt: -1 } },
-      // Apply pagination
+      // Áp dụng phân trang
       { $skip: skip },
       { $limit: limit },
     ]);
 
-    // Get total count for pagination
+    // Lấy tổng số bài viết để phân trang
     const totalPipeline = [
-      { $match: filter },
+      { $match: updatedFilter },
       {
         $lookup: {
           from: 'addresses',
@@ -155,14 +158,14 @@ const getArticles = async ({ limit = 5, skip = 0, filter = {}, province } = {}) 
     const totalResult = await Article.aggregate(totalPipeline);
     const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
-    // Execute the main query
+    // Thực thi truy vấn chính
     const articles = await query;
 
     return { articles, total };
   }
 
-  // If no province filter, use the original query
-  const total = await Article.countDocuments(filter);
+  // Nếu không có bộ lọc province, sử dụng truy vấn thông thường
+  const total = await Article.countDocuments(updatedFilter);
 
   const articles = await query
     .populate({
