@@ -295,9 +295,29 @@ const createArticle = async (data, files) => {
 
     // 🔥 4️⃣ Cập nhật group/page/user
     if (groupID) {
+      const group = await Group.findById(groupID);
+
+      if (!group) {
+        throw new Error("❌ Không tìm thấy nhóm");
+      }
+
+      const isCreater = group.idCreater.toString() === createdBy.toString();
+      const isAdmin = group.Administrators.some(
+        (admin) => admin.idUser.toString() === createdBy.toString() && admin.state === 'accepted'
+      );
+      console.log('isCreater', isCreater)
+      console.log('isAdmin', isAdmin)
+      let articleState = "pending"; 
+
+      if (isCreater || isAdmin) {
+        console.log('isCreater', isCreater)
+        articleState = "approved"; 
+
+      }
+
       await Group.findByIdAndUpdate(
         groupID,
-        { $push: { article: { idArticle: newArticle._id, state: "pending" } } },
+        { $push: { article: { idArticle: newArticle._id, state: articleState } } },
         { new: true }
       );
     }

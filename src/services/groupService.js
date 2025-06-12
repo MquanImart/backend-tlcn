@@ -481,6 +481,7 @@ const updateMemberStatus = async (groupID, userID, state) => {
   if (!group) throw { status: 404, message: "Nhóm không tồn tại" };
 
   const user = await User.findById(userID);
+  console.log('user', user)
   if (!user) throw { status: 404, message: "Người dùng không tồn tại" };
 
   const isMember = group.members.find((member) => member.idUser.toString() === userID);
@@ -507,6 +508,7 @@ const updateMemberStatus = async (groupID, userID, state) => {
       await user.save(); 
     }
   } else if (state === "rejected") {
+    console.log('rời nhóm')
     group.members = group.members.filter((member) => member.idUser.toString() !== userID);
     user.groups.saveGroups = user.groups.saveGroups.filter(groupId => groupId.toString() !== groupID);
     await user.save(); 
