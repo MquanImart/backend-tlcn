@@ -1,7 +1,7 @@
 import express from 'express';
 import SuggestTouristController from '../AI-algorithms/suggested-tourist-spots/index.js';
 import RouteSuggestions from '../AI-algorithms/route-suggestions/index.js';
-
+import { ChatbotController } from '../AI-algorithms/route-suggestions/services/ChatbotController.js';
 const Router = express.Router();
 
 /**
@@ -153,5 +153,45 @@ Router.get('/suggested-page-month/:id', SuggestTouristController.suggestedPageMo
 
 Router.post('/route-suggestions', RouteSuggestions.routeSuggested);
 
-
+/**
+ * @swagger
+ * /ai/chatbot:
+ *   post:
+ *     summary: Trả lời câu hỏi của người dùng thông qua chatbot
+ *     tags: [AI]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               query:
+ *                 type: string
+ *                 description: Câu hỏi của người dùng
+ *                 example: "Điểm du lịch nào đẹp ở Đà Lạt?"
+ *     responses:
+ *       200:
+ *         description: Trả về câu trả lời từ chatbot
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     answer:
+ *                       type: string
+ *                       description: Câu trả lời từ chatbot
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Câu hỏi không hợp lệ
+ *       500:
+ *         description: Lỗi server
+ */
+Router.post('/chatbot', ChatbotController.getChatbot);
 export const AIRoute = Router;
