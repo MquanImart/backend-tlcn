@@ -1,7 +1,9 @@
 import express from 'express';
 import SuggestTouristController from '../AI-algorithms/suggested-tourist-spots/index.js';
 import RouteSuggestions from '../AI-algorithms/route-suggestions/index.js';
+import upload from '../config/multerConfig.js';
 import { ChatbotController } from '../AI-algorithms/route-suggestions/services/ChatbotController.js';
+import generateContent from '../AI-algorithms/generate-content-article/generateContent.js';
 const Router = express.Router();
 
 /**
@@ -194,4 +196,94 @@ Router.post('/route-suggestions', RouteSuggestions.routeSuggested);
  *         description: Lỗi server
  */
 Router.post('/chatbot', ChatbotController.getChatbot);
+
+/**
+ * @swagger
+ * /ai/generate-content:
+ *   post:
+ *     summary: Sinh nội dung bài viết du lịch dựa trên tối đa 5 file ảnh
+ *     tags: [AI]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - images
+ *             properties:
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Tối đa 5 file ảnh để phân tích và sinh nội dung
+ *                 maxItems: 5
+ *     responses:
+ *       200:
+ *         description: Trả về danh sách tag và nội dung bài viết được sinh ra
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   description: Trạng thái thành công
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     imageTags:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           tag:
+ *                             type: string
+ *                             description: Tên tag
+ *                             example: "Beach"
+ *                           weight:
+ *                             type: number
+ *                             description: Trọng số của tag
+ *                             example: 0.95
+ *                     generatedContent:
+ *                       type: string
+ *                       description: Nội dung bài viết được sinh ra
+ *                       example: "Bãi biển trải dài với cát trắng mịn, hòa quyện cùng màu xanh lam của đại dương..."
+ *                 message:
+ *                   type: string
+ *                   description: Thông báo trạng thái
+ *                   example: null
+ *       400:
+ *         description: Chưa cung cấp file ảnh hoặc số lượng ảnh không hợp lệ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Vui lòng cung cấp 1-5 file ảnh!"
+ *       500:
+ *         description: Lỗi server hoặc thiếu API key
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Đã xảy ra lỗi khi xử lý."
+ *                 error:
+ *                   type: string
+ *                   example: "Lỗi chi tiết từ server"
+ */
+Router.post('/generate-content', upload.fields([{ name: 'images', maxCount: 5 }]), generateContent);
 export const AIRoute = Router;
