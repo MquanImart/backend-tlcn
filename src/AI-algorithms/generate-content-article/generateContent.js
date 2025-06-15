@@ -54,7 +54,7 @@ const generateContent = async (req, res) => {
     }
 
     const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
-    const prompt = `Viết một đoạn văn ngắn (50-100 từ) bằng tiếng Việt mô tả cảnh biển dựa trên các thẻ: ${uniqueTags.map(t => t.tag).join(', ')}. Nội dung phải tự nhiên, hấp dẫn và phù hợp để đăng bài viết du lịch.`;
+    const prompt = `Viết một đoạn văn ngắn (50-100 từ) bằng tiếng Việt mô tả cảnh dựa trên các thẻ: ${uniqueTags.map(t => t.tag).join(', ')}. Nội dung phải tự nhiên, hấp dẫn và phù hợp để đăng bài viết du lịch.`;
     const geminiResponse = await axios.post(`${geminiUrl}?key=${geminiApiKey}`, {
       contents: [{ parts: [{ text: prompt }] }]
     }, {
