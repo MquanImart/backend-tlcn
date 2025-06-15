@@ -298,6 +298,39 @@ const getPendingMembers = async (req, res) => {
   }
 };
 
+const getPendingAdmins = async (req, res) => {
+  try {
+    const { groupID } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const { pendingAdmins, total } = await groupService.getPendingAdmins(groupID, skip, limit);
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      success: true,
+      data: pendingAdmins,
+      total,
+      page,
+      totalPages,
+      message: "Lấy danh sách quản trị viên chờ duyệt thành công",
+    });
+  } catch (error) {
+    const statusCode = error.message === "Nhóm không tồn tại" ? 404 : 500;
+    const errorMessage = error.message === "Nhóm không tồn tại"
+      ? "Nhóm không tồn tại"
+      : "Lỗi khi lấy danh sách quản trị viên chờ duyệt";
+
+    res.status(statusCode).json({
+      success: false,
+      data: [],
+      message: errorMessage,
+    });
+  }
+};
+
 const getGroupMembers = async (req, res) => {
   try {
     const { groupID } = req.params;
@@ -315,7 +348,7 @@ const updateMemberStatus = async (req, res) => {
     const { groupID, userID } = req.params;
     const { state } = req.body;
 
-    if (!["accepted", "rejected", "invite-admin", "remove-admin", "accept-admin"].includes(state)) {
+    if (!["accepted", "rejected", "invite-admin", "remove-admin", "accept-admin", "admin-and-rejected"].includes(state)) {
       return res.status(400).json({ success: false, message: "Trạng thái không hợp lệ" });
     }
 
@@ -410,6 +443,7 @@ export const groupController = {
   addRuleToGroup,
   deleteRule,
   getPendingMembers,
+  getPendingAdmins,
   updateMemberStatus,
   getGroupMembers,
   getUserApprovedArticles,

@@ -39,7 +39,7 @@ Router.get('/',verifyToken, groupController.getGroups);
  *       200:
  *         description: Trả về nhóm
  */
-Router.get('/:id',verifyToken, groupController.getGroupById);
+Router.get('/:id', groupController.getGroupById);
 
 /**
  * @swagger
@@ -571,6 +571,74 @@ Router.get('/:groupID/pending-members',verifyToken, groupController.getPendingMe
 
 /**
  * @swagger
+ * /groups/{groupID}/pending-admins:
+ *   get:
+ *     summary: Lấy danh sách quản trị viên đang chờ phê duyệt
+ *     tags: [Groups]
+ *     parameters:
+ *       - in: path
+ *         name: groupID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của nhóm
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Số trang
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Số lượng quản trị viên mỗi trang
+ *     responses:
+ *       200:
+ *         description: Danh sách quản trị viên chờ duyệt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       fullName:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       phone:
+ *                         type: string
+ *                       avatar:
+ *                         type: string
+ *                       inviteDate:
+ *                         type: string
+ *                 total:
+ *                   type: integer
+ *                   description: Tổng số quản trị viên chờ duyệt
+ *                 page:
+ *                   type: integer
+ *                   description: Trang hiện tại
+ *                 totalPages:
+ *                   type: integer
+ *                   description: Tổng số trang
+ *       404:
+ *         description: Nhóm không tồn tại
+ *       500:
+ *         description: Lỗi server
+ */
+Router.get('/:groupID/pending-admins', groupController.getPendingAdmins);
+
+/**
+ * @swagger
  * /groups/{groupID}/members:
  *   get:
  *     summary: Lấy danh sách thành viên nhóm (Người tạo, Quản trị viên, Thành viên)
@@ -588,7 +656,7 @@ Router.get('/:groupID/pending-members',verifyToken, groupController.getPendingMe
  *       404:
  *         description: Nhóm không tồn tại
  */
-Router.get("/:groupID/members",verifyToken, groupController.getGroupMembers);
+Router.get("/:groupID/members", verifyToken, groupController.getGroupMembers);
 
  /**
  * @swagger
@@ -654,7 +722,7 @@ Router.get("/:groupID/members",verifyToken, groupController.getGroupMembers);
  *                   type: string
  *                   example: "Nhóm hoặc thành viên không tồn tại"
  */
-Router.patch("/:groupID/members/:userID",verifyToken, groupController.updateMemberStatus);
+Router.patch("/:groupID/members/:userID", verifyToken, groupController.updateMemberStatus);
 
 /**
  * @swagger

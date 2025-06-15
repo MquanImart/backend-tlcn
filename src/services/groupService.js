@@ -476,12 +476,56 @@ const getPendingMembers = async (groupID, skip, limit) => {
   }
 };
 
+const getPendingAdmins = async (groupID, skip, limit) => {
+  try {
+    const group = await Group.findById(groupID)
+      .populate({
+        path: 'Administrators.idUser',
+        select: 'displayName avt account.email account.phone',
+        populate: {
+          path: 'avt',
+          select: 'url',
+        },
+      });
+
+    if (!group) {
+      throw new Error("Nhóm không tồn tại");
+    }
+
+    const pendingAdmins = group.Administrators
+      .filter(admin => admin && admin.state === "pending" && admin.idUser)
+      .map(admin => ({
+        id: admin.idUser?._id?.toString(),
+        fullName: admin.idUser?.displayName || "Unknown",
+        avatar: admin.idUser?.avt?.length > 0 ? admin.idUser.avt[admin.idUser.avt.length - 1]?.url : "",
+        inviteDate: admin.joinDate,
+      }));
+
+    if (!pendingAdmins.length) {
+      return { pendingAdmins: [], total: 0 };
+    }
+
+    const total = pendingAdmins.length;
+
+    // Áp dụng phân trang
+    const paginatedAdmins = pendingAdmins.slice(skip, skip + limit);
+
+    return {
+      pendingAdmins: paginatedAdmins,
+      total,
+    };
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách quản trị viên chờ duyệt:", error);
+    throw new Error(error.message || "Có lỗi xảy ra khi lấy danh sách quản trị viên chờ duyệt");
+  }
+};
+
+
 const updateMemberStatus = async (groupID, userID, state) => {
   const group = await Group.findById(groupID);
   if (!group) throw { status: 404, message: "Nhóm không tồn tại" };
 
   const user = await User.findById(userID);
-  console.log('user', user)
   if (!user) throw { status: 404, message: "Người dùng không tồn tại" };
 
   const isMember = group.members.find((member) => member.idUser.toString() === userID);
@@ -497,9 +541,10 @@ const updateMemberStatus = async (groupID, userID, state) => {
     if (adminIndex !== -1) {
       group.Administrators[adminIndex].state = "accepted";
     } else {
-      group.Administrators.push({ idUser: userID, state: "accepted" });
+      console.warn(`Người dùng ${userID} được yêu cầu accept-admin nhưng không tìm thấy trong danh sách Administrators.`)
     }
   } else if (state === "remove-admin" && isAdmin) {
+    console.log('loại bỏ quản trị viên')
     group.Administrators = group.Administrators.filter(admin => admin.idUser.toString() !== userID);
   } else if (state === "accepted" && isMember) {
     isMember.state = "accepted";
@@ -512,6 +557,12 @@ const updateMemberStatus = async (groupID, userID, state) => {
     group.members = group.members.filter((member) => member.idUser.toString() !== userID);
     user.groups.saveGroups = user.groups.saveGroups.filter(groupId => groupId.toString() !== groupID);
     await user.save(); 
+  } else if (state === "admin-and-rejected") {
+    group.Administrators = group.Administrators.filter(admin => admin.idUser.toString() !== userID);
+    group.members = group.members.filter((member) => member.idUser.toString() !== userID);
+    user.groups.saveGroups = user.groups.saveGroups.filter(groupId => groupId.toString() !== groupID);
+    await user.save();
+    console.log(`Admin ${userID} has left group ${groupID} and admin role has been removed.`);
   } else {
     throw { status: 400, message: "Không thể cập nhật trạng thái" };
   }
@@ -545,35 +596,38 @@ const getGroupMembers = async (groupID) => {
   const idCreaterID = group.idCreater?._id?.toString();
 
   const uniqueAdmins = group.Administrators
-    .filter((admin) => 
-      admin.state === "accepted" && 
-      admin.idUser?._id?.toString() !== idCreaterID) 
+    .filter((admin) =>
+      admin.state === "accepted" &&
+      admin.idUser?._id?.toString() !== idCreaterID)
     .map((admin) => ({
       id: admin.idUser?._id?.toString(),
       name: admin.idUser?.displayName || "Không có thông tin",
-      avatar: admin.idUser?.avt[admin.idUser.avt.length - 1]?.url || "", // Thay đổi ở đây
+      avatar: admin.idUser?.avt[admin.idUser.avt.length - 1]?.url || "",
       description: admin.idUser?.aboutMe || "",
+      joinDate: admin.joinDate, // Lấy joinDate từ admin object
     }));
 
   const uniqueMembers = group.members
-    .filter((member) => 
-      member.state === "accepted" && 
-      member.idUser?._id?.toString() !== idCreaterID && 
-      !uniqueAdmins.some((admin) => admin.id === member.idUser?._id?.toString()) 
+    .filter((member) =>
+      member.state === "accepted" &&
+      member.idUser?._id?.toString() !== idCreaterID &&
+      !uniqueAdmins.some((admin) => admin.id === member.idUser?._id?.toString())
     )
     .map((member) => ({
       id: member.idUser?._id?.toString(),
       name: member.idUser?.displayName || "Không có thông tin",
-      avatar: member.idUser?.avt[member.idUser.avt.length - 1]?.url || "", // Thay đổi ở đây
+      avatar: member.idUser?.avt[member.idUser.avt.length - 1]?.url || "",
       description: member.idUser?.aboutMe || "",
+      joinDate: member.joinDate, // Lấy joinDate từ member object
     }));
 
   return {
     idCreater: {
       id: idCreaterID,
       name: group.idCreater?.displayName || "Không có thông tin",
-      avatar: group.idCreater?.avt[group.idCreater.avt.length - 1]?.url || "", // Thay đổi ở đây
+      avatar: group.idCreater?.avt[group.idCreater.avt.length - 1]?.url || "",
       description: group.idCreater?.aboutMe || "",
+      joinDate: group.createdAt,
     },
     Administrators: uniqueAdmins,
     members: uniqueMembers,
@@ -731,6 +785,7 @@ export const groupService = {
   addRuleToGroup,
   deleteRuleFromGroup,
   getPendingMembers,
+  getPendingAdmins,
   updateMemberStatus,
   getGroupMembers,
   getUserApprovedArticles,
