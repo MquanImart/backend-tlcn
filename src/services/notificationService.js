@@ -61,16 +61,82 @@ const getNotificationById = async (id) => {
 
 const createNotification = async (data) => {
   try {
-    const newNotification = await Notification.create(data);
+    const { senderId, receiverId, relatedEntityType, message } = data;
 
-    emitEvent("user", data.receiverId, "newNotification", {
-      notification: newNotification,
-    });
+    let findQuery = {
+      senderId: senderId,
+      receiverId: receiverId,
+      relatedEntityType: relatedEntityType,
+      _destroy: null, // Chỉ tìm thông báo chưa bị xóa mềm
+    };
 
-    return newNotification;
+    switch (relatedEntityType) {
+      case 'Group':
+        findQuery.groupId = data.groupId;
+        break;
+      case 'Article':
+        findQuery.articleId = data.articleId;
+        break;
+      case 'Comment':
+        findQuery.articleId = data.articleId; // Cần context bài viết
+        findQuery.commentId = data.commentId; // ID bình luận cụ thể
+        break;
+      case 'Page':
+        findQuery.pageId = data.pageId;
+        break;
+      case 'Reel':
+        findQuery.reelId = data.reelId;
+        if (data.commentId) {
+            findQuery.commentId = data.commentId; // ID bình luận trên Reel
+        }
+        break;
+      case 'User':
+        // senderId đủ để định danh hành động User-to-User
+        break;
+      default:
+        findQuery.message = message; // Dùng tin nhắn cho thông báo chung chung
+        break;
+    }
+
+    let existingNotification = await Notification.findOne(findQuery);
+
+    if (existingNotification) {
+      console.log('Đã tìm thấy thông báo hiện có, đang cập nhật:', existingNotification._id);
+
+      // Cập nhật trạng thái và thời gian để làm mới thông báo
+      if (existingNotification.status === 'read') {
+        existingNotification.status = 'unread';
+        existingNotification.readAt = null;
+      }
+      if (existingNotification.message !== data.message) {
+          existingNotification.message = data.message;
+      }
+      existingNotification.createdAt = Date.now();
+
+      await existingNotification.save();
+
+      // Phát sự kiện cập nhật cho frontend
+      emitEvent("user", data.receiverId, "updatedNotification", {
+        notification: existingNotification,
+      });
+
+      return existingNotification;
+
+    } else {
+      // Tạo thông báo mới nếu không tìm thấy bản trùng lặp
+      const newNotification = await Notification.create(data);
+      console.log('Đã tạo thông báo mới:', newNotification._id);
+
+      // Phát sự kiện thông báo mới cho frontend
+      emitEvent("user", data.receiverId, "newNotification", {
+        notification: newNotification,
+      });
+
+      return newNotification;
+    }
   } catch (error) {
-    console.error("Error in createNotification:", error);
-    throw error; // Or handle gracefully
+    console.error("Lỗi trong createNotification:", error);
+    throw error;
   }
 };
 
