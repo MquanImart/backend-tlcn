@@ -131,7 +131,14 @@ const getCommentsByReelId = async (req, res) => {
     res.status(500).json({ success: false, data: null, message: error.message });
   }
 };
-
+const getTotalComments = async (req, res) => {
+  try {
+    const result = await reelsService.getTotalComments(req.params.reelId);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, data: null, message: error.message });
+  }
+};
 export const reelsController = {
   getReels,
   getReelById,
@@ -141,4 +148,5 @@ export const reelsController = {
   deleteReelById,
   toggleLike,
   getCommentsByReelId,
+  getTotalComments
 };

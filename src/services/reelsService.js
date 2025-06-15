@@ -273,6 +273,72 @@ const deepPopulateComments = async (comments) => {
         })
         .sort({ createdAt: -1 });
   };
+const countAllChildComments = async (commentIds) => {
+  if (!commentIds || commentIds.length === 0) return 0;
+
+  // Tìm tất cả comment cha có _id trong commentIds và populate replyComment
+  const comments = await Comment.find({
+    _id: { $in: commentIds },
+    _destroy: null,
+  }).populate({
+    path: 'replyComment',
+    match: { _destroy: null }, // Chỉ lấy comment con chưa bị xóa
+    select: '_id replyComment', // Chỉ lấy _id và replyComment để tối ưu
+  });
+
+  let total = comments.length;
+
+  // Tính comment con của các comment con
+  for (const comment of comments) {
+    if (comment.replyComment && comment.replyComment.length > 0) {
+      const childCommentIds = comment.replyComment.map(child => child._id);
+      total += await countAllChildComments(childCommentIds);
+    }
+  }
+
+  return total;
+};
+
+const getTotalComments = async (reelId) => {
+  try {
+    // Kiểm tra reelId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(reelId)) {
+      throw new Error("ID reel không hợp lệ");
+    }
+
+    // Tìm reel theo ID và populate comments cấp 1
+    const reel = await Reels.findById(reelId).populate({
+      path: "comments",
+      match: { _destroy: null }, // Chỉ lấy comment chưa bị xóa
+      select: '_id replyComment', // Chỉ lấy _id và replyComment để tối ưu
+    });
+    if (!reel) {
+      throw new Error("Reel không tồn tại");
+    }
+
+    // Tính tổng số comment cấp 1
+    let totalComments = reel.comments.length;
+
+    // Tính tổng số comment con (bao gồm tất cả cấp sâu hơn)
+    if (reel.comments.length > 0) {
+      const commentIds = reel.comments.map(comment => comment._id);
+      const totalChildComments = await countAllChildComments(commentIds);
+      totalComments += totalChildComments - reel.comments.length; // Trừ số comment cấp 1 đã tính
+    }
+
+    return {
+      success: true,
+      data: totalComments,
+      message: "Lấy tổng số comment thành công",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: null,
+      message: error.message,
+    };
+  }
+};
   const reelsService = {
     getReels,
     createReel,
@@ -282,6 +348,7 @@ const deepPopulateComments = async (comments) => {
     updateAllReels,
     deleteReelsById,
     getReelById,
+    getTotalComments
   };
   
   export default reelsService; // Default export

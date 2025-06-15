@@ -256,5 +256,37 @@ Router.patch('/:reelId/toggle-like',verifyToken, reelsController.toggleLike);
  *         description: Danh sách bình luận
  */
 Router.get('/:reelId/comments',verifyToken, reelsController.getCommentsByReelId);
-
+/**
+ * @swagger
+ * /reels/{reelId}/total-comments:
+ *   get:
+ *     summary: Lấy tổng số comment của một reel (bao gồm comment cha và tất cả comment con)
+ *     tags: [Reels]
+ *     parameters:
+ *       - in: path
+ *         name: reelId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của reel cần tính tổng comment
+ *     responses:
+ *       200:
+ *         description: Trả về tổng số comment
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: number
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Reel không tồn tại
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+Router.get('/:reelId/total-comments', reelsController.getTotalComments);
 export const reelsRoute = Router;

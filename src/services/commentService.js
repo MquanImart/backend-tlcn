@@ -5,7 +5,7 @@ import reelsService from "./reelsService.js";
 import { myPhotoService } from "./myPhotoService.js";
 import mongoose from "mongoose";
 import { emitEvent } from "../socket/socket.js";
-
+import Reels from "../models/Reels.js";
 const getComments = async () => {
   return await Comment.find({ _destroy: null })
     .populate({
@@ -174,6 +174,8 @@ const likeComment = async (commentId, userId) => {
   };
 };
 
+
+
 export const commentService = {
   getComments,
   getCommentById,
@@ -181,5 +183,5 @@ export const commentService = {
   updateCommentById,
   updateAllComments,
   deleteCommentById,
-  likeComment
+  likeComment,
 };
