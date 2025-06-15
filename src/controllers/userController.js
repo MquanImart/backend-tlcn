@@ -621,6 +621,34 @@ const getGroupByGroupName = async (req, res) => {
     });
   }
 };
+
+const getFriendLocationArticles = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await userService.getFriendLocationArticles(id);
+
+    if (result.success){
+      res.status(200).json({
+        success: true,
+        data: result.data,
+        message: 'Lấy thông tin thành công'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: result.message
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+};
+
 export const userController = {
   getUsers,
   getUserById,
@@ -654,4 +682,5 @@ export const userController = {
   updateHobbiesByUserId,
   getUsersByDisplayName,
   getGroupByGroupName,
+  getFriendLocationArticles
 };

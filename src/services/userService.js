@@ -925,6 +925,32 @@ const getGroupByGroupName = async ({ limit = 5, skip = 0, groupName, userId } = 
     throw new Error(`Không thể lấy danh sách nhóm: ${error.message}`);
   }
 };
+
+const getFriendLocationArticles = async (currentId) => {
+  const user = await User.findById(currentId).select('friends').lean();
+  if (!user) return {success: false, message: "Không tìm thấy người dùng"};
+
+  const friendIds = user.friends;
+
+  const articles = await Article.find({
+    createdBy: { $in: friendIds },
+    scope: "Công khai",
+    groupID: null,
+  })
+    .sort({ createdAt: -1 })
+    .populate({
+      path: 'createdBy',
+      select: '_id displayName avt',
+      populate: { path: 'avt' },
+    })
+    .populate('address')
+    .select('createdBy address')
+    .lean();
+
+  return {success: true,data: articles};
+};
+
+
 export const userService = {
   getUsers,
   getUserById,
@@ -958,4 +984,5 @@ export const userService = {
   updateHobbiesByUserId ,
   getUsersByDisplayName,
   getGroupByGroupName,
+  getFriendLocationArticles
 };

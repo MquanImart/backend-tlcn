@@ -1289,4 +1289,24 @@ Router.patch('/:id/hobbies',verifyToken, userController.updateHobbiesByUserId);
  *         description: Lỗi server
  */
 Router.get('/groups/search', userController.getGroupByGroupName);
+
+/**
+ * @swagger
+ * /users/friends-location-articles/{id}:
+ *   get:
+ *     summary: Lấy danh sách địa chỉ bài viết của bạn bè
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng cần lấy
+ *     responses:
+ *       200:
+ *         description: Trả về người dùng
+ */
+Router.get('/friends-location-articles/:id',verifyToken, userController.getFriendLocationArticles);
+
 export const userRoute = Router;
