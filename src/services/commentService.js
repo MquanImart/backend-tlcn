@@ -29,23 +29,33 @@ const getComments = async () => {
 
 const getCommentById = async (id) => {
   return await Comment.findOne({ _id: id, _destroy: null })
-  .populate({
-    path: "_iduser",
-    select: "displayName avt",
-    populate: { path: "avt", select: "url" },
-  })
-  .populate({
-    path: "replyComment",
-    populate: {
+    .populate({
       path: "_iduser",
       select: "displayName avt",
       populate: { path: "avt", select: "url" },
-    },
-  })
-  .populate({
-    path: "img", 
-    select: "url type", 
-  });
+    })
+    .populate({
+      path: "replyComment",
+      populate: [
+        {
+          path: "_iduser",
+          select: "displayName avt",
+          populate: { path: "avt", select: "url" },
+        },
+        {
+          path: "replyComment", // Populate đệ quy
+          populate: {
+            path: "_iduser",
+            select: "displayName avt",
+            populate: { path: "avt", select: "url" },
+          },
+        },
+      ],
+    })
+    .populate({
+      path: "img",
+      select: "url type",
+    });
 };
 
 const createComment = async (data, files) => {
@@ -59,12 +69,13 @@ const createComment = async (data, files) => {
     _iduser,
     content,
     img: img || [],
+    
   };
 
-  let newComment;
+  let newComment, article;
 
   if (articleId && !replyComment) {
-    const article = await articleService.getArticleById(articleId);
+    article = await articleService.getArticleById(articleId);
     if (article) {
       newComment = await Comment.create(newCommentData);
       article.comments.push(newComment._id);
@@ -79,28 +90,40 @@ const createComment = async (data, files) => {
       await reel.save();
     }
 
-    // Phát sự kiện Socket.IO
+    const populatedComment = await getCommentById(newComment._id);
+    if (!populatedComment) {
+      throw new Error("Không thể lấy dữ liệu bình luận vừa tạo");
+    }
+
     emitEvent("post", articleId, "newComment", {
-      comment: newComment,
+      comment: populatedComment,
       articleId,
     });
-  } else if (replyComment && !articleId) {
+  } else if (replyComment) {
     const parentComment = await Comment.findById(replyComment);
     if (!parentComment) {
       throw new Error("Bình luận cha không tồn tại");
     }
+
     newComment = await Comment.create(newCommentData);
     parentComment.replyComment.push(newComment._id);
     await parentComment.save();
 
-    // Tìm articleId liên quan
-    const article = await Article.findOne({ comments: replyComment });
-    if (article) {
-      emitEvent("post", article._id, "newReplyComment", {
-        comment: newComment,
-        parentCommentId: replyComment,
-      });
+    const { article: foundArticle } = await findTopLevelCommentAndArticle(replyComment);
+    if (!foundArticle) {
+      throw new Error("Không thể tìm thấy bài viết liên quan đến bình luận");
     }
+    article = foundArticle;
+
+    const populatedComment = await getCommentById(newComment._id);
+    if (!populatedComment) {
+      throw new Error("Không thể lấy dữ liệu bình luận vừa tạo");
+    }
+
+    emitEvent("post", article._id, "newReplyComment", {
+      comment: populatedComment,
+      parentCommentId: replyComment,
+    });
   } else {
     throw new Error("Cần có `articleId` hoặc `replyComment` để tạo bình luận");
   }
@@ -119,9 +142,27 @@ const createComment = async (data, files) => {
     uploadedMedia = [uploadedFile];
     newComment.img = uploadedMedia.map((media) => media._id);
     await newComment.save();
+
+    const populatedComment = await getCommentById(newComment._id);
+    if (!populatedComment) {
+      throw new Error("Không thể lấy dữ liệu bình luận sau khi cập nhật media");
+    }
+
+    if (articleId && !replyComment) {
+      emitEvent("post", articleId, "newComment", {
+        comment: populatedComment,
+        articleId,
+      });
+    } else if (replyComment && article) {
+      emitEvent("post", article._id, "newReplyComment", {
+        comment: populatedComment,
+        parentCommentId: replyComment,
+      });
+    }
   }
 
-  return newComment;
+  const finalComment = await getCommentById(newComment._id);
+  return finalComment;
 };
 
 const updateCommentById = async (id, data) => {
@@ -136,6 +177,30 @@ const deleteCommentById = async (id) => {
   return await Comment.findByIdAndUpdate(id, { _destroy: Date.now() }, { new: true });
 };
 
+const findTopLevelCommentAndArticle = async (commentId) => {
+  let currentCommentId = commentId;
+  let parentComment;
+  let depth = 0;
+
+  while (true) {
+    parentComment = await Comment.findOne({ replyComment: currentCommentId });
+    if (!parentComment) {
+      const article = await Article.findOne({ comments: currentCommentId });
+      if (!article) {
+        console.warn(`Không tìm thấy bài viết cho commentId: ${commentId} tại độ sâu: ${depth}`);
+        return { topLevelCommentId: currentCommentId, article: null };
+      }
+      return { topLevelCommentId: currentCommentId, article };
+    }
+    currentCommentId = parentComment._id;
+    depth++;
+    if (depth > 10) {
+      console.error(`Phát hiện vòng lặp tiềm ẩn cho commentId: ${commentId}`);
+      return { topLevelCommentId: null, article: null };
+    }
+  }
+};
+
 const likeComment = async (commentId, userId) => {
   if (!mongoose.Types.ObjectId.isValid(commentId)) {
     return { success: false, data: null, message: "ID bình luận không hợp lệ" };
@@ -148,28 +213,35 @@ const likeComment = async (commentId, userId) => {
 
   const hasLiked = comment.emoticons.includes(userId);
   if (hasLiked) {
-    comment.emoticons = comment.emoticons.filter(
-      (id) => id.toString() !== userId
-    );
+    comment.emoticons = comment.emoticons.filter((id) => id.toString() !== userId);
   } else {
     comment.emoticons.push(userId);
   }
 
   await comment.save();
 
-  // Tìm articleId liên quan
-  const article = await Article.findOne({ comments: commentId });
+  // Serialize emoticons as strings
+  const serializedComment = {
+    ...comment.toObject(),
+    emoticons: comment.emoticons.map((id) => id.toString()),
+  };
+
+  // Find the top-level comment and article
+  const { article } = await findTopLevelCommentAndArticle(commentId);
+
   if (article) {
     emitEvent("post", article._id, "commentLiked", {
       commentId,
       userId,
-      emoticons: comment.emoticons,
+      emoticons: comment.emoticons.map((id) => id.toString()),
     });
+  } else {
+    console.warn(`No article found for commentId: ${commentId}`);
   }
 
   return {
     success: true,
-    data: comment,
+    data: serializedComment,
     message: "Cập nhật like/unlike thành công",
   };
 };

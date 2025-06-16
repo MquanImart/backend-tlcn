@@ -370,13 +370,16 @@ const deleteArticleById = async (id) => {
 };
 
 const toggleLike = async (articleId, userId) => {
+  console.log(`articleService.toggleLike: articleId=${articleId}, userId=${userId}`);
+  
   const article = await Article.findById(articleId);
-
   if (!article) {
+    console.error(`Article not found: ${articleId}`);
     throw new Error('Bài viết không tồn tại');
   }
 
-  const liked = article.emoticons.includes(userId);
+  const liked = article.emoticons.includes(userId.toString());
+  console.log(`Article liked by user ${userId}: ${liked}`);
 
   if (liked) {
     article.emoticons = article.emoticons.filter(id => id.toString() !== userId.toString());
@@ -384,14 +387,10 @@ const toggleLike = async (articleId, userId) => {
     article.emoticons.push(userId);
   }
 
-  // Phát sự kiện Socket.IO
-  emitEvent("post", articleId, "postLiked", {
-    articleId,
-    userId,
-    emoticons: article.emoticons, // Gửi danh sách emoticons mới
+  await article.save().catch((err) => {
+    console.error(`Error saving article ${articleId}:`, err);
+    throw new Error('Failed to save article');
   });
-
-  await article.save();
 
   return article;
 };

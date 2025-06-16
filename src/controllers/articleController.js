@@ -1,4 +1,6 @@
 import { articleService } from '../services/articleService.js';
+import mongoose from 'mongoose';
+import { emitEvent } from "../socket/socket.js";
 
 const getArticles = async (req, res) => {
   try {
@@ -120,28 +122,61 @@ const deleteArticleById = async (req, res) => {
 const toggleLike = async (req, res) => {
   try {
     const { articleId } = req.params;
-    const { userId } = req.body; 
-  
-    if (!userId) {  
+    const { userId } = req.body;
+
+    console.log(`ToggleLike: articleId=${articleId}, userId=${userId}`);
+
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        data: null, 
+        data: null,
         message: 'userId là bắt buộc',
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(articleId)) {
+      console.error(`Invalid articleId: ${articleId}`);
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Invalid articleId',
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.error(`Invalid userId: ${userId}`);
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Invalid userId',
       });
     }
 
     const updatedArticle = await articleService.toggleLike(articleId, userId);
 
+    // Serialize emoticons to strings
+    const serializedArticle = {
+      ...updatedArticle.toObject(),
+      emoticons: updatedArticle.emoticons.map((id) => id.toString()),
+    };
+
+    emitEvent("post", articleId, "articleLiked", {
+      articleId,
+      emoticons: updatedArticle.emoticons.map((id) => id.toString()),
+      userId,
+    });
+
     res.status(200).json({
       success: true,
-      data: updatedArticle,
+      data: serializedArticle,
       message: 'Thao tác like/unlike thành công',
     });
   } catch (error) {
+    console.error('ToggleLike error:', error);
     res.status(500).json({
       success: false,
       data: null,
-      message: error.message,
+      message: error.message || 'Đã xảy ra lỗi khi thích bài viết',
     });
   }
 };
