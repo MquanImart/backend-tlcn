@@ -66,7 +66,7 @@ const Router = express.Router();
  *                 message:
  *                   type: string
  */
-Router.get('/', verifyToken, notificationController.getNotifications);
+Router.get('/', notificationController.getNotifications);
 
 /**
  * @swagger

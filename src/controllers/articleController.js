@@ -120,12 +120,12 @@ const deleteArticleById = async (req, res) => {
 const toggleLike = async (req, res) => {
   try {
     const { articleId } = req.params;
-    const { userId } = req.body; 
-  
-    if (!userId) {  
+    const { userId } = req.body;
+
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        data: null, 
+        data: null,
         message: 'userId là bắt buộc',
       });
     }

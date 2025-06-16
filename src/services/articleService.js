@@ -384,7 +384,6 @@ const toggleLike = async (articleId, userId) => {
     article.emoticons.push(userId);
   }
 
-  // Phát sự kiện Socket.IO
   emitEvent("post", articleId, "postLiked", {
     articleId,
     userId,

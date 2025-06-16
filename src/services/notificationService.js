@@ -75,11 +75,8 @@ const createNotification = async (data) => {
         findQuery.groupId = data.groupId;
         break;
       case 'Article':
-        findQuery.articleId = data.articleId;
-        break;
-      case 'Comment':
-        findQuery.articleId = data.articleId; // Cần context bài viết
-        findQuery.commentId = data.commentId; // ID bình luận cụ thể
+        findQuery.articleId = data.articleId; 
+        findQuery.commentId = data.commentId; 
         break;
       case 'Page':
         findQuery.pageId = data.pageId;
@@ -87,23 +84,22 @@ const createNotification = async (data) => {
       case 'Reel':
         findQuery.reelId = data.reelId;
         if (data.commentId) {
-            findQuery.commentId = data.commentId; // ID bình luận trên Reel
+            findQuery.commentId = data.commentId; 
         }
         break;
       case 'User':
-        // senderId đủ để định danh hành động User-to-User
         break;
       default:
-        findQuery.message = message; // Dùng tin nhắn cho thông báo chung chung
+        findQuery.message = message;
         break;
     }
 
     let existingNotification = await Notification.findOne(findQuery);
+    let notificationToEmit; 
 
     if (existingNotification) {
       console.log('Đã tìm thấy thông báo hiện có, đang cập nhật:', existingNotification._id);
 
-      // Cập nhật trạng thái và thời gian để làm mới thông báo
       if (existingNotification.status === 'read') {
         existingNotification.status = 'unread';
         existingNotification.readAt = null;
@@ -114,26 +110,42 @@ const createNotification = async (data) => {
       existingNotification.createdAt = Date.now();
 
       await existingNotification.save();
-
-      // Phát sự kiện cập nhật cho frontend
-      emitEvent("user", data.receiverId, "updatedNotification", {
-        notification: existingNotification,
-      });
-
-      return existingNotification;
+      notificationToEmit = existingNotification;
 
     } else {
-      // Tạo thông báo mới nếu không tìm thấy bản trùng lặp
       const newNotification = await Notification.create(data);
-      console.log('Đã tạo thông báo mới:', newNotification._id);
+      notificationToEmit = newNotification;
+    }
 
-      // Phát sự kiện thông báo mới cho frontend
-      emitEvent("user", data.receiverId, "newNotification", {
-        notification: newNotification,
+    notificationToEmit = await Notification.findById(notificationToEmit._id)
+      .populate({
+        path: "senderId",
+        select: "displayName hashtag avt",
+        populate: {
+          path: "avt",
+          select: "url name",
+        },
+      })
+      .populate({
+        path: "receiverId",
+        select: "displayName hashtag avt",
+        populate: {
+          path: "avt",
+          select: "url name",
+        },
       });
 
-      return newNotification;
+    if (existingNotification) {
+      emitEvent("user", data.receiverId, "updatedNotification", {
+        notification: notificationToEmit, // Gửi thông báo đã được populate
+      });
+    } else {
+      emitEvent("user", data.receiverId, "newNotification", {
+        notification: notificationToEmit, // Gửi thông báo đã được populate
+      });
     }
+
+    return notificationToEmit;
   } catch (error) {
     console.error("Lỗi trong createNotification:", error);
     throw error;

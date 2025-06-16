@@ -79,9 +79,15 @@ const createComment = async (data, files) => {
       await reel.save();
     }
 
-    // Phát sự kiện Socket.IO
+    // Fetch populated comment data
+    const populatedComment = await getCommentById(newComment._id);
+    if (!populatedComment) {
+      throw new Error("Không thể lấy dữ liệu bình luận vừa tạo");
+    }
+
+    // Phát sự kiện Socket.IO với dữ liệu đầy đủ
     emitEvent("post", articleId, "newComment", {
-      comment: newComment,
+      comment: populatedComment,
       articleId,
     });
   } else if (replyComment && !articleId) {
@@ -96,8 +102,15 @@ const createComment = async (data, files) => {
     // Tìm articleId liên quan
     const article = await Article.findOne({ comments: replyComment });
     if (article) {
+      // Fetch populated comment data
+      const populatedComment = await getCommentById(newComment._id);
+      if (!populatedComment) {
+        throw new Error("Không thể lấy dữ liệu bình luận vừa tạo");
+      }
+
+      // Phát sự kiện Socket.IO với dữ liệu đầy đủ
       emitEvent("post", article._id, "newReplyComment", {
-        comment: newComment,
+        comment: populatedComment,
         parentCommentId: replyComment,
       });
     }
@@ -119,9 +132,30 @@ const createComment = async (data, files) => {
     uploadedMedia = [uploadedFile];
     newComment.img = uploadedMedia.map((media) => media._id);
     await newComment.save();
+
+    // Fetch populated comment again after updating media
+    const populatedComment = await getCommentById(newComment._id);
+    if (!populatedComment) {
+      throw new Error("Không thể lấy dữ liệu bình luận sau khi cập nhật media");
+    }
+
+    // Re-emit event if media was added to ensure frontend gets updated comment
+    if (articleId && !replyComment) {
+      emitEvent("post", articleId, "newComment", {
+        comment: populatedComment,
+        articleId,
+      });
+    } else if (replyComment && article) {
+      emitEvent("post", article._id, "newReplyComment", {
+        comment: populatedComment,
+        parentCommentId: replyComment,
+      });
+    }
   }
 
-  return newComment;
+  // Return the populated comment
+  const finalComment = await getCommentById(newComment._id);
+  return finalComment;
 };
 
 const updateCommentById = async (id, data) => {
