@@ -1,20 +1,12 @@
 import dotenv from 'dotenv';
 import { ImageAnnotatorClient } from '@google-cloud/vision';
-import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
 import { env } from '../../config/environment.js';
 
 dotenv.config();
 
-// Khởi tạo Google Cloud Storage
-const storage = new Storage({
-  keyFilename: env.KEYFILENAME
-});
-
 // Khởi tạo Google Cloud Vision client
-const visionClient = new ImageAnnotatorClient({
-  keyFilename: env.KEYFILENAME
-});
+const visionClient = new ImageAnnotatorClient();
 
 const generateContent = async (req, res) => {
   try {

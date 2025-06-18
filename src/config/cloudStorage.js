@@ -3,9 +3,7 @@ import fs from 'fs';
 import { env } from './environment.js';
 
 // Khởi tạo Google Cloud Storage
-const storage = new Storage({
-  keyFilename: env.KEYFILENAME, // Đường dẫn đến file JSON
-});
+const storage = new Storage();
 
 const bucket = storage.bucket(env.BUCKET_NAME);
 
