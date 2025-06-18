@@ -1,15 +1,20 @@
-﻿FROM node:21.6.2
+﻿# Base image
+FROM node:22
 
-LABEL maintainer="trunghauad02@gmail.com"
-
+# Tạo thư mục làm việc bên trong container
 WORKDIR /app
 
-COPY package* ./
+# Copy file package.json và package-lock.json trước để cache layer npm install
+COPY package*.json ./
 
-RUN npm install
+# Cài dependencies
+RUN npm install --production
 
+# Copy toàn bộ source code
 COPY . .
 
-EXPOSE 3000
+# Đảm bảo port 8080 được expose (Cloud Run mặc định dùng PORT 8080)
+EXPOSE 8080
 
+# Command khởi chạy ứng dụng
 CMD ["node", "./bin/www"]
