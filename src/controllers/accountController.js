@@ -292,6 +292,28 @@ const comparePassword = async (req, res) => {
     });
   }
 };
+
+const logOut = async (req, res) => {
+  try {
+    const result = await accountService.logOut(req.body.userId);
+    if (result) {
+      return res.status(200).json({
+      success: true,
+      message: "Đăng xuất thành công",
+    });
+    }
+    return res.status(400).json({
+      success: true,
+      message: "Đăng xuất thất bại",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Lỗi hệ thống, vui lòng thử lại",
+    });
+  }
+};
+
 export const accountController = {
   getAccounts,
   getAccountById,
@@ -305,5 +327,6 @@ export const accountController = {
   updatePassword,
   checkEmail,
   checkHashtag,
-  comparePassword
+  comparePassword,
+  logOut
 }

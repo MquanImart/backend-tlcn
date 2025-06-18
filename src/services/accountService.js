@@ -129,6 +129,7 @@ const loginAccount = async (email, password) => {
   }
 
   const user = await User.findOne({ account: account._id });
+  await Account.findByIdAndUpdate(account._id, {state: 'online'});
   const token = jwt.sign(
     {
       userId: user._id,
@@ -348,6 +349,12 @@ const checkHashtag = async (hashtag) => {
   };
 };
 
+const logOut = async (userId) => {
+  const existingUser = await User.findById(userId);
+  await Account.findByIdAndUpdate(existingUser.account, {state: 'offline'})
+  return true;
+};
+
 export const accountService = {
   getAccounts,
   getAccountById,
@@ -365,4 +372,5 @@ export const accountService = {
   sendOtp,
   checkEmail,
   checkHashtag,
+  logOut
 };

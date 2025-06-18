@@ -777,4 +777,7 @@ Router.post("/check-hashtag", accountController.checkHashtag);
  *                   example: "Lỗi hệ thống, vui lòng thử lại"
  */
 Router.post("/compare-password", accountController.comparePassword);
+
+Router.post("/logout",verifyToken, accountController.logOut);
+
 export const accountRoute = Router;
